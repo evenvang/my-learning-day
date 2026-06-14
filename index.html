@@ -25,12 +25,19 @@
     }
 
     * { box-sizing: border-box; }
+    html {
+      width: 100%;
+      overflow-x: hidden;
+    }
+
     body {
+      width: 100%;
       margin: 0;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
       background: var(--bg);
       color: var(--ink);
       letter-spacing: 0;
+      overflow-x: hidden;
     }
 
     button, input, select {
@@ -39,6 +46,7 @@
 
     .app {
       min-height: 100vh;
+      min-width: 0;
     }
 
     .topbar {
@@ -54,6 +62,7 @@
       grid-template-columns: 1fr auto;
       gap: 16px;
       align-items: center;
+      min-width: 0;
     }
 
     h1 {
@@ -111,6 +120,7 @@
       padding: 22px;
       display: grid;
       gap: 18px;
+      min-width: 0;
     }
 
     .dashboard {
@@ -118,6 +128,7 @@
       grid-template-columns: minmax(0, 1.08fr) minmax(360px, 0.92fr);
       gap: 18px;
       align-items: start;
+      min-width: 0;
     }
 
     .panel {
@@ -125,6 +136,7 @@
       border: 1px solid var(--line);
       border-radius: 8px;
       box-shadow: var(--shadow);
+      min-width: 0;
     }
 
     .panel-head {
@@ -144,6 +156,7 @@
 
     .panel-body {
       padding: 16px;
+      min-width: 0;
     }
 
     .metric-grid {
@@ -229,7 +242,7 @@
       display: flex;
       justify-content: space-between;
       gap: 10px;
-      align-items: center;
+      align-items: flex-start;
       color: var(--muted);
       font-size: 12px;
       margin-bottom: 6px;
@@ -325,6 +338,7 @@
     .task-text {
       font-size: 14px;
       line-height: 1.55;
+      overflow-wrap: anywhere;
     }
 
     .stage-list {
@@ -491,6 +505,7 @@
       font-size: 12px;
       color: var(--muted);
       line-height: 1.25;
+      overflow-wrap: anywhere;
     }
 
     .detail-grid {
@@ -593,7 +608,9 @@
 
     .timeline-wrap {
       overflow-x: auto;
+      max-width: 100%;
       padding-bottom: 2px;
+      -webkit-overflow-scrolling: touch;
     }
 
     .timeline-grid {
@@ -735,6 +752,23 @@
         padding: 16px 14px;
       }
 
+      .toolbar {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .toolbar .select {
+        grid-column: 1 / -1;
+        width: 100%;
+      }
+
+      .toolbar .btn {
+        width: 100%;
+        padding: 0 8px;
+      }
+
       h1 {
         font-size: 21px;
       }
@@ -750,16 +784,65 @@
 
       .day {
         min-height: 78px;
-        padding: 7px;
+        padding: 6px;
+      }
+
+      .day-number {
+        font-size: 12px;
       }
 
       .day-subject {
-        font-size: 11px;
+        font-size: 10px;
       }
 
       .panel-head {
         align-items: flex-start;
         flex-direction: column;
+      }
+
+      .panel-body {
+        padding: 14px;
+      }
+
+      .task-label {
+        flex-direction: column;
+      }
+
+      .task-actions,
+      .detail-actions {
+        width: 100%;
+        justify-content: flex-start;
+      }
+
+      .extra-form {
+        grid-template-columns: 1fr;
+      }
+
+      .timeline-grid {
+        min-width: 920px;
+        grid-template-columns: 72px repeat(12, 64px);
+        gap: 6px;
+      }
+
+      .timeline-head {
+        min-height: 48px;
+        font-size: 12px;
+      }
+
+      .timeline-row-label {
+        min-height: 96px;
+        font-size: 18px;
+      }
+
+      .timeline-cell {
+        min-height: 96px;
+        padding: 7px;
+      }
+
+      .timeline-input {
+        min-height: 68px;
+        font-size: 12px;
+        text-align: left;
       }
     }
   </style>
@@ -896,6 +979,8 @@
     const modules = ["全部", "资料分析", "判断推理", "言语理解", "数量关系", "单休", "顺延"];
     const weekdayLabels = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"];
     const taskLabels = ["早上1小时", "上午1.5小时行测", "下午2.5小时行测", "晚上1.5小时申论"];
+    const byDate = new Map(PLAN.map((item) => [item["日期"], item]));
+    const studyItems = PLAN.filter((item) => item["主线模块"] !== "单休");
     const bootDeferred = loadDeferred();
     const initialDate = getInitialDate(bootDeferred);
     const state = {
@@ -907,9 +992,6 @@
       timeline: loadTimeline(),
       deferred: bootDeferred,
     };
-
-    const byDate = new Map(PLAN.map((item) => [item["日期"], item]));
-    const studyItems = PLAN.filter((item) => item["主线模块"] !== "单休");
 
     function loadCompleted() {
       try {
@@ -1069,17 +1151,46 @@
       return labels[parseDate(date).getDay()];
     }
 
+    function isSunday(date) {
+      return getWeekday(date) === "周日";
+    }
+
+    function makeSundayRestItem(date) {
+      const base = byDate.get(date);
+      return {
+        "日期": date,
+        "星期": "周日",
+        "主线模块": "单休",
+        "早上1小时": base?.["早上1小时"] || "休息，不安排硬性任务",
+        "上午1.5小时行测": base?.["上午1.5小时行测"] || "休息",
+        "下午2.5小时行测": base?.["下午2.5小时行测"] || "休息",
+        "晚上1.5小时申论": base?.["晚上1.5小时申论"] || "晚上：政治理论+时政学习60m",
+        "复盘/当日重点": base?.["复盘/当日重点"] || "周日固定休息，不随顺延移动",
+        "阶段": base?.["阶段"] || "政治理论+时政",
+        "来源日期": "",
+      };
+    }
+
     function getDeferredDates(deferred = state.deferred) {
-      return Object.keys(deferred || {}).filter((date) => date >= PLAN[0]["日期"]).sort();
+      return Object.keys(deferred || {}).filter((date) => date >= PLAN[0]["日期"] && !isSunday(date)).sort();
     }
 
     function getVisibleDates(deferred = state.deferred) {
-      const total = PLAN.length + getDeferredDates(deferred).length;
-      return Array.from({ length: total }, (_, index) => addDays(PLAN[0]["日期"], index));
+      const dates = [];
+      let assignedStudyDays = 0;
+      let date = PLAN[0]["日期"];
+      let guard = 0;
+      while (assignedStudyDays < studyItems.length && guard < 520) {
+        dates.push(date);
+        if (!isSunday(date) && !deferred[date]) assignedStudyDays++;
+        date = addDays(date, 1);
+        guard++;
+      }
+      return dates;
     }
 
     function isDateDeferred(date) {
-      return !!state.deferred[date];
+      return !!state.deferred[date] && !isSunday(date);
     }
 
     function isVisibleDate(date, deferred = state.deferred) {
@@ -1089,6 +1200,7 @@
 
     function getEffectiveItem(date, deferred = state.deferred) {
       if (!isVisibleDate(date, deferred)) return null;
+      if (isSunday(date)) return makeSundayRestItem(date);
       if (deferred[date]) {
         return {
           "日期": date,
@@ -1103,10 +1215,10 @@
           "来源日期": "",
         };
       }
-      const index = dayDiff(date, PLAN[0]["日期"]);
-      const delayCount = getDeferredDates(deferred).filter((item) => item <= date).length;
-      const sourceIndex = index - delayCount;
-      const source = PLAN[sourceIndex];
+      const sourceIndex = getVisibleDates(deferred)
+        .filter((item) => item <= date && !isSunday(item) && !deferred[item])
+        .length - 1;
+      const source = studyItems[sourceIndex];
       if (!source) return null;
       return {
         ...source,
@@ -1118,6 +1230,7 @@
 
     function deferDate(date) {
       if (!isVisibleDate(date)) return;
+      if (isSunday(date)) return;
       state.deferred[date] = true;
       delete state.completed[date];
       saveDeferred();
@@ -1280,7 +1393,10 @@
 
     function getScheduledPercent() {
       const current = getCurrentPlanDate();
-      const passed = studyItems.filter((item) => item["日期"] <= current).length;
+      const passed = getVisibleDates().filter((date) => {
+        const item = getEffectiveItem(date);
+        return date <= current && item && item["主线模块"] !== "单休" && item["主线模块"] !== "顺延";
+      }).length;
       return Math.round((passed / studyItems.length) * 100);
     }
 
@@ -1432,9 +1548,11 @@
       const extras = getCustomEntry(item["日期"]).extras;
       const canCheck = item["主线模块"] !== "顺延";
       const sourceText = item["来源日期"] && item["来源日期"] !== item["日期"] ? " · 原计划 " + formatShortDate(item["来源日期"]) : "";
-      const deferButton = isDateDeferred(item["日期"])
-        ? '<button class="btn" data-cancel-defer-date="' + escapeHtml(item["日期"]) + '">取消本日顺延</button>'
-        : '<button class="btn" data-defer-date="' + escapeHtml(item["日期"]) + '">从本日顺延一天</button>';
+      const deferButton = item["主线模块"] === "单休"
+        ? ""
+        : (isDateDeferred(item["日期"])
+          ? '<button class="btn" data-cancel-defer-date="' + escapeHtml(item["日期"]) + '">取消本日顺延</button>'
+          : '<button class="btn" data-defer-date="' + escapeHtml(item["日期"]) + '">从本日顺延一天</button>');
       const doneControl = canCheck ? '<label class="check-row"><input id="doneCheck" type="checkbox" ' + (isDayDone(item["日期"]) ? "checked" : "") + '><span>全部完成</span></label>' : "";
       document.getElementById("selectedBadge").textContent = item["主线模块"];
       document.getElementById("detail").innerHTML =
