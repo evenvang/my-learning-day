@@ -172,7 +172,7 @@
 
     .metric-grid {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(5, minmax(0, 1fr));
       gap: 12px;
     }
 
@@ -196,6 +196,57 @@
       font-size: 26px;
       font-weight: 780;
       line-height: 1.1;
+    }
+
+    .noise-metric {
+      min-height: 92px;
+      border: 0;
+      border-radius: 999px;
+      padding: 14px 16px;
+      background: linear-gradient(135deg, #fff3bc, #ffe9a8);
+      box-shadow: 0 12px 28px rgba(132, 96, 55, .12);
+      display: grid;
+      grid-template-columns: 42px minmax(0, 1fr) 42px;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .noise-icon,
+    .noise-play {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      border: 0;
+    }
+
+    .noise-icon {
+      background: rgba(255, 255, 255, .34);
+      color: #9a4f14;
+      font-size: 20px;
+    }
+
+    .noise-play {
+      background: #ffffff;
+      color: #d08b1f;
+      cursor: pointer;
+      font-size: 18px;
+      box-shadow: 0 8px 18px rgba(132, 96, 55, .10);
+    }
+
+    .noise-title {
+      color: #7c3512;
+      font-size: 18px;
+      font-weight: 900;
+      line-height: 1.1;
+    }
+
+    .noise-subtitle {
+      margin-top: 4px;
+      color: #d18a27;
+      font-size: 13px;
+      font-weight: 800;
     }
 
     .today-layout {
@@ -352,53 +403,23 @@
       overflow-wrap: anywhere;
     }
 
-    .stage-list {
+    .video-panel {
+      min-height: 100%;
       display: grid;
-      gap: 12px;
+      grid-template-rows: auto minmax(0, 1fr);
     }
 
-    .stage-row {
+    .video-panel .panel-body {
+      min-height: 0;
       display: grid;
-      grid-template-columns: 96px 1fr 54px;
-      gap: 12px;
-      align-items: center;
-    }
-
-    .stage-name {
-      font-weight: 680;
-      font-size: 13px;
-    }
-
-    .progress-track {
-      height: 12px;
-      border-radius: 999px;
-      background: #edf1f6;
-      overflow: hidden;
-      border: 1px solid #e2e9f2;
-    }
-
-    .progress-fill {
-      height: 100%;
-      border-radius: 999px;
-      background: var(--blue);
-      width: 0%;
-    }
-
-    .stage-row:nth-child(2) .progress-fill { background: var(--green); }
-    .stage-row:nth-child(3) .progress-fill { background: var(--amber); }
-    .stage-row:nth-child(4) .progress-fill { background: var(--rose); }
-    .stage-row:nth-child(5) .progress-fill { background: var(--cyan); }
-
-    .progress-value {
-      color: var(--muted);
-      font-variant-numeric: tabular-nums;
-      text-align: right;
-      font-size: 12px;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      gap: 10px;
     }
 
     .video-frame {
       width: 100%;
-      height: clamp(220px, 14vw, 280px);
+      height: 100%;
+      min-height: 360px;
       border: 0;
       border-radius: 8px;
       background: #101820;
@@ -406,17 +427,104 @@
     }
 
     .video-caption {
-      margin-top: 10px;
       color: var(--muted);
       font-size: 12px;
       line-height: 1.45;
     }
 
+    .video-form {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .video-form input {
+      height: 28px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 0 8px;
+      color: var(--text);
+      font-size: 12px;
+      min-width: 0;
+    }
+
+    .video-form .btn {
+      height: 28px;
+      padding: 0 9px;
+      font-size: 12px;
+    }
+
     .tool-grid {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 18px;
       align-items: stretch;
+    }
+
+    .tool-card {
+      position: relative;
+      overflow: hidden;
+      min-height: 248px;
+      height: 100%;
+    }
+
+    .tool-card::before {
+      content: "";
+      position: absolute;
+      inset: -40% auto auto -22%;
+      width: 170px;
+      height: 170px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, .28);
+      filter: blur(4px);
+      pointer-events: none;
+    }
+
+    .tool-card .panel-head,
+    .tool-card .panel-body {
+      position: relative;
+      z-index: 1;
+    }
+
+    .cycle-card {
+      background:
+        radial-gradient(circle at 12% 8%, rgba(251, 191, 36, .20), transparent 34%),
+        linear-gradient(135deg, #ffffff 0%, #fffaf0 54%, #fff7ed 100%);
+      border-radius: 16px;
+    }
+
+    .cycle-card .panel-body {
+      padding: 24px 28px 28px;
+    }
+
+    .cycle-card .tool-stack {
+      max-width: 760px;
+      margin: 0 auto;
+      gap: 14px;
+    }
+
+    .dump-card {
+      background:
+        radial-gradient(circle at 18% 12%, rgba(14, 165, 233, .12), transparent 38%),
+        linear-gradient(135deg, #ffffff 0%, #fbfdff 55%, #f1f7ff 100%);
+      border-radius: 16px;
+      min-height: 100%;
+    }
+
+    .dump-card .panel-body,
+    .dump-card .tool-stack {
+      height: 100%;
+    }
+
+    .dump-card .panel-body {
+      padding-bottom: 24px;
+    }
+
+    .dump-card .tool-stack {
+      grid-template-rows: minmax(190px, .78fr) auto;
+      align-content: start;
+      gap: 22px;
     }
 
     .tool-stack {
@@ -446,36 +554,208 @@
       accent-color: var(--green);
     }
 
-    .radar-wrap {
+    .cycle-settings {
       display: grid;
-      grid-template-columns: 150px minmax(0, 1fr);
-      gap: 14px;
-      align-items: center;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
     }
 
-    .radar-svg {
-      width: 150px;
-      height: 150px;
+    .mini-field {
+      display: grid;
+      gap: 5px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .mini-field input {
+      width: 100%;
+      height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 0 8px;
+      color: var(--text);
+      background: rgba(255, 255, 255, .78);
+    }
+
+    .cycle-hero {
+      display: grid;
+      grid-template-columns: 70px minmax(0, 1fr) 76px;
+      gap: 14px;
+      align-items: center;
+      border-radius: 16px;
+      padding: 16px;
+      background: linear-gradient(135deg, #fff8e7, #fff4e1);
+      box-shadow: 0 10px 22px rgba(132, 96, 55, .10);
+    }
+
+    .cycle-icon {
+      width: 58px;
+      height: 58px;
+      border-radius: 18px;
+      display: grid;
+      place-items: center;
+      background: #ffffff;
+      font-size: 30px;
+      box-shadow: 0 8px 18px rgba(132, 96, 55, .10);
+    }
+
+    .cycle-day {
+      color: #7b8798;
+      font-weight: 900;
+      letter-spacing: .08em;
+      font-size: 13px;
+      text-transform: uppercase;
+    }
+
+    .cycle-name {
+      margin-top: 3px;
+      color: var(--text);
+      font-size: 28px;
+      line-height: 1.1;
+      font-weight: 900;
+    }
+
+    .cycle-gauge {
+      width: 70px;
+      height: 70px;
+    }
+
+    .cycle-note {
+      border: 1px solid rgba(217, 225, 236, .75);
+      border-radius: 14px;
+      padding: 14px;
+      background: rgba(255, 255, 255, .82);
+      color: #40506a;
+      font-size: 15px;
+      font-weight: 750;
+      line-height: 1.6;
+    }
+
+    .cycle-bars {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .cycle-bar-label {
+      display: flex;
+      justify-content: space-between;
+      color: #8a97aa;
+      font-size: 12px;
+      font-weight: 800;
+      margin-bottom: 7px;
+    }
+
+    .cycle-bar-track {
+      height: 10px;
+      border-radius: 999px;
+      background: #e9eef5;
+      overflow: hidden;
+    }
+
+    .cycle-bar-fill {
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #20c997, #34d399);
+    }
+
+    .cycle-tips {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .cycle-tip {
+      border: 1px solid rgba(217, 225, 236, .72);
+      border-radius: 14px;
+      padding: 12px;
+      background: rgba(248, 250, 252, .88);
+      color: #40506a;
+      line-height: 1.55;
+      font-weight: 750;
+      font-size: 13px;
+    }
+
+    .cycle-tip small {
+      display: block;
+      color: #8a97aa;
+      font-size: 12px;
+      font-weight: 800;
+      margin-bottom: 5px;
+    }
+
+    .cycle-disclaimer {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .brain-board {
+      min-height: 260px;
+      border-radius: 18px;
+      padding: 18px 12px;
+      background: rgba(255, 255, 255, .58);
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      align-content: flex-start;
+      justify-content: center;
+      border: 1px solid rgba(217, 225, 236, .55);
     }
 
     .brain-list {
-      display: grid;
-      gap: 8px;
-      max-height: 164px;
-      overflow-y: auto;
+      display: contents;
     }
 
     .brain-item {
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 9px 10px;
+      border: 0;
+      border-radius: 16px;
+      padding: 12px 16px;
+      min-width: 104px;
+      max-width: 210px;
+      background: #ffe2e7;
+      color: #d71954;
+      font-size: 15px;
+      font-weight: 820;
+      line-height: 1.42;
+      box-shadow: 0 10px 20px rgba(54, 65, 85, .08);
+      transform: rotate(-1.5deg);
+      display: grid;
+      gap: 8px;
+    }
+
+    .brain-item:nth-child(even) {
+      background: #ffefd5;
+      color: #c2410c;
+      transform: rotate(1.2deg);
+    }
+
+    .brain-item .link-btn {
+      justify-self: end;
+      font-size: 12px;
+      opacity: .72;
+    }
+
+    .brain-capture {
       display: grid;
       grid-template-columns: minmax(0, 1fr) auto;
-      gap: 8px;
-      align-items: start;
-      background: #fbfcfe;
-      font-size: 13px;
-      line-height: 1.45;
+      gap: 10px;
+      align-items: center;
+      border: 3px solid #0d66d0;
+      border-radius: 14px;
+      padding: 8px 10px;
+      background: #ffffff;
+      margin-bottom: 4px;
+    }
+
+    .brain-capture textarea {
+      min-height: 44px;
+      border: 0;
+      padding: 8px;
+      resize: none;
+      box-shadow: none;
+      background: transparent;
+      font-size: 15px;
     }
 
     .filters {
@@ -664,60 +944,6 @@
       accent-color: var(--green);
     }
 
-    .upcoming {
-      display: grid;
-      gap: 8px;
-    }
-
-    .upcoming-item {
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 10px 12px;
-      background: #ffffff;
-      display: grid;
-      grid-template-columns: 92px 1fr;
-      gap: 12px;
-      align-items: center;
-    }
-
-    .upcoming-date {
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.35;
-    }
-
-    .upcoming-main {
-      min-width: 0;
-      font-size: 13px;
-      line-height: 1.4;
-    }
-
-    .suite-grid {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 12px;
-    }
-
-    .suite {
-      border: 1px solid var(--line);
-      background: #ffffff;
-      border-radius: 8px;
-      padding: 14px;
-      min-height: 158px;
-    }
-
-    .suite h3 {
-      margin: 0 0 8px;
-      font-size: 15px;
-    }
-
-    .suite p {
-      margin: 7px 0 0;
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.45;
-    }
-
     .timeline-wrap {
       overflow-x: auto;
       max-width: 100%;
@@ -841,8 +1067,10 @@
         justify-content: flex-start;
       }
 
-      .metric-grid,
-      .suite-grid,
+      .metric-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
       .tool-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
@@ -887,12 +1115,21 @@
       }
 
       .metric-grid,
-      .suite-grid,
       .tool-grid {
         grid-template-columns: 1fr;
       }
 
+      .dump-card,
+      .cycle-card {
+        grid-column: auto;
+        grid-row: auto;
+      }
+
       .radar-wrap {
+        grid-template-columns: 1fr;
+      }
+
+      .cycle-settings {
         grid-template-columns: 1fr;
       }
 
@@ -1006,6 +1243,16 @@
           <span class="label">当前模块</span>
           <span class="value" id="metricModule">资料</span>
         </div>
+        <div class="metric noise-metric">
+          <div class="noise-icon" aria-hidden="true">🔇</div>
+          <div>
+            <div class="noise-title">大脑静音</div>
+            <div class="noise-subtitle" id="brownNoiseHint">棕色噪音</div>
+          </div>
+          <button id="brownNoiseButton" class="noise-play" aria-label="播放棕色噪音">▶</button>
+          <span id="brownNoiseBadge" hidden>待机</span>
+          <span id="noiseOrb" hidden></span>
+        </div>
       </section>
 
       <section class="dashboard">
@@ -1027,79 +1274,71 @@
         </div>
 
         <div class="side-stack">
-          <div class="panel">
-            <div class="panel-head">
-              <h2 class="panel-title">阶段进度</h2>
-            </div>
-            <div class="panel-body">
-              <div class="stage-list" id="stageList"></div>
-            </div>
-          </div>
-
-          <div class="panel">
+          <div class="panel video-panel">
             <div class="panel-head">
               <h2 class="panel-title">专注背景音</h2>
             </div>
             <div class="panel-body">
+              <div class="video-form">
+                <input id="focusVideoUrl" type="url" placeholder="粘贴 B 站链接，Enter 更新" aria-label="B站视频链接">
+                <button id="updateFocusVideoButton" class="btn primary">更新</button>
+              </div>
               <iframe
                 class="video-frame"
+                id="focusVideoFrame"
                 src="https://player.bilibili.com/player.html?isOutside=true&bvid=BV1884y137AZ&page=1&autoplay=0"
                 title="ADHD七小时超长集中注意力&专注学习&舒缓压力背景音｜脑波音乐"
                 allow="autoplay; fullscreen; picture-in-picture"
                 allowfullscreen
               ></iframe>
-              <div class="video-caption">ADHD七小时超长集中注意力&专注学习&舒缓压力背景音｜脑波音乐</div>
+              <div class="video-caption" id="focusVideoCaption">ADHD七小时超长集中注意力&专注学习&舒缓压力背景音｜脑波音乐</div>
             </div>
           </div>
         </div>
       </section>
 
       <section class="tool-grid" aria-label="ADHD 工具箱">
-        <div class="panel">
-          <div class="panel-head">
-            <h2 class="panel-title">棕色噪音</h2>
-            <span class="badge" id="brownNoiseBadge">待机</span>
-          </div>
-          <div class="panel-body">
-            <div class="tool-stack">
-              <div class="tool-row">
-                <button id="brownNoiseButton" class="btn primary">开始播放</button>
-                <span class="subline">低频背景声，适合刷题时压住环境干扰</span>
-              </div>
-              <label class="range-row">
-                <span>音量</span>
-                <input id="brownNoiseVolume" type="range" min="0" max="100" value="35">
-                <span id="brownNoiseVolumeValue">35</span>
-              </label>
-            </div>
-          </div>
-        </div>
-
-        <div class="panel">
+        <div class="panel tool-card cycle-card">
           <div class="panel-head">
             <h2 class="panel-title">荷尔蒙雷达</h2>
             <span class="badge" id="radarDateBadge">今日</span>
           </div>
           <div class="panel-body">
-            <div class="radar-wrap">
-              <svg id="hormoneRadar" class="radar-svg" viewBox="0 0 160 160" role="img" aria-label="当天状态雷达图"></svg>
-              <div class="tool-stack" id="hormoneControls"></div>
+            <div class="tool-stack">
+              <div class="cycle-hero" id="cycleHero"></div>
+              <div class="cycle-note" id="cycleNote"></div>
+              <div class="cycle-bars" id="cycleBars"></div>
+              <div class="cycle-tips" id="cycleTips"></div>
+              <div class="cycle-settings">
+                <label class="mini-field">上次开始
+                  <input id="cycleStartInput" type="date">
+                </label>
+                <label class="mini-field">周期
+                  <input id="cycleLengthInput" type="number" min="21" max="40" value="28">
+                </label>
+                <label class="mini-field">经期
+                  <input id="periodLengthInput" type="number" min="2" max="10" value="5">
+                </label>
+              </div>
+              <div class="cycle-disclaimer">仅作自我观察，不是医学判断；如果周期明显不规律，以身体感受优先。</div>
             </div>
           </div>
         </div>
 
-        <div class="panel">
+        <div class="panel tool-card dump-card">
           <div class="panel-head">
             <h2 class="panel-title">Brain dump</h2>
             <span class="badge" id="brainDumpCount">0 条</span>
           </div>
           <div class="panel-body">
             <div class="tool-stack">
-              <div class="extra-form">
+              <div class="brain-board">
+                <div class="brain-list" id="brainDumpList"></div>
+              </div>
+              <div class="brain-capture">
                 <textarea id="brainDumpText" class="textarea" placeholder="先倒出来，不用分类：担心什么、想到什么、要查什么都可以"></textarea>
                 <button id="addBrainDumpButton" class="btn primary">收集</button>
               </div>
-              <div class="brain-list" id="brainDumpList"></div>
             </div>
           </div>
         </div>
@@ -1130,24 +1369,6 @@
           <div class="panel-body">
             <div class="detail-grid" id="detail"></div>
           </div>
-        </div>
-      </section>
-
-      <section class="panel">
-        <div class="panel-head">
-          <h2 class="panel-title">后续 7 个学习日</h2>
-        </div>
-        <div class="panel-body">
-          <div class="upcoming" id="upcoming"></div>
-        </div>
-      </section>
-
-      <section class="panel">
-        <div class="panel-head">
-          <h2 class="panel-title">10-11 月套卷阶段</h2>
-        </div>
-        <div class="panel-body">
-          <div class="suite-grid" id="suiteGrid"></div>
         </div>
       </section>
 
@@ -1194,16 +1415,78 @@
     const TIMELINE_KEY = "gongkao-study-dashboard-timeline-v1";
     const DEFER_KEY = "gongkao-study-dashboard-defer-v1";
     const ADHD_TOOLS_KEY = "gongkao-study-dashboard-adhd-tools-v1";
+    const BROWN_NOISE_SRC = "assets/brown-noise.m4a";
+    const DEFAULT_FOCUS_VIDEO = {
+      bvid: "BV1884y137AZ",
+      url: "https://www.bilibili.com/video/BV1884y137AZ/",
+      caption: "ADHD七小时超长集中注意力&专注学习&舒缓压力背景音｜脑波音乐",
+    };
     const modules = ["全部", "资料分析", "判断推理", "言语理解", "数量关系", "单休", "顺延"];
     const weekdayLabels = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"];
     const taskLabels = ["早上1小时", "上午1.5小时行测", "下午2.5小时行测", "晚上1.5小时申论"];
-    const hormoneMetrics = [
+    const cycleRadarMetrics = [
       { id: "energy", label: "能量" },
       { id: "focus", label: "专注" },
       { id: "mood", label: "情绪" },
-      { id: "stress", label: "压力" },
+      { id: "sensitivity", label: "敏感" },
       { id: "body", label: "身体" },
     ];
+    const cyclePhaseProfiles = {
+      period: {
+        label: "经期",
+        moodName: "身体优先日",
+        icon: "🌙",
+        metrics: { baseline: 42, executive: 50, energy: 3, focus: 4, mood: 5, sensitivity: 7, body: 3 },
+        note: "能量偏低，别硬扛。今天适合轻刷题、复盘、整理错题，把任务切到最小。",
+        train: "复盘错题、看课回放、轻量背诵。",
+        food: "热饮、温热主食、补铁食物。少冰少熬夜。",
+      },
+      follicular: {
+        label: "卵泡期",
+        moodName: "大脑晴天",
+        icon: "☀️",
+        metrics: { baseline: 88, executive: 86, energy: 8, focus: 8, mood: 7, sensitivity: 3, body: 7 },
+        note: "能量回升，脑子比较亮。适合攻坚新课、难题、需要强专注的模块。",
+        train: "新课、重训、限时刷题。挑战 PR 的最佳时机！",
+        food: "高纤维蔬果、优质蛋白。少食多餐保持精力稳定。",
+      },
+      ovulation: {
+        label: "排卵期",
+        moodName: "输出高光日",
+        icon: "✨",
+        metrics: { baseline: 82, executive: 78, energy: 7, focus: 7, mood: 8, sensitivity: 4, body: 8 },
+        note: "表达和连接感更好。适合申论输出、套卷复盘、把题讲给自己听。",
+        train: "申论表达、复盘讲解、整组限时。",
+        food: "清爽蛋白、蔬菜、水果。保持水分。",
+      },
+      luteal: {
+        label: "黄体期",
+        moodName: "稳住节奏日",
+        icon: "🍃",
+        metrics: { baseline: 64, executive: 62, energy: 5, focus: 5, mood: 5, sensitivity: 6, body: 5 },
+        note: "状态不一定差，但容易被打断。今天少改计划，按清单推进就赢了。",
+        train: "固定题量、错题回炉、低摩擦复习。",
+        food: "复合碳水、镁元素食物、温和蛋白。",
+      },
+      premenstrual: {
+        label: "经前期",
+        moodName: "低刺激模式",
+        icon: "☁️",
+        metrics: { baseline: 45, executive: 48, energy: 4, focus: 4, mood: 3, sensitivity: 8, body: 4 },
+        note: "情绪和身体更敏感。今天目标是别崩盘：完成最小闭环，比完美重要。",
+        train: "短番茄钟、简单题、整理资料。",
+        food: "温热食物、少咖啡因、少高盐高糖。",
+      },
+      unknown: {
+        label: "待设置",
+        moodName: "先校准周期",
+        icon: "🧭",
+        metrics: { baseline: 55, executive: 55, energy: 5, focus: 5, mood: 5, sensitivity: 5, body: 5 },
+        note: "填入上次月经开始日期后，会按你选中的日期估算今日状态。",
+        train: "先设置周期，再给你当天学习建议。",
+        food: "保持稳定作息和饮水。",
+      },
+    };
     const byDate = new Map(PLAN.map((item) => [item["日期"], item]));
     const studyItems = PLAN.filter((item) => item["主线模块"] !== "单休");
     const bootDeferred = loadDeferred();
@@ -1219,9 +1502,7 @@
       tools: loadTools(),
     };
     const audioState = {
-      context: null,
-      source: null,
-      gain: null,
+      element: null,
       playing: false,
     };
 
@@ -1286,13 +1567,34 @@
     }
 
     function getToolsForDate(date = state.selectedDate) {
-      if (!state.tools[date]) {
-        state.tools[date] = {
-          hormone: Object.fromEntries(hormoneMetrics.map((item) => [item.id, 5])),
-          brainDump: [],
+      if (!state.tools.days) state.tools.days = {};
+      if (state.tools[date] && !state.tools.days[date]) {
+        state.tools.days[date] = {
+          brainDump: state.tools[date].brainDump || [],
         };
       }
-      return state.tools[date];
+      if (!state.tools.days[date]) {
+        state.tools.days[date] = { brainDump: [] };
+      }
+      return state.tools.days[date];
+    }
+
+    function getCycleProfile() {
+      if (!state.tools.cycleProfile) {
+        state.tools.cycleProfile = {
+          startDate: "",
+          cycleLength: 28,
+          periodLength: 5,
+        };
+      }
+      return state.tools.cycleProfile;
+    }
+
+    function getFocusVideo() {
+      if (!state.tools.focusVideo) {
+        state.tools.focusVideo = { ...DEFAULT_FOCUS_VIDEO };
+      }
+      return state.tools.focusVideo;
     }
 
     function getTimelineRow(rowId) {
@@ -1769,17 +2071,6 @@
       return '<div class="task-line extra ' + (status === "unfinished" ? "unfinished" : "") + '"><span class="task-label"><span>补充任务</span><span class="task-actions">' + controls + '<button class="link-btn danger" data-delete-extra="' + escapeHtml(task.id) + '">删除</button></span></span><div class="task-text">' + escapeHtml(task.text) + '</div></div>';
     }
 
-    function renderStages() {
-      document.getElementById("stageList").innerHTML = STAGES.map((stage) => {
-        const percent = getStagePercent(stage);
-        return '<div class="stage-row">' +
-          '<div class="stage-name">' + escapeHtml(stage.name) + '</div>' +
-          '<div class="progress-track" aria-label="' + escapeHtml(stage.name) + '进度"><div class="progress-fill" style="width:' + percent + '%"></div></div>' +
-          '<div class="progress-value">' + percent + '%</div>' +
-        '</div>';
-      }).join("");
-    }
-
     function renderCalendar() {
       const [year, month] = state.month.split("-").map(Number);
       const first = new Date(year, month - 1, 1);
@@ -1842,32 +2133,6 @@
         '<div class="extra-form"><textarea id="extraTaskText" class="textarea" placeholder="写下临时补充任务，比如：补做资料错题10道"></textarea><button id="addExtraTaskButton" class="btn primary">添加</button></div>';
     }
 
-    function renderUpcoming() {
-      const visibleDates = getVisibleDates();
-      const startIndex = visibleDates.findIndex((date) => date >= state.selectedDate);
-      const next = visibleDates.slice(Math.max(0, startIndex), startIndex + 18)
-        .map((date) => getEffectiveItem(date))
-        .filter((item) => item && item["主线模块"] !== "单休" && item["主线模块"] !== "顺延")
-        .slice(0, 7);
-      document.getElementById("upcoming").innerHTML = next.map((item) => (
-        '<div class="upcoming-item">' +
-          '<div class="upcoming-date">' + escapeHtml(formatShortDate(item["日期"])) + '<br>' + escapeHtml(item["星期"]) + '</div>' +
-          '<div class="upcoming-main"><strong>' + escapeHtml(item["主线模块"]) + '</strong><br>' + escapeHtml(item["阶段"]) + '</div>' +
-        '</div>'
-      )).join("");
-    }
-
-    function renderSuites() {
-      document.getElementById("suiteGrid").innerHTML = SUITE_STAGES.map((item) => (
-        '<article class="suite">' +
-          '<h3>' + escapeHtml(item.stage) + '</h3>' +
-          '<p>' + escapeHtml(item.time) + '</p>' +
-          '<p>' + escapeHtml(item.rhythm) + '</p>' +
-          '<p>' + escapeHtml(item.focus) + '</p>' +
-        '</article>'
-      )).join("");
-    }
-
     function renderMacroTimeline() {
       const cells = [
         '<div class="timeline-head">时间</div>',
@@ -1891,90 +2156,134 @@
     }
 
     function renderBrownNoise() {
-      document.getElementById("brownNoiseButton").textContent = audioState.playing ? "停止播放" : "开始播放";
+      document.getElementById("brownNoiseButton").textContent = audioState.playing ? "Ⅱ" : "▶";
       document.getElementById("brownNoiseBadge").textContent = audioState.playing ? "播放中" : "待机";
-      const volume = document.getElementById("brownNoiseVolume").value;
-      document.getElementById("brownNoiseVolumeValue").textContent = volume;
+      document.getElementById("noiseOrb").classList.toggle("playing", audioState.playing);
+      if (audioState.element) audioState.element.volume = 0.72;
     }
 
-    function createBrownNoiseBuffer(context) {
-      const length = context.sampleRate * 2;
-      const buffer = context.createBuffer(1, length, context.sampleRate);
-      const output = buffer.getChannelData(0);
-      let lastOut = 0;
-      for (let i = 0; i < length; i++) {
-        const white = Math.random() * 2 - 1;
-        lastOut = (lastOut + 0.02 * white) / 1.02;
-        output[i] = lastOut * 3.5;
+    function getBrownNoiseAudio() {
+      if (!audioState.element) {
+        const audio = new Audio(BROWN_NOISE_SRC);
+        audio.loop = true;
+        audio.preload = "auto";
+        audio.volume = 0.72;
+        audio.addEventListener("pause", () => {
+          audioState.playing = false;
+          renderBrownNoise();
+        });
+        audio.addEventListener("play", () => {
+          audioState.playing = true;
+          renderBrownNoise();
+        });
+        audioState.element = audio;
       }
-      return buffer;
+      return audioState.element;
     }
 
     async function toggleBrownNoise() {
-      if (audioState.playing) {
-        audioState.source.stop();
-        audioState.source.disconnect();
-        audioState.source = null;
-        audioState.playing = false;
-        renderBrownNoise();
+      const hint = document.getElementById("brownNoiseHint");
+      const audio = getBrownNoiseAudio();
+      if (!audio.paused) {
+        audio.pause();
+        hint.textContent = "棕色噪音";
         return;
       }
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      if (!AudioContext) return;
-      if (!audioState.context) {
-        audioState.context = new AudioContext();
-        audioState.gain = audioState.context.createGain();
-        audioState.gain.connect(audioState.context.destination);
+      try {
+        audio.currentTime = audio.currentTime || 0;
+        await audio.play();
+        hint.textContent = "正在播放";
+      } catch {
+        hint.textContent = "再点一次播放";
+        audioState.playing = false;
+        renderBrownNoise();
       }
-      await audioState.context.resume();
-      const source = audioState.context.createBufferSource();
-      source.buffer = createBrownNoiseBuffer(audioState.context);
-      source.loop = true;
-      audioState.gain.gain.value = Number(document.getElementById("brownNoiseVolume").value) / 100;
-      source.connect(audioState.gain);
-      source.start();
-      audioState.source = source;
-      audioState.playing = true;
-      renderBrownNoise();
+    }
+
+    function positiveModulo(value, modulo) {
+      return ((value % modulo) + modulo) % modulo;
+    }
+
+    function getCyclePhase(cycleDay, cycleLength, periodLength) {
+      const ovulationDay = Math.max(periodLength + 2, cycleLength - 14);
+      if (cycleDay <= periodLength) return "period";
+      if (cycleDay >= cycleLength - 4) return "premenstrual";
+      if (Math.abs(cycleDay - ovulationDay) <= 1) return "ovulation";
+      if (cycleDay < ovulationDay) return "follicular";
+      return "luteal";
+    }
+
+    function getCycleInfo(date = state.selectedDate) {
+      const profile = getCycleProfile();
+      const cycleLength = Math.min(40, Math.max(21, Number(profile.cycleLength) || 28));
+      const periodLength = Math.min(10, Math.max(2, Number(profile.periodLength) || 5));
+      if (!profile.startDate) {
+        return {
+          phaseKey: "unknown",
+          cycleDay: null,
+          cycleLength,
+          periodLength,
+          profile: cyclePhaseProfiles.unknown,
+        };
+      }
+      const diff = dayDiff(date, profile.startDate);
+      const cycleDay = positiveModulo(diff, cycleLength) + 1;
+      const phaseKey = getCyclePhase(cycleDay, cycleLength, periodLength);
+      return {
+        phaseKey,
+        cycleDay,
+        cycleLength,
+        periodLength,
+        profile: cyclePhaseProfiles[phaseKey],
+      };
+    }
+
+    function renderCycleSettings() {
+      const profile = getCycleProfile();
+      document.getElementById("cycleStartInput").value = profile.startDate || "";
+      document.getElementById("cycleLengthInput").value = profile.cycleLength || 28;
+      document.getElementById("periodLengthInput").value = profile.periodLength || 5;
+      document.getElementById("radarDateBadge").textContent = formatShortDate(state.selectedDate);
+    }
+
+    function buildCycleGauge(value) {
+      const safe = clamp(Number(value) || 0, 0, 100);
+      const dash = 2 * Math.PI * 26;
+      const offset = dash * (1 - safe / 100);
+      return '<svg class="cycle-gauge" viewBox="0 0 70 70" aria-label="状态仪表">' +
+        '<circle cx="35" cy="35" r="26" fill="none" stroke="#edf2f7" stroke-width="8"></circle>' +
+        '<circle cx="35" cy="35" r="26" fill="none" stroke="url(#cycleGradient)" stroke-width="8" stroke-linecap="round" stroke-dasharray="' + dash + '" stroke-dashoffset="' + offset + '" transform="rotate(-90 35 35)"></circle>' +
+        '<defs><linearGradient id="cycleGradient" x1="0" x2="1"><stop offset="0%" stop-color="#818cf8"></stop><stop offset="55%" stop-color="#fb7185"></stop><stop offset="100%" stop-color="#34d399"></stop></linearGradient></defs>' +
+        '<line x1="35" y1="35" x2="56" y2="35" stroke="#1f2937" stroke-width="3" stroke-linecap="round"></line>' +
+        '<circle cx="35" cy="35" r="4" fill="#1f2937"></circle>' +
+      '</svg>';
+    }
+
+    function buildCycleBar(label, value) {
+      const safe = clamp(Number(value) || 0, 0, 100);
+      return '<div>' +
+        '<div class="cycle-bar-label"><span>' + escapeHtml(label) + '</span><span>' + safe + '%</span></div>' +
+        '<div class="cycle-bar-track"><div class="cycle-bar-fill" style="width:' + safe + '%"></div></div>' +
+      '</div>';
     }
 
     function renderHormoneRadar() {
-      const tools = getToolsForDate();
-      const hormone = tools.hormone;
-      document.getElementById("radarDateBadge").textContent = formatShortDate(state.selectedDate);
-      document.getElementById("hormoneControls").innerHTML = hormoneMetrics.map((item) => {
-        const value = hormone[item.id] ?? 5;
-        return '<label class="range-row"><span>' + escapeHtml(item.label) + '</span>' +
-          '<input class="hormoneRange" type="range" min="0" max="10" value="' + value + '" data-hormone="' + escapeHtml(item.id) + '">' +
-          '<span>' + value + '</span></label>';
-      }).join("");
-
-      const center = 80;
-      const maxRadius = 58;
-      const points = hormoneMetrics.map((item, index) => {
-        const angle = (-90 + index * 360 / hormoneMetrics.length) * Math.PI / 180;
-        const radius = maxRadius * ((hormone[item.id] ?? 5) / 10);
-        return [center + Math.cos(angle) * radius, center + Math.sin(angle) * radius];
-      });
-      const grid = [0.33, 0.66, 1].map((scale) => {
-        const ring = hormoneMetrics.map((_, index) => {
-          const angle = (-90 + index * 360 / hormoneMetrics.length) * Math.PI / 180;
-          return (center + Math.cos(angle) * maxRadius * scale) + "," + (center + Math.sin(angle) * maxRadius * scale);
-        }).join(" ");
-        return '<polygon points="' + ring + '" fill="none" stroke="#d9e1ec" stroke-width="1"></polygon>';
-      }).join("");
-      const axes = hormoneMetrics.map((item, index) => {
-        const angle = (-90 + index * 360 / hormoneMetrics.length) * Math.PI / 180;
-        const x = center + Math.cos(angle) * maxRadius;
-        const y = center + Math.sin(angle) * maxRadius;
-        const lx = center + Math.cos(angle) * (maxRadius + 16);
-        const ly = center + Math.sin(angle) * (maxRadius + 16);
-        return '<line x1="' + center + '" y1="' + center + '" x2="' + x + '" y2="' + y + '" stroke="#d9e1ec"></line>' +
-          '<text x="' + lx + '" y="' + ly + '" text-anchor="middle" dominant-baseline="middle" fill="#637083" font-size="11">' + escapeHtml(item.label) + '</text>';
-      }).join("");
-      document.getElementById("hormoneRadar").innerHTML =
-        grid + axes +
-        '<polygon points="' + points.map((point) => point.join(",")).join(" ") + '" fill="rgba(47,111,94,.24)" stroke="#2f6f5e" stroke-width="2"></polygon>';
+      renderCycleSettings();
+      const info = getCycleInfo();
+      const dayLabel = info.cycleDay ? "DAY " + info.cycleDay : "SETUP";
+      const metrics = info.profile.metrics;
+      document.getElementById("cycleHero").innerHTML =
+        '<div class="cycle-icon">' + escapeHtml(info.profile.icon) + '</div>' +
+        '<div><div class="cycle-day">' + escapeHtml(dayLabel) + ' · ' + escapeHtml(info.profile.label) + '</div>' +
+        '<div class="cycle-name">' + escapeHtml(info.profile.moodName) + '</div></div>' +
+        buildCycleGauge(metrics.baseline);
+      document.getElementById("cycleNote").textContent = info.profile.note;
+      document.getElementById("cycleBars").innerHTML =
+        buildCycleBar("生活底盘", metrics.baseline) +
+        buildCycleBar("执行功能", metrics.executive);
+      document.getElementById("cycleTips").innerHTML =
+        '<div class="cycle-tip"><small>练什么</small>' + escapeHtml(info.profile.train) + '</div>' +
+        '<div class="cycle-tip"><small>吃什么</small>' + escapeHtml(info.profile.food) + '</div>';
     }
 
     function renderBrainDump() {
@@ -1983,13 +2292,59 @@
       document.getElementById("brainDumpCount").textContent = items.length + " 条";
       document.getElementById("brainDumpList").innerHTML = items.length
         ? items.map((item) => '<div class="brain-item"><span>' + escapeHtml(item.text) + '</span><button class="link-btn danger" data-delete-brain="' + escapeHtml(item.id) + '">删除</button></div>').join("")
-        : '<div class="empty">今天还没有倒出来的杂念</div>';
+        : '<div class="brain-item"><span>这里先空着</span></div><div class="brain-item"><span>想到什么就扔进来</span></div>';
+    }
+
+    function addBrainDumpFromInput() {
+      const input = document.getElementById("brainDumpText");
+      const text = input.value.trim();
+      if (!text) return;
+      const tools = getToolsForDate();
+      tools.brainDump.unshift({ id: String(Date.now()), text });
+      input.value = "";
+      saveTools();
+      renderBrainDump();
+    }
+
+    function extractBvid(input) {
+      const text = (input || "").trim();
+      const match = text.match(/BV[0-9A-Za-z]{10}/);
+      return match ? match[0] : "";
+    }
+
+    function renderFocusVideo() {
+      const video = getFocusVideo();
+      const frame = document.getElementById("focusVideoFrame");
+      const caption = document.getElementById("focusVideoCaption");
+      const input = document.getElementById("focusVideoUrl");
+      frame.src = "https://player.bilibili.com/player.html?isOutside=true&bvid=" + encodeURIComponent(video.bvid) + "&page=1&autoplay=0";
+      caption.textContent = video.caption || "当前 B 站背景音";
+      input.value = video.url || "";
+    }
+
+    function updateFocusVideoFromInput() {
+      const input = document.getElementById("focusVideoUrl");
+      const raw = input.value.trim();
+      const bvid = extractBvid(raw);
+      const caption = document.getElementById("focusVideoCaption");
+      if (!bvid) {
+        caption.textContent = "没识别到 BV 号，请粘贴完整 B 站视频链接";
+        return;
+      }
+      state.tools.focusVideo = {
+        bvid,
+        url: raw,
+        caption: "自定义 B 站背景音：" + bvid,
+      };
+      saveTools();
+      renderFocusVideo();
     }
 
     function renderAdhdTools() {
       renderBrownNoise();
       renderHormoneRadar();
       renderBrainDump();
+      renderFocusVideo();
     }
 
     function renderAll() {
@@ -1997,11 +2352,8 @@
       renderFilters();
       renderMetrics();
       renderToday();
-      renderStages();
       renderCalendar();
       renderDetail();
-      renderUpcoming();
-      renderSuites();
       renderMacroTimeline();
       renderAdhdTools();
     }
@@ -2073,15 +2425,11 @@
       }
 
       if (event.target.id === "addBrainDumpButton") {
-        const input = document.getElementById("brainDumpText");
-        const text = input.value.trim();
-        if (text) {
-          const tools = getToolsForDate();
-          tools.brainDump.unshift({ id: String(Date.now()), text });
-          input.value = "";
-          saveTools();
-          renderBrainDump();
-        }
+        addBrainDumpFromInput();
+      }
+
+      if (event.target.id === "updateFocusVideoButton") {
+        updateFocusVideoFromInput();
       }
 
       const deleteBrain = event.target.closest("[data-delete-brain]");
@@ -2122,19 +2470,25 @@
         renderMacroTimeline();
       }
 
-      if (event.target.classList.contains("hormoneRange")) {
-        const tools = getToolsForDate();
-        tools.hormone[event.target.dataset.hormone] = Number(event.target.value);
+      if (event.target.id === "cycleStartInput" || event.target.id === "cycleLengthInput" || event.target.id === "periodLengthInput") {
+        const profile = getCycleProfile();
+        profile.startDate = document.getElementById("cycleStartInput").value;
+        profile.cycleLength = Math.min(40, Math.max(21, Number(document.getElementById("cycleLengthInput").value) || 28));
+        profile.periodLength = Math.min(10, Math.max(2, Number(document.getElementById("periodLengthInput").value) || 5));
         saveTools();
         renderHormoneRadar();
       }
     });
 
-    document.addEventListener("input", (event) => {
-      if (event.target.id === "brownNoiseVolume") {
-        const value = Number(event.target.value);
-        document.getElementById("brownNoiseVolumeValue").textContent = String(value);
-        if (audioState.gain) audioState.gain.gain.value = value / 100;
+    document.addEventListener("keydown", (event) => {
+      if (event.target.id === "brainDumpText" && event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        addBrainDumpFromInput();
+      }
+
+      if (event.target.id === "focusVideoUrl" && event.key === "Enter") {
+        event.preventDefault();
+        updateFocusVideoFromInput();
       }
     });
 
