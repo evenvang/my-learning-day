@@ -127,23 +127,19 @@
       display: grid;
       grid-template-columns: minmax(0, 1.08fr) minmax(360px, 0.92fr);
       gap: 18px;
-      align-items: start;
+      align-items: stretch;
       min-width: 0;
+    }
+
+    .dashboard > .panel,
+    .dashboard > .side-stack {
+      height: 100%;
     }
 
     .side-stack {
       display: grid;
       gap: 18px;
       min-width: 0;
-    }
-
-    .top-dashboard {
-      align-items: stretch;
-    }
-
-    .top-dashboard > .panel,
-    .top-dashboard .side-stack {
-      height: 100%;
     }
 
     .panel {
@@ -940,7 +936,7 @@
         </div>
       </section>
 
-      <section class="dashboard top-dashboard">
+      <section class="dashboard">
         <div class="panel">
           <div class="panel-head">
             <h2 class="panel-title">今日任务</h2>
