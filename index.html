@@ -392,6 +392,25 @@
       align-items: center;
     }
 
+    .calendar-tools {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    .calendar-month-nav {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .calendar-month-nav .btn {
+      height: 32px;
+      padding: 0 10px;
+    }
+
     .chip {
       border: 1px solid var(--line);
       background: #ffffff;
@@ -800,6 +819,11 @@
         flex-direction: column;
       }
 
+      .calendar-tools {
+        width: 100%;
+        justify-content: flex-start;
+      }
+
       .panel-body {
         padding: 14px;
       }
@@ -917,7 +941,13 @@
         <div class="panel">
           <div class="panel-head">
             <h2 class="panel-title">日历</h2>
-            <div class="filters" id="filters"></div>
+            <div class="calendar-tools">
+              <div class="calendar-month-nav" aria-label="切换日历月份">
+                <button id="prevMonthButton" class="btn">上个月</button>
+                <button id="nextMonthButton" class="btn">下个月</button>
+              </div>
+              <div class="filters" id="filters"></div>
+            </div>
           </div>
           <div class="panel-body">
             <div class="calendar" id="calendar"></div>
@@ -1398,6 +1428,23 @@
       renderAll();
     }
 
+    function getVisibleMonths() {
+      return [...new Set(getVisibleDates().map((date) => date.slice(0, 7)))];
+    }
+
+    function shiftMonth(delta) {
+      const months = getVisibleMonths();
+      const currentIndex = months.indexOf(state.month);
+      const nextIndex = clamp(currentIndex + delta, 0, months.length - 1);
+      if (nextIndex === currentIndex) return;
+      const nextMonth = months[nextIndex];
+      const datesInMonth = getVisibleDates().filter((date) => date.startsWith(nextMonth));
+      const selectedDay = state.selectedDate.slice(8);
+      state.month = nextMonth;
+      state.selectedDate = datesInMonth.find((date) => date.slice(8) === selectedDay) || datesInMonth[0];
+      renderAll();
+    }
+
     function dayDiff(a, b) {
       return Math.round((parseDate(a) - parseDate(b)) / 86400000);
     }
@@ -1420,10 +1467,13 @@
     }
 
     function renderMonthOptions() {
-      const months = [...new Set(getVisibleDates().map((date) => date.slice(0, 7)))];
+      const months = getVisibleMonths();
       const select = document.getElementById("monthSelect");
       select.innerHTML = months.map((month) => '<option value="' + month + '">' + month + '</option>').join("");
       select.value = state.month;
+      const monthIndex = months.indexOf(state.month);
+      document.getElementById("prevMonthButton").disabled = monthIndex <= 0;
+      document.getElementById("nextMonthButton").disabled = monthIndex >= months.length - 1;
     }
 
     function renderFilters() {
@@ -1753,6 +1803,14 @@
 
     document.getElementById("nextDayButton").addEventListener("click", () => {
       shiftSelectedDate(1);
+    });
+
+    document.getElementById("prevMonthButton").addEventListener("click", () => {
+      shiftMonth(-1);
+    });
+
+    document.getElementById("nextMonthButton").addEventListener("click", () => {
+      shiftMonth(1);
     });
 
     document.getElementById("resetButton").addEventListener("click", () => {
