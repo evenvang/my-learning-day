@@ -412,6 +412,72 @@
       line-height: 1.45;
     }
 
+    .tool-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .tool-stack {
+      display: grid;
+      gap: 12px;
+    }
+
+    .tool-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+
+    .range-row {
+      display: grid;
+      grid-template-columns: 68px minmax(0, 1fr) 34px;
+      gap: 10px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .range-row input[type="range"] {
+      width: 100%;
+      accent-color: var(--green);
+    }
+
+    .radar-wrap {
+      display: grid;
+      grid-template-columns: 150px minmax(0, 1fr);
+      gap: 14px;
+      align-items: center;
+    }
+
+    .radar-svg {
+      width: 150px;
+      height: 150px;
+    }
+
+    .brain-list {
+      display: grid;
+      gap: 8px;
+      max-height: 164px;
+      overflow-y: auto;
+    }
+
+    .brain-item {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 9px 10px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: start;
+      background: #fbfcfe;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
     .filters {
       display: flex;
       gap: 8px;
@@ -776,7 +842,8 @@
       }
 
       .metric-grid,
-      .suite-grid {
+      .suite-grid,
+      .tool-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
@@ -820,7 +887,12 @@
       }
 
       .metric-grid,
-      .suite-grid {
+      .suite-grid,
+      .tool-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .radar-wrap {
         grid-template-columns: 1fr;
       }
 
@@ -982,6 +1054,57 @@
         </div>
       </section>
 
+      <section class="tool-grid" aria-label="ADHD 工具箱">
+        <div class="panel">
+          <div class="panel-head">
+            <h2 class="panel-title">棕色噪音</h2>
+            <span class="badge" id="brownNoiseBadge">待机</span>
+          </div>
+          <div class="panel-body">
+            <div class="tool-stack">
+              <div class="tool-row">
+                <button id="brownNoiseButton" class="btn primary">开始播放</button>
+                <span class="subline">低频背景声，适合刷题时压住环境干扰</span>
+              </div>
+              <label class="range-row">
+                <span>音量</span>
+                <input id="brownNoiseVolume" type="range" min="0" max="100" value="35">
+                <span id="brownNoiseVolumeValue">35</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h2 class="panel-title">荷尔蒙雷达</h2>
+            <span class="badge" id="radarDateBadge">今日</span>
+          </div>
+          <div class="panel-body">
+            <div class="radar-wrap">
+              <svg id="hormoneRadar" class="radar-svg" viewBox="0 0 160 160" role="img" aria-label="当天状态雷达图"></svg>
+              <div class="tool-stack" id="hormoneControls"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h2 class="panel-title">Brain dump</h2>
+            <span class="badge" id="brainDumpCount">0 条</span>
+          </div>
+          <div class="panel-body">
+            <div class="tool-stack">
+              <div class="extra-form">
+                <textarea id="brainDumpText" class="textarea" placeholder="先倒出来，不用分类：担心什么、想到什么、要查什么都可以"></textarea>
+                <button id="addBrainDumpButton" class="btn primary">收集</button>
+              </div>
+              <div class="brain-list" id="brainDumpList"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section class="dashboard">
         <div class="panel">
           <div class="panel-head">
@@ -1070,9 +1193,17 @@
     const CUSTOM_KEY = "gongkao-study-dashboard-custom-v1";
     const TIMELINE_KEY = "gongkao-study-dashboard-timeline-v1";
     const DEFER_KEY = "gongkao-study-dashboard-defer-v1";
+    const ADHD_TOOLS_KEY = "gongkao-study-dashboard-adhd-tools-v1";
     const modules = ["全部", "资料分析", "判断推理", "言语理解", "数量关系", "单休", "顺延"];
     const weekdayLabels = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"];
     const taskLabels = ["早上1小时", "上午1.5小时行测", "下午2.5小时行测", "晚上1.5小时申论"];
+    const hormoneMetrics = [
+      { id: "energy", label: "能量" },
+      { id: "focus", label: "专注" },
+      { id: "mood", label: "情绪" },
+      { id: "stress", label: "压力" },
+      { id: "body", label: "身体" },
+    ];
     const byDate = new Map(PLAN.map((item) => [item["日期"], item]));
     const studyItems = PLAN.filter((item) => item["主线模块"] !== "单休");
     const bootDeferred = loadDeferred();
@@ -1085,6 +1216,13 @@
       custom: loadCustom(),
       timeline: loadTimeline(),
       deferred: bootDeferred,
+      tools: loadTools(),
+    };
+    const audioState = {
+      context: null,
+      source: null,
+      gain: null,
+      playing: false,
     };
 
     function loadCompleted() {
@@ -1133,6 +1271,28 @@
 
     function saveDeferred() {
       localStorage.setItem(DEFER_KEY, JSON.stringify(state.deferred));
+    }
+
+    function loadTools() {
+      try {
+        return JSON.parse(localStorage.getItem(ADHD_TOOLS_KEY) || "{}");
+      } catch {
+        return {};
+      }
+    }
+
+    function saveTools() {
+      localStorage.setItem(ADHD_TOOLS_KEY, JSON.stringify(state.tools));
+    }
+
+    function getToolsForDate(date = state.selectedDate) {
+      if (!state.tools[date]) {
+        state.tools[date] = {
+          hormone: Object.fromEntries(hormoneMetrics.map((item) => [item.id, 5])),
+          brainDump: [],
+        };
+      }
+      return state.tools[date];
     }
 
     function getTimelineRow(rowId) {
@@ -1730,6 +1890,108 @@
       document.getElementById("macroTimeline").innerHTML = cells.join("");
     }
 
+    function renderBrownNoise() {
+      document.getElementById("brownNoiseButton").textContent = audioState.playing ? "停止播放" : "开始播放";
+      document.getElementById("brownNoiseBadge").textContent = audioState.playing ? "播放中" : "待机";
+      const volume = document.getElementById("brownNoiseVolume").value;
+      document.getElementById("brownNoiseVolumeValue").textContent = volume;
+    }
+
+    function createBrownNoiseBuffer(context) {
+      const length = context.sampleRate * 2;
+      const buffer = context.createBuffer(1, length, context.sampleRate);
+      const output = buffer.getChannelData(0);
+      let lastOut = 0;
+      for (let i = 0; i < length; i++) {
+        const white = Math.random() * 2 - 1;
+        lastOut = (lastOut + 0.02 * white) / 1.02;
+        output[i] = lastOut * 3.5;
+      }
+      return buffer;
+    }
+
+    async function toggleBrownNoise() {
+      if (audioState.playing) {
+        audioState.source.stop();
+        audioState.source.disconnect();
+        audioState.source = null;
+        audioState.playing = false;
+        renderBrownNoise();
+        return;
+      }
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) return;
+      if (!audioState.context) {
+        audioState.context = new AudioContext();
+        audioState.gain = audioState.context.createGain();
+        audioState.gain.connect(audioState.context.destination);
+      }
+      await audioState.context.resume();
+      const source = audioState.context.createBufferSource();
+      source.buffer = createBrownNoiseBuffer(audioState.context);
+      source.loop = true;
+      audioState.gain.gain.value = Number(document.getElementById("brownNoiseVolume").value) / 100;
+      source.connect(audioState.gain);
+      source.start();
+      audioState.source = source;
+      audioState.playing = true;
+      renderBrownNoise();
+    }
+
+    function renderHormoneRadar() {
+      const tools = getToolsForDate();
+      const hormone = tools.hormone;
+      document.getElementById("radarDateBadge").textContent = formatShortDate(state.selectedDate);
+      document.getElementById("hormoneControls").innerHTML = hormoneMetrics.map((item) => {
+        const value = hormone[item.id] ?? 5;
+        return '<label class="range-row"><span>' + escapeHtml(item.label) + '</span>' +
+          '<input class="hormoneRange" type="range" min="0" max="10" value="' + value + '" data-hormone="' + escapeHtml(item.id) + '">' +
+          '<span>' + value + '</span></label>';
+      }).join("");
+
+      const center = 80;
+      const maxRadius = 58;
+      const points = hormoneMetrics.map((item, index) => {
+        const angle = (-90 + index * 360 / hormoneMetrics.length) * Math.PI / 180;
+        const radius = maxRadius * ((hormone[item.id] ?? 5) / 10);
+        return [center + Math.cos(angle) * radius, center + Math.sin(angle) * radius];
+      });
+      const grid = [0.33, 0.66, 1].map((scale) => {
+        const ring = hormoneMetrics.map((_, index) => {
+          const angle = (-90 + index * 360 / hormoneMetrics.length) * Math.PI / 180;
+          return (center + Math.cos(angle) * maxRadius * scale) + "," + (center + Math.sin(angle) * maxRadius * scale);
+        }).join(" ");
+        return '<polygon points="' + ring + '" fill="none" stroke="#d9e1ec" stroke-width="1"></polygon>';
+      }).join("");
+      const axes = hormoneMetrics.map((item, index) => {
+        const angle = (-90 + index * 360 / hormoneMetrics.length) * Math.PI / 180;
+        const x = center + Math.cos(angle) * maxRadius;
+        const y = center + Math.sin(angle) * maxRadius;
+        const lx = center + Math.cos(angle) * (maxRadius + 16);
+        const ly = center + Math.sin(angle) * (maxRadius + 16);
+        return '<line x1="' + center + '" y1="' + center + '" x2="' + x + '" y2="' + y + '" stroke="#d9e1ec"></line>' +
+          '<text x="' + lx + '" y="' + ly + '" text-anchor="middle" dominant-baseline="middle" fill="#637083" font-size="11">' + escapeHtml(item.label) + '</text>';
+      }).join("");
+      document.getElementById("hormoneRadar").innerHTML =
+        grid + axes +
+        '<polygon points="' + points.map((point) => point.join(",")).join(" ") + '" fill="rgba(47,111,94,.24)" stroke="#2f6f5e" stroke-width="2"></polygon>';
+    }
+
+    function renderBrainDump() {
+      const tools = getToolsForDate();
+      const items = tools.brainDump || [];
+      document.getElementById("brainDumpCount").textContent = items.length + " 条";
+      document.getElementById("brainDumpList").innerHTML = items.length
+        ? items.map((item) => '<div class="brain-item"><span>' + escapeHtml(item.text) + '</span><button class="link-btn danger" data-delete-brain="' + escapeHtml(item.id) + '">删除</button></div>').join("")
+        : '<div class="empty">今天还没有倒出来的杂念</div>';
+    }
+
+    function renderAdhdTools() {
+      renderBrownNoise();
+      renderHormoneRadar();
+      renderBrainDump();
+    }
+
     function renderAll() {
       renderMonthOptions();
       renderFilters();
@@ -1741,6 +2003,7 @@
       renderUpcoming();
       renderSuites();
       renderMacroTimeline();
+      renderAdhdTools();
     }
 
     document.addEventListener("click", (event) => {
@@ -1804,6 +2067,30 @@
         addExtraTask(state.selectedDate, input.value);
         renderAll();
       }
+
+      if (event.target.id === "brownNoiseButton") {
+        toggleBrownNoise();
+      }
+
+      if (event.target.id === "addBrainDumpButton") {
+        const input = document.getElementById("brainDumpText");
+        const text = input.value.trim();
+        if (text) {
+          const tools = getToolsForDate();
+          tools.brainDump.unshift({ id: String(Date.now()), text });
+          input.value = "";
+          saveTools();
+          renderBrainDump();
+        }
+      }
+
+      const deleteBrain = event.target.closest("[data-delete-brain]");
+      if (deleteBrain) {
+        const tools = getToolsForDate();
+        tools.brainDump = tools.brainDump.filter((item) => item.id !== deleteBrain.dataset.deleteBrain);
+        saveTools();
+        renderBrainDump();
+      }
     });
 
     document.addEventListener("change", (event) => {
@@ -1833,6 +2120,21 @@
       if (event.target.classList.contains("timeline-input")) {
         setTimelineText(event.target.dataset.timelineRow, event.target.dataset.timelineMonth, event.target.value);
         renderMacroTimeline();
+      }
+
+      if (event.target.classList.contains("hormoneRange")) {
+        const tools = getToolsForDate();
+        tools.hormone[event.target.dataset.hormone] = Number(event.target.value);
+        saveTools();
+        renderHormoneRadar();
+      }
+    });
+
+    document.addEventListener("input", (event) => {
+      if (event.target.id === "brownNoiseVolume") {
+        const value = Number(event.target.value);
+        document.getElementById("brownNoiseVolumeValue").textContent = String(value);
+        if (audioState.gain) audioState.gain.gain.value = value / 100;
       }
     });
 
