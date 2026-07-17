@@ -131,6 +131,12 @@
       min-width: 0;
     }
 
+    .side-stack {
+      display: grid;
+      gap: 18px;
+      min-width: 0;
+    }
+
     .panel {
       background: var(--panel);
       border: 1px solid var(--line);
@@ -383,6 +389,22 @@
       font-variant-numeric: tabular-nums;
       text-align: right;
       font-size: 12px;
+    }
+
+    .video-frame {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      border: 0;
+      border-radius: 8px;
+      background: #101820;
+      display: block;
+    }
+
+    .video-caption {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
     }
 
     .filters {
@@ -927,12 +949,30 @@
           </div>
         </div>
 
-        <div class="panel">
-          <div class="panel-head">
-            <h2 class="panel-title">阶段进度</h2>
+        <div class="side-stack">
+          <div class="panel">
+            <div class="panel-head">
+              <h2 class="panel-title">阶段进度</h2>
+            </div>
+            <div class="panel-body">
+              <div class="stage-list" id="stageList"></div>
+            </div>
           </div>
-          <div class="panel-body">
-            <div class="stage-list" id="stageList"></div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <h2 class="panel-title">专注背景音</h2>
+            </div>
+            <div class="panel-body">
+              <iframe
+                class="video-frame"
+                src="https://player.bilibili.com/player.html?isOutside=true&bvid=BV1884y137AZ&page=1&autoplay=0"
+                title="ADHD七小时超长集中注意力&专注学习&舒缓压力背景音｜脑波音乐"
+                allow="autoplay; fullscreen; picture-in-picture"
+                allowfullscreen
+              ></iframe>
+              <div class="video-caption">ADHD七小时超长集中注意力&专注学习&舒缓压力背景音｜脑波音乐</div>
+            </div>
           </div>
         </div>
       </section>
