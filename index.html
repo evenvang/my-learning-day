@@ -137,6 +137,15 @@
       min-width: 0;
     }
 
+    .top-dashboard {
+      align-items: stretch;
+    }
+
+    .top-dashboard > .panel,
+    .top-dashboard .side-stack {
+      height: 100%;
+    }
+
     .panel {
       background: var(--panel);
       border: 1px solid var(--line);
@@ -393,7 +402,7 @@
 
     .video-frame {
       width: 100%;
-      aspect-ratio: 16 / 9;
+      height: clamp(220px, 14vw, 280px);
       border: 0;
       border-radius: 8px;
       background: #101820;
@@ -931,7 +940,7 @@
         </div>
       </section>
 
-      <section class="dashboard">
+      <section class="dashboard top-dashboard">
         <div class="panel">
           <div class="panel-head">
             <h2 class="panel-title">今日任务</h2>
