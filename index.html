@@ -883,6 +883,7 @@
     .dot-判断推理 { background: var(--green); }
     .dot-言语理解 { background: var(--amber); }
     .dot-数量关系 { background: var(--rose); }
+    .dot-模考 { background: var(--green); }
     .dot-单休 { background: #a5afbd; }
     .dot-顺延 { background: #8f9aaa; }
 
@@ -921,6 +922,32 @@
       align-items: center;
       flex-wrap: wrap;
       justify-content: flex-end;
+    }
+
+    .mode-switch {
+      display: inline-flex;
+      gap: 4px;
+      padding: 4px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #f7f9fc;
+    }
+
+    .mode-option {
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--muted);
+      padding: 6px 12px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 760;
+    }
+
+    .mode-option.active {
+      background: var(--green);
+      color: #ffffff;
+      box-shadow: 0 6px 14px rgba(47, 111, 94, 0.16);
     }
 
     .badge {
@@ -1592,7 +1619,29 @@
       url: "https://www.bilibili.com/video/BV1884y137AZ/",
       caption: "ADHD七小时超长集中注意力&专注学习&舒缓压力背景音｜脑波音乐",
     };
-    const modules = ["全部", "资料分析", "判断推理", "言语理解", "数量关系", "单休", "顺延"];
+    const SUNDAY_REST_TEMPLATE = {
+      module: "单休",
+      stage: "休息/机动",
+      review: "周日默认休息，也可以切换为模考日",
+      tasks: {
+        "早上1小时": "休息，不安排硬性任务",
+        "上午1.5小时行测": "休息，或轻量整理错题",
+        "下午2.5小时行测": "休息，或补做本周遗留任务",
+        "晚上1.5小时申论": "晚上：政治理论+时政学习60m",
+      },
+    };
+    const SUNDAY_MOCK_TEMPLATE = {
+      module: "模考",
+      stage: "周末模考",
+      review: "按整卷节奏复盘：记录时间分配、错题模块、下周回炉清单",
+      tasks: {
+        "早上1小时": "模考准备：打印/打开试卷，整理答题卡、计时器和草稿纸",
+        "上午1.5小时行测": "行测模考：严格计时，按正式顺序完成",
+        "下午2.5小时行测": "行测订正：统计正确率，标记资料/判断/言语/数量薄弱点",
+        "晚上1.5小时申论": "申论模考或复盘：完成一套申论/整理作答问题和素材缺口",
+      },
+    };
+    const modules = ["全部", "资料分析", "判断推理", "言语理解", "数量关系", "模考", "单休", "顺延"];
     const weekdayLabels = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"];
     const taskLabels = ["早上1小时", "上午1.5小时行测", "下午2.5小时行测", "晚上1.5小时申论"];
     const cycleRadarMetrics = [
@@ -1959,6 +2008,7 @@
         overrides: entry.overrides || {},
         carryovers: entry.carryovers || {},
         extras: Array.isArray(entry.extras) ? entry.extras : [],
+        sundayMode: entry.sundayMode || "",
       };
     }
 
@@ -1967,8 +2017,9 @@
         overrides: entry.overrides || {},
         carryovers: entry.carryovers || {},
         extras: Array.isArray(entry.extras) ? entry.extras : [],
+        sundayMode: entry.sundayMode || "",
       };
-      if (Object.keys(cleaned.overrides).length || Object.keys(cleaned.carryovers).length || cleaned.extras.length) {
+      if (Object.keys(cleaned.overrides).length || Object.keys(cleaned.carryovers).length || cleaned.extras.length || cleaned.sundayMode) {
         state.custom[date] = cleaned;
       } else {
         delete state.custom[date];
@@ -2101,19 +2152,40 @@
     }
 
     function makeSundayRestItem(date) {
-      const base = byDate.get(date);
+      const entry = getCustomEntry(date);
+      const template = entry.sundayMode === "mock" ? SUNDAY_MOCK_TEMPLATE : SUNDAY_REST_TEMPLATE;
       return {
         "日期": date,
         "星期": "周日",
-        "主线模块": "单休",
-        "早上1小时": base?.["早上1小时"] || "休息，不安排硬性任务",
-        "上午1.5小时行测": base?.["上午1.5小时行测"] || "休息",
-        "下午2.5小时行测": base?.["下午2.5小时行测"] || "休息",
-        "晚上1.5小时申论": base?.["晚上1.5小时申论"] || "晚上：政治理论+时政学习60m",
-        "复盘/当日重点": base?.["复盘/当日重点"] || "周日固定休息，不随顺延移动",
-        "阶段": base?.["阶段"] || "政治理论+时政",
+        "主线模块": template.module,
+        "早上1小时": template.tasks["早上1小时"],
+        "上午1.5小时行测": template.tasks["上午1.5小时行测"],
+        "下午2.5小时行测": template.tasks["下午2.5小时行测"],
+        "晚上1.5小时申论": template.tasks["晚上1.5小时申论"],
+        "复盘/当日重点": entry.overrides["复盘/当日重点"] || template.review,
+        "阶段": template.stage,
         "来源日期": "",
       };
+    }
+
+    function getSundayMode(date) {
+      return getCustomEntry(date).sundayMode === "mock" ? "mock" : "rest";
+    }
+
+    function setSundayMode(date, mode) {
+      if (!isSunday(date)) return;
+      const nextMode = mode === "mock" ? "mock" : "";
+      const entry = getCustomEntry(date);
+      entry.sundayMode = nextMode;
+      const template = nextMode === "mock" ? SUNDAY_MOCK_TEMPLATE : SUNDAY_REST_TEMPLATE;
+      taskLabels.forEach((label) => {
+        entry.overrides[label] = template.tasks[label];
+        delete entry.carryovers[label];
+      });
+      entry.overrides["复盘/当日重点"] = template.review;
+      setCustomEntry(date, entry);
+      delete state.completed[date];
+      saveCompleted();
     }
 
     function getDeferredDates(deferred = state.deferred) {
@@ -2240,6 +2312,8 @@
       if (!item) return false;
       if (item["主线模块"] === "顺延") return false;
       const extras = getCustomEntry(date).extras;
+      const completion = normalizeCompletion(date);
+      if (isSunday(date) && getSundayMode(date) === "rest" && extras.length === 0 && !Object.keys(completion.tasks).length) return true;
       return taskLabels.every((label) => isTaskDone(date, label)) && extras.every((task) => normalizeStatus(task.status ?? task.done) === "done");
     }
 
@@ -2418,7 +2492,7 @@
       document.getElementById("dateWeek").textContent = item["星期"];
       document.getElementById("todayBadge").textContent = item["主线模块"];
       const extras = getCustomEntry(item["日期"]).extras;
-      const canCheck = item["主线模块"] !== "顺延" && item["主线模块"] !== "单休";
+      const canCheck = item["主线模块"] !== "顺延";
       document.getElementById("todayTasks").innerHTML =
         taskLabels.map((label) => taskLineHtml(label, getTaskText(item, label), item["日期"], canCheck, { editable: canCheck, context: "today" })).join("") +
         extras.map((task) => extraTaskLineHtml(item["日期"], task, "today")).join("");
@@ -2439,7 +2513,7 @@
           })
         : '';
       const changed = !!customEntry.overrides[label];
-      const defer = withCheck && getNextVisibleDate(date)
+      const defer = withCheck && !isSunday(date) && getNextVisibleDate(date)
         ? '<button class="link-btn" data-defer-task="' + escapeHtml(label) + '" data-defer-task-date="' + escapeHtml(date) + '">顺延</button>'
         : '';
       const edit = options.editable
@@ -2508,19 +2582,26 @@
     function renderDetail() {
       const item = getTodayPlan();
       const extras = getCustomEntry(item["日期"]).extras;
-      const canCheck = item["主线模块"] !== "顺延" && item["主线模块"] !== "单休";
+      const canCheck = item["主线模块"] !== "顺延";
       const sourceText = item["来源日期"] && item["来源日期"] !== item["日期"] ? " · 原计划 " + formatShortDate(item["来源日期"]) : "";
-      const deferButton = item["主线模块"] === "单休"
+      const deferButton = isSunday(item["日期"])
         ? ""
         : (isDateDeferred(item["日期"])
           ? '<button class="btn" data-cancel-defer-date="' + escapeHtml(item["日期"]) + '">取消本日顺延</button>'
           : '<button class="btn" data-defer-date="' + escapeHtml(item["日期"]) + '">从本日顺延一天</button>');
       const doneControl = canCheck ? '<label class="check-row"><input id="doneCheck" type="checkbox" ' + (isDayDone(item["日期"]) ? "checked" : "") + '><span>全部完成</span></label>' : "";
+      const sundayMode = getSundayMode(item["日期"]);
+      const sundayModeControl = isSunday(item["日期"])
+        ? '<div class="mode-switch" aria-label="周日安排">' +
+            '<button class="mode-option ' + (sundayMode === "rest" ? "active" : "") + '" data-sunday-mode="rest">休息</button>' +
+            '<button class="mode-option ' + (sundayMode === "mock" ? "active" : "") + '" data-sunday-mode="mock">模考</button>' +
+          '</div>'
+        : "";
       document.getElementById("selectedBadge").textContent = item["主线模块"];
       document.getElementById("detail").innerHTML =
         '<div class="detail-top">' +
           '<div><strong>' + escapeHtml(formatShortDate(item["日期"]) + " " + item["星期"]) + '</strong><div class="subline">' + escapeHtml(item["阶段"] + sourceText) + '</div></div>' +
-          '<div class="detail-actions">' + deferButton + doneControl + '</div>' +
+          '<div class="detail-actions">' + sundayModeControl + deferButton + doneControl + '</div>' +
         '</div>' +
         '<div class="task-stack">' +
           taskLabels.map((label) => taskLineHtml(label, getTaskText(item, label), item["日期"], canCheck, { editable: canCheck, context: "detail" })).join("") +
@@ -2816,6 +2897,12 @@
       const cancelDeferButton = event.target.closest("[data-cancel-defer-date]");
       if (cancelDeferButton) {
         cancelDeferredDate(cancelDeferButton.dataset.cancelDeferDate);
+        renderAll();
+      }
+
+      const sundayModeButton = event.target.closest("[data-sunday-mode]");
+      if (sundayModeButton) {
+        setSundayMode(state.selectedDate, sundayModeButton.dataset.sundayMode);
         renderAll();
       }
 
