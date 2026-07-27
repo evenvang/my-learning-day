@@ -1,0 +1,13 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "my-learning-day-webdav-proxy",
+  "account_id": "03785cc6a5a003fabba1dcdf4a9d9824",
+  "main": "webdav-proxy-worker.js",
+  "compatibility_date": "2026-07-27",
+  "kv_namespaces": [
+    {
+      "binding": "SYNC_KV",
+      "id": "53eabd5224c0403e8bd7f7c61e7e1ed1"
+    }
+  ]
+}
