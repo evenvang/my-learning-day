@@ -1636,6 +1636,7 @@
       const entry = state.custom[date] || {};
       return {
         overrides: entry.overrides || {},
+        carryovers: entry.carryovers || {},
         extras: Array.isArray(entry.extras) ? entry.extras : [],
       };
     }
@@ -1643,9 +1644,10 @@
     function setCustomEntry(date, entry) {
       const cleaned = {
         overrides: entry.overrides || {},
+        carryovers: entry.carryovers || {},
         extras: Array.isArray(entry.extras) ? entry.extras : [],
       };
-      if (Object.keys(cleaned.overrides).length || cleaned.extras.length) {
+      if (Object.keys(cleaned.overrides).length || Object.keys(cleaned.carryovers).length || cleaned.extras.length) {
         state.custom[date] = cleaned;
       } else {
         delete state.custom[date];
@@ -1661,15 +1663,54 @@
       const base = baseText || byDate.get(date)?.[label] || "";
       const entry = getCustomEntry(date);
       const trimmed = text.trim();
-      if (!trimmed || trimmed === base) delete entry.overrides[label];
-      else entry.overrides[label] = trimmed;
+      if (!trimmed || trimmed === base) {
+        delete entry.overrides[label];
+        delete entry.carryovers[label];
+      } else {
+        entry.overrides[label] = trimmed;
+        delete entry.carryovers[label];
+      }
       setCustomEntry(date, entry);
     }
 
     function clearTaskOverride(date, label) {
       const entry = getCustomEntry(date);
       delete entry.overrides[label];
+      delete entry.carryovers[label];
       setCustomEntry(date, entry);
+    }
+
+    function clearTaskStatus(date, label) {
+      const entry = normalizeCompletion(date);
+      delete entry.tasks[label];
+      if (Object.keys(entry.tasks).length) state.completed[date] = entry;
+      else delete state.completed[date];
+      saveCompleted();
+    }
+
+    function getNextVisibleDate(date) {
+      return getVisibleDates().find((item) => item > date) || "";
+    }
+
+    function deferSingleTask(date, label) {
+      const item = getEffectiveItem(date);
+      const nextDate = getNextVisibleDate(date);
+      const nextItem = nextDate ? getEffectiveItem(nextDate) : null;
+      if (!item || !nextItem || !taskLabels.includes(label)) {
+        window.alert("后面没有可顺延的日期了。");
+        return false;
+      }
+      const taskText = getTaskText(item, label);
+      const nextEntry = getCustomEntry(nextDate);
+      nextEntry.overrides[label] = taskText;
+      nextEntry.carryovers[label] = {
+        fromDate: date,
+        originalText: getTaskText(nextItem, label),
+      };
+      setCustomEntry(nextDate, nextEntry);
+      setTaskStatus(date, label, "unfinished");
+      clearTaskStatus(nextDate, label);
+      return true;
     }
 
     function addExtraTask(date, text) {
@@ -2041,6 +2082,8 @@
     function taskLineHtml(label, text, date, withCheck, options = {}) {
       const status = getTaskStatus(date, label);
       const context = options.context || "detail";
+      const customEntry = getCustomEntry(date);
+      const carryover = customEntry.carryovers[label];
       const check = withCheck
         ? statusControlsHtml({
             name: "task-" + context + "-" + date + "-" + label,
@@ -2050,11 +2093,17 @@
             className: "taskStatusRadio",
           })
         : '';
-      const changed = !!getCustomEntry(date).overrides[label];
+      const changed = !!customEntry.overrides[label];
+      const defer = withCheck && getNextVisibleDate(date)
+        ? '<button class="link-btn" data-defer-task="' + escapeHtml(label) + '" data-defer-task-date="' + escapeHtml(date) + '">顺延</button>'
+        : '';
       const edit = options.editable
-        ? '<span class="task-actions"><button class="link-btn" data-edit-task="' + escapeHtml(label) + '">修改</button>' + (changed ? '<button class="link-btn danger" data-reset-task="' + escapeHtml(label) + '">恢复</button>' : '') + check + '</span>'
+        ? '<span class="task-actions"><button class="link-btn" data-edit-task="' + escapeHtml(label) + '">修改</button>' + defer + (changed ? '<button class="link-btn danger" data-reset-task="' + escapeHtml(label) + '">恢复</button>' : '') + check + '</span>'
         : check;
-      return '<div class="task-line ' + (status === "unfinished" ? "unfinished" : "") + '"><span class="task-label"><span>' + escapeHtml(label) + '</span>' + edit + '</span><div class="task-text">' + escapeHtml(text) + '</div></div>';
+      const carryoverNote = carryover
+        ? '<div class="subline">顺延自 ' + escapeHtml(formatShortDate(carryover.fromDate)) + ' · 原计划：' + escapeHtml(carryover.originalText) + '</div>'
+        : '';
+      return '<div class="task-line ' + (status === "unfinished" ? "unfinished" : "") + '"><span class="task-label"><span>' + escapeHtml(label) + '</span>' + edit + '</span><div class="task-text">' + escapeHtml(text) + carryoverNote + '</div></div>';
     }
 
     function statusControlsHtml({ name, doneChecked, unfinishedChecked, attrs, className }) {
@@ -2391,6 +2440,13 @@
       if (resetTask) {
         clearTaskOverride(state.selectedDate, resetTask.dataset.resetTask);
         renderAll();
+      }
+
+      const deferTask = event.target.closest("[data-defer-task]");
+      if (deferTask) {
+        const date = deferTask.dataset.deferTaskDate || state.selectedDate;
+        const ok = deferSingleTask(date, deferTask.dataset.deferTask);
+        if (ok) renderAll();
       }
 
       const deleteExtra = event.target.closest("[data-delete-extra]");
