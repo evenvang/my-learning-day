@@ -1694,22 +1694,46 @@
 
     function deferSingleTask(date, label) {
       const item = getEffectiveItem(date);
-      const nextDate = getNextVisibleDate(date);
-      const nextItem = nextDate ? getEffectiveItem(nextDate) : null;
-      if (!item || !nextItem || !taskLabels.includes(label)) {
+      const dates = getVisibleDates().filter((visibleDate) => visibleDate >= date);
+      if (!item || dates.length < 2 || !taskLabels.includes(label) || item["主线模块"] === "顺延") {
         window.alert("后面没有可顺延的日期了。");
         return false;
       }
-      const taskText = getTaskText(item, label);
-      const nextEntry = getCustomEntry(nextDate);
-      nextEntry.overrides[label] = taskText;
-      nextEntry.carryovers[label] = {
-        fromDate: date,
-        originalText: getTaskText(nextItem, label),
-      };
-      setCustomEntry(nextDate, nextEntry);
+      const slots = dates.map((slotDate) => {
+        const slotItem = getEffectiveItem(slotDate);
+        return {
+          date: slotDate,
+          text: slotItem ? getTaskText(slotItem, label) : "",
+        };
+      }).filter((slot) => slot.text);
+
+      for (let index = 1; index < slots.length; index++) {
+        const incoming = slots[index - 1];
+        const target = slots[index];
+        const targetEntry = getCustomEntry(target.date);
+        targetEntry.overrides[label] = incoming.text;
+        targetEntry.carryovers[label] = {
+          fromDate: incoming.date,
+          originalText: target.text,
+        };
+        setCustomEntry(target.date, targetEntry);
+        clearTaskStatus(target.date, label);
+      }
+
+      const last = slots[slots.length - 1];
+      const lastEntry = getCustomEntry(last.date);
+      const preservedText = label + "顺延保留：" + last.text;
+      const alreadyPreserved = lastEntry.extras.some((task) => task.text === preservedText);
+      if (!alreadyPreserved) {
+        lastEntry.extras.push({
+          id: String(Date.now()) + "-" + Math.random().toString(16).slice(2),
+          text: preservedText,
+          status: "",
+        });
+        setCustomEntry(last.date, lastEntry);
+      }
+
       setTaskStatus(date, label, "unfinished");
-      clearTaskStatus(nextDate, label);
       return true;
     }
 
