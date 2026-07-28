@@ -1113,9 +1113,9 @@
     }
 
     .learned-grid {
-      min-width: 780px;
+      min-width: 1040px;
       display: grid;
-      grid-template-columns: 128px repeat(4, minmax(142px, 1fr));
+      grid-template-columns: 128px repeat(6, minmax(132px, 1fr));
       gap: 8px;
       align-items: stretch;
     }
@@ -1750,8 +1750,10 @@
     const LEARNED_COLUMNS = [
       { id: "earlyClass", label: "前期听课" },
       { id: "blackRoom", label: "小黑屋刷题" },
-      { id: "drillPractice", label: "代练刷题" },
+      { id: "drillPractice", label: "带练刷题" },
       { id: "lateUpgrade", label: "后期拔高" },
+      { id: "fenbiMock", label: "粉笔模考" },
+      { id: "setsPractice", label: "套题刷题" },
     ];
     const BROWN_NOISE_SRC = "assets/brown-noise.mp3";
     const DEFAULT_FOCUS_VIDEO = {
