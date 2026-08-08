@@ -1759,6 +1759,7 @@
     const TIMELINE_KEY = "gongkao-study-dashboard-timeline-v1";
     const DEFER_KEY = "gongkao-study-dashboard-defer-v1";
     const WEEK_REST_KEY = "gongkao-study-dashboard-week-rest-v1";
+    const CROSS_WEEK_REST_KEY = "gongkao-study-dashboard-cross-week-rest-v1";
     const ADHD_TOOLS_KEY = "gongkao-study-dashboard-adhd-tools-v1";
     const SYNC_KEY = "gongkao-study-dashboard-sync-v1";
     const DEFAULT_SYNC_CONFIG = {
@@ -1876,7 +1877,8 @@
     const studyItems = PLAN.filter((item) => item["主线模块"] !== "单休");
     const bootDeferred = loadDeferred();
     const bootWeekRest = loadWeekRest();
-    const initialDate = getInitialDate(bootDeferred, bootWeekRest);
+    const bootCrossWeekRest = loadCrossWeekRest();
+    const initialDate = getInitialDate(bootDeferred, bootWeekRest, bootCrossWeekRest);
     const state = {
       selectedDate: initialDate,
       filter: "全部",
@@ -1886,6 +1888,7 @@
       timeline: loadTimeline(),
       deferred: bootDeferred,
       weekRest: bootWeekRest,
+      crossWeekRest: bootCrossWeekRest,
       tools: loadTools(),
       sync: loadSyncConfig(),
     };
@@ -1952,6 +1955,18 @@
 
     function saveWeekRest() {
       localStorage.setItem(WEEK_REST_KEY, JSON.stringify(state.weekRest));
+    }
+
+    function loadCrossWeekRest() {
+      try {
+        return JSON.parse(localStorage.getItem(CROSS_WEEK_REST_KEY) || "{}");
+      } catch {
+        return {};
+      }
+    }
+
+    function saveCrossWeekRest() {
+      localStorage.setItem(CROSS_WEEK_REST_KEY, JSON.stringify(state.crossWeekRest));
     }
 
     function loadTools() {
@@ -2028,6 +2043,7 @@
           timeline: state.timeline,
           deferred: state.deferred,
           weekRest: state.weekRest,
+          crossWeekRest: state.crossWeekRest,
           tools: state.tools,
         },
       };
@@ -2042,16 +2058,18 @@
       state.timeline = payload.data.timeline || {};
       state.deferred = payload.data.deferred || {};
       state.weekRest = payload.data.weekRest || {};
+      state.crossWeekRest = payload.data.crossWeekRest || {};
       state.tools = payload.data.tools || {};
       saveCompleted();
       saveCustom();
       saveTimeline();
       saveDeferred();
       saveWeekRest();
+      saveCrossWeekRest();
       saveTools();
       const dates = getVisibleDates();
       if (!dates.includes(state.selectedDate)) {
-        state.selectedDate = getInitialDate(state.deferred, state.weekRest);
+        state.selectedDate = getInitialDate(state.deferred, state.weekRest, state.crossWeekRest);
       }
       state.month = state.selectedDate.slice(0, 7);
     }
@@ -2300,8 +2318,8 @@
       return getVisibleDates().find((item) => item > date) || "";
     }
 
-    function getStudyScheduleDates(deferred = state.deferred, weekRest = state.weekRest) {
-      return getVisibleDates(deferred, weekRest).filter((visibleDate) => isStudyScheduleDate(visibleDate, deferred, weekRest));
+    function getStudyScheduleDates(deferred = state.deferred, weekRest = state.weekRest, crossWeekRest = state.crossWeekRest) {
+      return getVisibleDates(deferred, weekRest, crossWeekRest).filter((visibleDate) => isStudyScheduleDate(visibleDate, deferred, weekRest, crossWeekRest));
     }
 
     function isTaskDeferralAnchor(date, label) {
@@ -2466,17 +2484,35 @@
       return isSunday(date) && isWeekSwapActive(date, weekRest) && getWeekEnd(date) === date;
     }
 
-    function isCalendarRestDate(date, weekRest = state.weekRest) {
-      return isWeeklyRestDate(date, weekRest) || (isSunday(date) && !isWeeklyWorkSunday(date, weekRest));
+    function getCrossWeekSundayForDate(date, crossWeekRest = state.crossWeekRest) {
+      const sourceSunday = isSunday(date) ? date : addDays(getWeekStart(date), -1);
+      const restDate = crossWeekRest?.[sourceSunday] || "";
+      return restDate === addDays(sourceSunday, 1) ? sourceSunday : "";
     }
 
-    function isStudyScheduleDate(date, deferred = state.deferred, weekRest = state.weekRest) {
-      return !isCalendarRestDate(date, weekRest) && !deferred[date];
+    function isCrossWeekWorkSunday(date, crossWeekRest = state.crossWeekRest) {
+      return isSunday(date) && getCrossWeekSundayForDate(date, crossWeekRest) === date;
+    }
+
+    function isCrossWeekRestDate(date, crossWeekRest = state.crossWeekRest) {
+      const sourceSunday = getCrossWeekSundayForDate(date, crossWeekRest);
+      return !!sourceSunday && date === addDays(sourceSunday, 1);
+    }
+
+    function isCalendarRestDate(date, weekRest = state.weekRest, crossWeekRest = state.crossWeekRest) {
+      return isWeeklyRestDate(date, weekRest) ||
+        isCrossWeekRestDate(date, crossWeekRest) ||
+        (isSunday(date) && !isWeeklyWorkSunday(date, weekRest) && !isCrossWeekWorkSunday(date, crossWeekRest));
+    }
+
+    function isStudyScheduleDate(date, deferred = state.deferred, weekRest = state.weekRest, crossWeekRest = state.crossWeekRest) {
+      return !isCalendarRestDate(date, weekRest, crossWeekRest) && !deferred[date];
     }
 
     function makeRestItem(date) {
       const entry = getCustomEntry(date);
       const shiftedRest = isWeeklyRestDate(date);
+      const crossWeekRest = isCrossWeekRestDate(date);
       const template = !shiftedRest && entry.sundayMode === "mock" ? SUNDAY_MOCK_TEMPLATE : SUNDAY_REST_TEMPLATE;
       const eveningTask = template.module === "单休"
         ? (entry.overrides["晚上1.5小时申论"] || template.tasks["晚上1.5小时申论"])
@@ -2489,8 +2525,8 @@
         "上午1.5小时行测": template.tasks["上午1.5小时行测"],
         "下午2.5小时行测": template.tasks["下午2.5小时行测"],
         "晚上1.5小时申论": eveningTask,
-        "复盘/当日重点": entry.overrides["复盘/当日重点"] || (shiftedRest ? "本周换休：当天休息，本周后续任务只在本周内顺延。" : template.review),
-        "阶段": shiftedRest ? "本周换休" : template.stage,
+        "复盘/当日重点": entry.overrides["复盘/当日重点"] || (shiftedRest ? "本周换休：当天休息，本周后续任务只在本周内顺延。" : (crossWeekRest ? "跨周换休：上一个周日已补学习，今天休息。" : template.review)),
+        "阶段": shiftedRest ? "本周换休" : (crossWeekRest ? "跨周换休" : template.stage),
         "来源日期": "",
       };
     }
@@ -2517,7 +2553,7 @@
     }
 
     function setSundayMode(date, mode) {
-      if (!isSunday(date) || isWeeklyWorkSunday(date)) return;
+      if (!isSunday(date) || isWeeklyWorkSunday(date) || isCrossWeekWorkSunday(date)) return;
       const nextMode = mode === "mock" ? "mock" : "";
       const entry = getCustomEntry(date);
       entry.sundayMode = nextMode;
@@ -2547,6 +2583,7 @@
     function setWeekRestDate(date) {
       if (!isVisibleDate(date)) return;
       const weekStart = getWeekStart(date);
+      delete state.crossWeekRest[addDays(weekStart, -1)];
       if (isSunday(date)) {
         delete state.weekRest[weekStart];
       } else {
@@ -2554,6 +2591,7 @@
       }
       clearWeekCompletion(date);
       saveWeekRest();
+      saveCrossWeekRest();
     }
 
     function clearWeekRestDate(date) {
@@ -2562,18 +2600,39 @@
       saveWeekRest();
     }
 
+    function setCrossWeekRestToNextMonday(date) {
+      if (!isSunday(date) || isWeeklyWorkSunday(date)) return;
+      const nextMonday = addDays(date, 1);
+      delete state.weekRest[getWeekStart(nextMonday)];
+      state.crossWeekRest[date] = nextMonday;
+      clearWeekCompletion(date);
+      clearWeekCompletion(nextMonday);
+      saveWeekRest();
+      saveCrossWeekRest();
+    }
+
+    function clearCrossWeekRest(date) {
+      const sourceSunday = getCrossWeekSundayForDate(date);
+      if (!sourceSunday) return;
+      const nextMonday = addDays(sourceSunday, 1);
+      delete state.crossWeekRest[sourceSunday];
+      clearWeekCompletion(sourceSunday);
+      clearWeekCompletion(nextMonday);
+      saveCrossWeekRest();
+    }
+
     function getDeferredDates(deferred = state.deferred) {
       return Object.keys(deferred || {}).filter((date) => date >= PLAN[0]["日期"] && !isCalendarRestDate(date)).sort();
     }
 
-    function getVisibleDates(deferred = state.deferred, weekRest = state.weekRest) {
+    function getVisibleDates(deferred = state.deferred, weekRest = state.weekRest, crossWeekRest = state.crossWeekRest) {
       const dates = [];
       let assignedStudyDays = 0;
       let date = PLAN[0]["日期"];
       let guard = 0;
       while (guard < 520) {
         dates.push(date);
-        if (isStudyScheduleDate(date, deferred, weekRest)) assignedStudyDays++;
+        if (isStudyScheduleDate(date, deferred, weekRest, crossWeekRest)) assignedStudyDays++;
         if (assignedStudyDays >= studyItems.length && date >= CALENDAR_END_DATE) break;
         date = addDays(date, 1);
         guard++;
@@ -2585,14 +2644,14 @@
       return !!state.deferred[date] && !isCalendarRestDate(date);
     }
 
-    function isVisibleDate(date, deferred = state.deferred, weekRest = state.weekRest) {
-      const dates = getVisibleDates(deferred, weekRest);
+    function isVisibleDate(date, deferred = state.deferred, weekRest = state.weekRest, crossWeekRest = state.crossWeekRest) {
+      const dates = getVisibleDates(deferred, weekRest, crossWeekRest);
       return date >= dates[0] && date <= dates[dates.length - 1];
     }
 
-    function getEffectiveItem(date, deferred = state.deferred, weekRest = state.weekRest) {
-      if (!isVisibleDate(date, deferred, weekRest)) return null;
-      if (isCalendarRestDate(date, weekRest)) return makeRestItem(date);
+    function getEffectiveItem(date, deferred = state.deferred, weekRest = state.weekRest, crossWeekRest = state.crossWeekRest) {
+      if (!isVisibleDate(date, deferred, weekRest, crossWeekRest)) return null;
+      if (isCalendarRestDate(date, weekRest, crossWeekRest)) return makeRestItem(date);
       if (deferred[date]) {
         return {
           "日期": date,
@@ -2607,7 +2666,7 @@
           "来源日期": "",
         };
       }
-      const sourceIndex = getStudyScheduleDates(deferred, weekRest)
+      const sourceIndex = getStudyScheduleDates(deferred, weekRest, crossWeekRest)
         .filter((item) => item <= date)
         .length - 1;
       const source = studyItems[sourceIndex];
@@ -2720,14 +2779,14 @@
       return date <= getLocalDateString();
     }
 
-    function getInitialDate(deferred = {}, weekRest = {}) {
+    function getInitialDate(deferred = {}, weekRest = {}, crossWeekRest = {}) {
       const today = getLocalDateString();
-      if (byDateHas(today, deferred, weekRest)) return today;
+      if (byDateHas(today, deferred, weekRest, crossWeekRest)) return today;
       return "2026-06-03";
     }
 
-    function byDateHas(date, deferred = state.deferred, weekRest = state.weekRest) {
-      return isVisibleDate(date, deferred, weekRest);
+    function byDateHas(date, deferred = state.deferred, weekRest = state.weekRest, crossWeekRest = state.crossWeekRest) {
+      return isVisibleDate(date, deferred, weekRest, crossWeekRest);
     }
 
     function parseDate(value) {
@@ -2757,7 +2816,7 @@
     }
 
     function getCurrentPlanDate() {
-      const today = getInitialDate(state.deferred, state.weekRest);
+      const today = getInitialDate(state.deferred, state.weekRest, state.crossWeekRest);
       return getEffectiveItem(today) ? today : state.selectedDate;
     }
 
@@ -2952,7 +3011,7 @@
           isDateDeferred(date) ? "deferred-day" : (hasDateArrived(date) ? getCalendarStatus(date) : ""),
           module === "单休" ? "rest" : "",
           isWeeklyRestDate(date) ? "week-rest" : "",
-          isWeeklyWorkSunday(date) ? "week-work-sunday" : "",
+          (isWeeklyWorkSunday(date) || isCrossWeekWorkSunday(date)) ? "week-work-sunday" : "",
           module === "后续安排" ? "followup" : "",
         ].filter(Boolean).join(" ");
         cells.push(
@@ -2970,7 +3029,12 @@
       const item = getTodayPlan();
       const extras = getCustomEntry(item["日期"]).extras;
       const canCheck = item["主线模块"] !== "顺延";
-      const weekSwapText = isWeeklyRestDate(item["日期"]) ? " · 本周换休" : (isWeeklyWorkSunday(item["日期"]) ? " · 本周补学习日" : "");
+      const crossSwapActive = isCrossWeekWorkSunday(item["日期"]) || isCrossWeekRestDate(item["日期"]);
+      const weekSwapText = isWeeklyRestDate(item["日期"])
+        ? " · 本周换休"
+        : (isWeeklyWorkSunday(item["日期"])
+          ? " · 本周补学习日"
+          : (isCrossWeekWorkSunday(item["日期"]) ? " · 休息挪到下周一" : (isCrossWeekRestDate(item["日期"]) ? " · 跨周换休" : "")));
       const sourceText = item["来源日期"] && item["来源日期"] !== item["日期"] ? " · 原计划 " + formatShortDate(item["来源日期"]) : "";
       const deferButton = isCalendarRestDate(item["日期"]) || item["主线模块"] === "后续安排"
         ? ""
@@ -2979,7 +3043,7 @@
           : '<button class="btn" data-defer-date="' + escapeHtml(item["日期"]) + '">从本日顺延一天</button>');
       const doneControl = canCheck ? '<label class="check-row"><input id="doneCheck" type="checkbox" ' + (isDayDone(item["日期"]) ? "checked" : "") + '><span>全部完成</span></label>' : "";
       const sundayMode = getSundayMode(item["日期"]);
-      const sundayModeControl = isSunday(item["日期"]) && !isWeeklyWorkSunday(item["日期"])
+      const sundayModeControl = isSunday(item["日期"]) && !isWeeklyWorkSunday(item["日期"]) && !isCrossWeekWorkSunday(item["日期"])
         ? '<div class="mode-switch" aria-label="周日安排">' +
             '<button class="mode-option ' + (sundayMode === "rest" ? "active" : "") + '" data-sunday-mode="rest">休息</button>' +
             '<button class="mode-option ' + (sundayMode === "mock" ? "active" : "") + '" data-sunday-mode="mock">模考</button>' +
@@ -2994,11 +3058,19 @@
             (weekSwapActive ? '<button class="btn" data-clear-week-rest="' + escapeHtml(item["日期"]) + '">恢复本周默认</button>' : '') +
           '</div>'
         : "";
+      const crossWeekControl = (isSunday(item["日期"]) || crossSwapActive)
+        ? '<div class="week-rest-control">' +
+            (isSunday(item["日期"]) && !isWeeklyWorkSunday(item["日期"]) && !isCrossWeekWorkSunday(item["日期"])
+              ? '<button class="btn" data-set-cross-week-rest="' + escapeHtml(item["日期"]) + '">休息挪到下周一</button>'
+              : '') +
+            (crossSwapActive ? '<button class="btn" data-clear-cross-week-rest="' + escapeHtml(item["日期"]) + '">恢复周日休息</button>' : '') +
+          '</div>'
+        : "";
       document.getElementById("selectedBadge").textContent = item["主线模块"];
       document.getElementById("detail").innerHTML =
         '<div class="detail-top">' +
           '<div><strong>' + escapeHtml(formatShortDate(item["日期"]) + " " + item["星期"]) + '</strong><div class="subline">' + escapeHtml(item["阶段"] + sourceText + weekSwapText) + '</div></div>' +
-          '<div class="detail-actions">' + sundayModeControl + weekRestControl + deferButton + doneControl + '</div>' +
+          '<div class="detail-actions">' + sundayModeControl + weekRestControl + crossWeekControl + deferButton + doneControl + '</div>' +
         '</div>' +
         '<div class="task-stack">' +
           getVisibleTaskLabels(item).map((label) => taskLineHtml(label, getTaskText(item, label), item["日期"], canCheck, { editable: canCheck, context: "detail" })).join("") +
@@ -3340,6 +3412,18 @@
       const clearWeekRestButton = event.target.closest("[data-clear-week-rest]");
       if (clearWeekRestButton) {
         clearWeekRestDate(clearWeekRestButton.dataset.clearWeekRest);
+        renderAll();
+      }
+
+      const setCrossWeekRestButton = event.target.closest("[data-set-cross-week-rest]");
+      if (setCrossWeekRestButton) {
+        setCrossWeekRestToNextMonday(setCrossWeekRestButton.dataset.setCrossWeekRest);
+        renderAll();
+      }
+
+      const clearCrossWeekRestButton = event.target.closest("[data-clear-cross-week-rest]");
+      if (clearCrossWeekRestButton) {
+        clearCrossWeekRest(clearCrossWeekRestButton.dataset.clearCrossWeekRest);
         renderAll();
       }
 
