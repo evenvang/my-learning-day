@@ -2251,9 +2251,22 @@
       saveCustom();
     }
 
+    function isWorkSunday(date) {
+      return isWeeklyWorkSunday(date) || isCrossWeekWorkSunday(date);
+    }
+
+    function isRestTemplateOverride(label, text) {
+      return [SUNDAY_REST_TEMPLATE, SUNDAY_MOCK_TEMPLATE].some((template) =>
+        template.tasks[label] === text || (label === "复盘/当日重点" && template.review === text)
+      );
+    }
+
     function getTaskText(item, label) {
       const entry = getCustomEntry(item["日期"]);
       if (Object.prototype.hasOwnProperty.call(entry.overrides, label)) {
+        if (isWorkSunday(item["日期"]) && isRestTemplateOverride(label, entry.overrides[label])) {
+          return getScheduledTaskInfo(item["日期"], label).text;
+        }
         return entry.overrides[label];
       }
       return getScheduledTaskInfo(item["日期"], label).text;
@@ -2580,6 +2593,17 @@
       saveCompleted();
     }
 
+    function clearRestTemplateOverrides(date) {
+      const entry = getCustomEntry(date);
+      [...coreTaskLabels, ...plannedExtraLabels, "复盘/当日重点"].forEach((label) => {
+        delete entry.overrides[label];
+        delete entry.carryovers[label];
+        delete entry.taskDeferrals[label];
+      });
+      entry.sundayMode = "";
+      setCustomEntry(date, entry);
+    }
+
     function setWeekRestDate(date) {
       if (!isVisibleDate(date)) return;
       const weekStart = getWeekStart(date);
@@ -2588,6 +2612,7 @@
         delete state.weekRest[weekStart];
       } else {
         state.weekRest[weekStart] = date;
+        clearRestTemplateOverrides(getWeekEnd(date));
       }
       clearWeekCompletion(date);
       saveWeekRest();
@@ -2605,6 +2630,7 @@
       const nextMonday = addDays(date, 1);
       delete state.weekRest[getWeekStart(nextMonday)];
       state.crossWeekRest[date] = nextMonday;
+      clearRestTemplateOverrides(date);
       clearWeekCompletion(date);
       clearWeekCompletion(nextMonday);
       saveWeekRest();
