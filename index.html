@@ -127,7 +127,7 @@
       display: grid;
       grid-template-columns: minmax(0, 1fr) minmax(400px, .88fr);
       gap: 18px;
-      align-items: stretch;
+      align-items: start;
       min-width: 0;
     }
 
@@ -146,9 +146,12 @@
 
     .side-stack {
       display: grid;
-      gap: 18px;
-      align-content: start;
+      grid-template-rows: auto minmax(390px, 1fr);
+      gap: 12px;
+      align-content: stretch;
       min-width: 0;
+      min-height: 0;
+      overflow: auto;
     }
 
     .panel {
@@ -489,12 +492,13 @@
     .video-panel .panel-body {
       min-height: 0;
       display: grid;
-      grid-template-rows: auto auto auto;
+      grid-template-rows: auto auto;
       gap: 10px;
+      align-content: start;
     }
 
     .video-frame {
-      width: 100%;
+      width: min(100%, 560px);
       height: auto;
       min-height: 0;
       aspect-ratio: 16 / 9;
@@ -509,7 +513,13 @@
     .video-caption {
       color: var(--muted);
       font-size: 12px;
-      line-height: 1.45;
+      line-height: 1.35;
+      min-width: 0;
+      max-width: 60%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      text-align: right;
     }
 
     .video-form {
@@ -583,28 +593,60 @@
       height: auto;
     }
 
+    .side-stack .compact-cycle-card {
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      height: 100%;
+      min-height: 390px;
+      overflow: hidden;
+      container-type: inline-size;
+    }
+
+    .side-stack .compact-cycle-card .panel-body {
+      min-height: 0;
+      overflow: auto;
+    }
+
     .side-stack .tool-card .panel-head {
-      padding: 12px 14px 0;
+      padding: 12px 16px 0;
     }
 
     .side-stack .tool-card .panel-body {
-      padding: 12px 14px 14px;
+      padding: 12px 16px 16px;
     }
 
     .side-stack .compact-cycle-card .tool-stack {
-      gap: 10px;
+      gap: 12px;
+    }
+
+    .compact-cycle-card .cycle-hero,
+    .compact-cycle-card .cycle-note,
+    .compact-cycle-card .cycle-bars,
+    .compact-cycle-card .cycle-tips,
+    .compact-cycle-card .cycle-settings,
+    .compact-cycle-card .cycle-disclaimer {
+      min-width: 0;
+    }
+
+    .compact-cycle-card .panel-title {
+      font-size: 16px;
+    }
+
+    .compact-cycle-card .badge {
+      font-size: 12px;
+      padding: 6px 10px;
     }
 
     .compact-cycle-card .cycle-hero {
-      grid-template-columns: 50px minmax(0, 1fr) 54px;
-      gap: 10px;
-      padding: 12px;
+      grid-template-columns: 52px minmax(0, 1fr) 58px;
+      gap: 12px;
+      padding: 14px;
       border-radius: 14px;
     }
 
     .compact-cycle-card .cycle-icon {
-      width: 46px;
-      height: 46px;
+      width: 48px;
+      height: 48px;
       border-radius: 14px;
       font-size: 24px;
     }
@@ -615,19 +657,19 @@
     }
 
     .compact-cycle-card .cycle-name {
-      font-size: 22px;
+      font-size: 23px;
     }
 
     .compact-cycle-card .cycle-gauge {
-      width: 54px;
-      height: 54px;
+      width: 58px;
+      height: 58px;
     }
 
     .compact-cycle-card .cycle-note {
-      padding: 10px 12px;
+      padding: 11px 12px;
       border-radius: 12px;
       font-size: 13px;
-      line-height: 1.5;
+      line-height: 1.48;
     }
 
     .compact-cycle-card .cycle-bars,
@@ -668,6 +710,67 @@
 
     .compact-cycle-card .cycle-disclaimer {
       font-size: 11px;
+    }
+
+    @container (min-width: 920px) {
+      .compact-cycle-card .tool-stack {
+        grid-template-columns: minmax(280px, .94fr) minmax(300px, 1.06fr);
+        grid-template-areas:
+          "hero note"
+          "hero bars"
+          "tips settings"
+          "disclaimer disclaimer";
+        align-items: stretch;
+      }
+
+      .compact-cycle-card .cycle-hero {
+        grid-area: hero;
+        grid-template-columns: 52px minmax(0, 1fr) 62px;
+        grid-template-areas:
+          "icon copy gauge";
+        align-content: center;
+        gap: 12px;
+        min-height: 132px;
+      }
+
+      .compact-cycle-card .cycle-icon {
+        grid-area: icon;
+      }
+
+      .compact-cycle-card .cycle-copy {
+        grid-area: copy;
+      }
+
+      .compact-cycle-card .cycle-gauge {
+        grid-area: gauge;
+        justify-self: end;
+        margin-top: 0;
+      }
+
+      .compact-cycle-card .cycle-note {
+        grid-area: note;
+        display: flex;
+        align-items: center;
+      }
+
+      .compact-cycle-card .cycle-bars {
+        grid-area: bars;
+        align-content: center;
+      }
+
+      .compact-cycle-card .cycle-tips {
+        grid-area: tips;
+        grid-template-columns: 1fr;
+      }
+
+      .compact-cycle-card .cycle-settings {
+        grid-area: settings;
+        align-content: start;
+      }
+
+      .compact-cycle-card .cycle-disclaimer {
+        grid-area: disclaimer;
+      }
     }
 
     .cycle-card .tool-stack {
@@ -1152,11 +1255,15 @@
     }
 
     .calendar-dashboard .panel {
-      align-self: stretch;
+      align-self: start;
       display: grid;
       grid-template-rows: auto minmax(0, 1fr);
       min-height: 0;
       overflow: hidden;
+    }
+
+    .calendar-dashboard #selectedDatePanel {
+      align-self: start;
     }
 
     .calendar-dashboard .panel-body {
@@ -1679,10 +1786,6 @@
       .video-form {
         margin-bottom: 10px;
       }
-
-      .video-caption {
-        margin-top: 10px;
-      }
     }
 
     @media (max-width: 980px) {
@@ -1898,7 +2001,7 @@
       </section>
 
       <section class="dashboard hero-dashboard">
-        <div class="panel" id="calendarPanel">
+        <div class="panel" id="todayPanel">
           <div class="panel-head">
             <h2 class="panel-title">今日任务</h2>
             <span class="badge" id="todayBadge">资料分析</span>
@@ -1915,10 +2018,11 @@
           </div>
         </div>
 
-        <div class="side-stack">
+        <div class="side-stack" id="todaySideStack">
           <div class="panel video-panel">
             <div class="panel-head">
               <h2 class="panel-title">专注背景音</h2>
+              <div class="video-caption" id="focusVideoCaption">ADHD七小时超长集中注意力&专注学习&舒缓压力背景音｜脑波音乐</div>
             </div>
             <div class="panel-body">
               <div class="video-form">
@@ -1933,7 +2037,6 @@
                 allow="autoplay; fullscreen; picture-in-picture"
                 allowfullscreen
               ></iframe>
-              <div class="video-caption" id="focusVideoCaption">ADHD七小时超长集中注意力&专注学习&舒缓压力背景音｜脑波音乐</div>
             </div>
           </div>
 
@@ -1967,7 +2070,7 @@
       </section>
 
       <section class="dashboard calendar-dashboard">
-        <div class="panel" id="selectedDatePanel">
+        <div class="panel" id="calendarPanel">
           <div class="panel-head">
             <h2 class="panel-title">日历</h2>
             <div class="calendar-tools">
@@ -1983,7 +2086,7 @@
           </div>
         </div>
 
-        <div class="panel">
+        <div class="panel" id="selectedDatePanel">
           <div class="panel-head">
             <h2 class="panel-title">选中日期</h2>
             <span class="badge" id="selectedBadge">资料分析</span>
@@ -3123,7 +3226,11 @@
       const extras = getCustomEntry(date).extras;
       const completion = normalizeCompletion(date);
       if (isCalendarRestDate(date) && item["主线模块"] === "单休" && extras.length === 0 && !Object.keys(completion.tasks).length) return true;
-      return getCompletionTaskLabels(date).every((label) => isTaskDone(date, label)) && extras.every((task) => normalizeStatus(task.status ?? task.done) === "done");
+      const usesAfternoonChecklist = shouldUseAfternoonChecklist(item, getTaskText(item, "下午2.5小时行测"));
+      const labels = getCompletionTaskLabels(date).filter((label) => !usesAfternoonChecklist || !isAfternoonSubtaskLabel(label));
+      const requiredDone = labels.every((label) => isTaskDone(date, label));
+      const afternoonDone = !usesAfternoonChecklist || afternoonSubtasks.some((task) => isTaskDone(date, task.key));
+      return requiredDone && afternoonDone && extras.every((task) => normalizeStatus(task.status ?? task.done) === "done");
     }
 
     function hasAnyDoneTask(date) {
@@ -3710,7 +3817,7 @@
       const metrics = info.profile.metrics;
       document.getElementById("cycleHero").innerHTML =
         '<div class="cycle-icon">' + escapeHtml(info.profile.icon) + '</div>' +
-        '<div><div class="cycle-day">' + escapeHtml(dayLabel) + ' · ' + escapeHtml(info.profile.label) + '</div>' +
+        '<div class="cycle-copy"><div class="cycle-day">' + escapeHtml(dayLabel) + ' · ' + escapeHtml(info.profile.label) + '</div>' +
         '<div class="cycle-name">' + escapeHtml(info.profile.moodName) + '</div></div>' +
         buildCycleGauge(metrics.baseline);
       const note = document.getElementById("cycleNote");
@@ -3793,15 +3900,31 @@
       renderFocusVideo();
     }
 
-    function syncCalendarDetailHeight() {
+    function syncDashboardHeights() {
+      const todayPanel = document.getElementById("todayPanel");
+      const todaySideStack = document.getElementById("todaySideStack");
       const calendarPanel = document.getElementById("calendarPanel");
       const detailPanel = document.getElementById("selectedDatePanel");
-      if (!calendarPanel || !detailPanel) return;
       if (window.innerWidth <= 980) {
-        detailPanel.style.height = "";
+        if (todaySideStack) todaySideStack.style.height = "";
+        if (detailPanel) detailPanel.style.height = "";
         return;
       }
-      detailPanel.style.height = calendarPanel.offsetHeight + "px";
+      if (todayPanel && todaySideStack) {
+        todaySideStack.style.height = "";
+        todaySideStack.style.height = todayPanel.offsetHeight + "px";
+      }
+      if (calendarPanel && detailPanel) {
+        detailPanel.style.height = "";
+        detailPanel.style.height = calendarPanel.offsetHeight + "px";
+      }
+    }
+
+    function scheduleDashboardHeightSync() {
+      requestAnimationFrame(() => {
+        syncDashboardHeights();
+        requestAnimationFrame(syncDashboardHeights);
+      });
     }
 
     function renderAll() {
@@ -3815,7 +3938,7 @@
       renderMacroTimeline();
       renderAdhdTools();
       renderSyncPanel();
-      requestAnimationFrame(syncCalendarDetailHeight);
+      scheduleDashboardHeightSync();
     }
 
     document.addEventListener("click", (event) => {
@@ -4054,7 +4177,8 @@
       shiftMonth(1);
     });
 
-    window.addEventListener("resize", syncCalendarDetailHeight);
+    window.addEventListener("resize", scheduleDashboardHeightSync);
+    window.addEventListener("load", scheduleDashboardHeightSync);
 
     document.getElementById("resetButton").addEventListener("click", () => {
       state.completed = {};
