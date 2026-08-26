@@ -125,18 +125,18 @@
 
     .dashboard {
       display: grid;
-      grid-template-columns: minmax(0, 1.08fr) minmax(360px, 0.92fr);
+      grid-template-columns: minmax(0, 1fr) minmax(400px, .88fr);
       gap: 18px;
-      align-items: start;
+      align-items: stretch;
       min-width: 0;
     }
 
     .hero-dashboard {
-      grid-template-columns: minmax(0, 0.92fr) minmax(380px, 1.08fr);
+      grid-template-columns: minmax(0, 1fr) minmax(400px, .88fr);
     }
 
     .calendar-dashboard {
-      grid-template-columns: minmax(0, 1.08fr) minmax(340px, 0.82fr);
+      grid-template-columns: minmax(0, 1fr) minmax(400px, .88fr);
     }
 
     .dashboard > .panel,
@@ -144,14 +144,10 @@
       min-width: 0;
     }
 
-    .hero-dashboard > .panel:first-child .panel-body {
-      max-height: 820px;
-      overflow: auto;
-    }
-
     .side-stack {
       display: grid;
       gap: 18px;
+      align-content: start;
       min-width: 0;
     }
 
@@ -266,7 +262,7 @@
       display: grid;
       grid-template-columns: 180px 1fr;
       gap: 16px;
-      align-items: start;
+      align-items: stretch;
     }
 
     .date-tile {
@@ -276,8 +272,8 @@
       padding: 18px;
       display: grid;
       align-content: center;
-      min-height: 150px;
-      align-self: start;
+      min-height: 220px;
+      align-self: stretch;
     }
 
     .date-month {
@@ -625,6 +621,34 @@
     .compact-cycle-card .cycle-gauge {
       width: 54px;
       height: 54px;
+    }
+
+    .compact-cycle-card .cycle-note {
+      padding: 10px 12px;
+      border-radius: 12px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .compact-cycle-card .cycle-bars,
+    .compact-cycle-card .cycle-tips {
+      gap: 8px;
+    }
+
+    .compact-cycle-card .cycle-bar-label,
+    .compact-cycle-card .cycle-tip small {
+      font-size: 11px;
+    }
+
+    .compact-cycle-card .cycle-bar-track {
+      height: 8px;
+    }
+
+    .compact-cycle-card .cycle-tip {
+      padding: 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      line-height: 1.45;
     }
 
     .compact-cycle-card .cycle-settings {
@@ -1128,11 +1152,21 @@
     }
 
     .calendar-dashboard .panel {
-      align-self: start;
+      align-self: stretch;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .calendar-dashboard .panel-body {
+      min-height: 0;
+      overflow: hidden;
     }
 
     .calendar-dashboard .detail-grid {
-      max-height: 620px;
+      max-height: none;
+      height: 100%;
       overflow: auto;
       padding-right: 2px;
     }
@@ -1598,12 +1632,12 @@
       }
 
       .hero-dashboard {
-        grid-template-columns: minmax(0, 0.92fr) minmax(360px, 1.08fr);
+        grid-template-columns: minmax(0, 1fr) minmax(360px, .88fr);
         gap: 16px;
       }
 
       .calendar-dashboard {
-        grid-template-columns: minmax(0, 1fr) minmax(320px, 0.72fr);
+        grid-template-columns: minmax(0, 1fr) minmax(360px, .88fr);
         gap: 16px;
       }
 
@@ -1611,18 +1645,14 @@
         gap: 12px;
       }
 
-      .hero-dashboard > .panel:first-child .panel-body {
-        max-height: 760px;
-      }
-
       .today-layout {
         grid-template-columns: 128px minmax(0, 1fr);
         gap: 14px;
-        align-items: start;
+        align-items: stretch;
       }
 
       .date-tile {
-        min-height: 118px;
+        min-height: 180px;
         padding: 16px;
       }
 
@@ -1675,7 +1705,7 @@
 
       .today-layout {
         grid-template-columns: 132px minmax(0, 1fr);
-        align-items: start;
+        align-items: stretch;
       }
 
       .date-tile {
@@ -1780,10 +1810,6 @@
         align-items: start;
       }
 
-      .hero-dashboard > .panel:first-child .panel-body {
-        max-height: none;
-      }
-
       .task-actions,
       .detail-actions {
         width: 100%;
@@ -1872,7 +1898,7 @@
       </section>
 
       <section class="dashboard hero-dashboard">
-        <div class="panel">
+        <div class="panel" id="calendarPanel">
           <div class="panel-head">
             <h2 class="panel-title">今日任务</h2>
             <span class="badge" id="todayBadge">资料分析</span>
@@ -1919,6 +1945,9 @@
             <div class="panel-body">
               <div class="tool-stack">
                 <div class="cycle-hero" id="cycleHero"></div>
+                <div class="cycle-note" id="cycleNote"></div>
+                <div class="cycle-bars" id="cycleBars"></div>
+                <div class="cycle-tips" id="cycleTips"></div>
                 <div class="cycle-settings">
                   <label class="mini-field">上次开始
                     <input id="cycleStartInput" type="date">
@@ -1934,29 +1963,11 @@
               </div>
             </div>
           </div>
-
-          <div class="panel tool-card dump-card compact-dump-card">
-            <div class="panel-head">
-              <h2 class="panel-title">Brain dump</h2>
-              <span class="badge" id="brainDumpCount">0 条</span>
-            </div>
-            <div class="panel-body">
-              <div class="tool-stack">
-                <div class="brain-board">
-                  <div class="brain-list" id="brainDumpList"></div>
-                </div>
-                <div class="brain-capture">
-                  <textarea id="brainDumpText" class="textarea" placeholder="先倒出来，不用分类"></textarea>
-                  <button id="addBrainDumpButton" class="btn primary">收集</button>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </section>
 
       <section class="dashboard calendar-dashboard">
-        <div class="panel">
+        <div class="panel" id="selectedDatePanel">
           <div class="panel-head">
             <h2 class="panel-title">日历</h2>
             <div class="calendar-tools">
@@ -3292,7 +3303,7 @@
       const extras = getCustomEntry(item["日期"]).extras;
       const canCheck = item["主线模块"] !== "顺延";
       document.getElementById("todayTasks").innerHTML =
-        getVisibleTaskLabels(item).map((label) => taskLineHtml(label, getTaskText(item, label), item["日期"], canCheck, { editable: canCheck, context: "today" })).join("") +
+        getVisibleTaskLabels(item).map((label) => taskLineHtml(label, getTaskText(item, label), item["日期"], canCheck, { editable: false, context: "today" })).join("") +
         extras.map((task) => extraTaskLineHtml(item["日期"], task, "today")).join("");
     }
 
@@ -3308,11 +3319,7 @@
       if (!item) return false;
       if (item["主线模块"] === "单休" || item["主线模块"] === "顺延" || item["主线模块"] === "模考") return false;
       if (item["日期"] < AFTERNOON_CHECKLIST_START_DATE) return false;
-      const entry = getCustomEntry(item["日期"]);
-      if (Object.prototype.hasOwnProperty.call(entry.overrides, "下午2.5小时行测") && entry.overrides["下午2.5小时行测"] !== AFTERNOON_TASK_TEXT) {
-        return false;
-      }
-      return text === AFTERNOON_TASK_TEXT;
+      return !!text || item["主线模块"] === "后续安排";
     }
 
     function shouldUseEveningGroup(item) {
@@ -3334,21 +3341,22 @@
             name: "task-" + context + "-" + date + "-" + label,
             doneChecked: status === "done",
             unfinishedChecked: status === "unfinished",
-            attrs: 'data-task="' + escapeHtml(label) + '"',
+            attrs: 'data-task="' + escapeHtml(label) + '" data-task-date="' + escapeHtml(date) + '"',
             className: "taskStatusRadio",
           })
         : '';
       const isFollowup = getEffectiveItem(date)?.["主线模块"] === "后续安排";
       const taskDeferred = isTaskDeferralAnchor(date, label);
-      const defer = withCheck && taskLabels.includes(label) && !isCalendarRestDate(date) && !isFollowup && getNextVisibleDate(date)
+      const allowManage = options.editable && context !== "today";
+      const defer = allowManage && withCheck && taskLabels.includes(label) && !isCalendarRestDate(date) && !isFollowup && getNextVisibleDate(date)
         ? (taskDeferred
           ? '<button class="link-btn danger" data-cancel-defer-task="' + escapeHtml(label) + '" data-cancel-defer-task-date="' + escapeHtml(date) + '">取消顺延</button>'
           : '<button class="link-btn" data-defer-task="' + escapeHtml(label) + '" data-defer-task-date="' + escapeHtml(date) + '">顺延</button>')
         : '';
-      const actions = options.editable
-        ? '<span class="task-actions"><button class="link-btn" data-edit-task="' + escapeHtml(label) + '">修改</button>' + defer + (changed ? '<button class="link-btn danger" data-reset-task="' + escapeHtml(label) + '">恢复</button>' : '') + check + '</span>'
+      const actions = allowManage
+        ? '<span class="task-actions"><button class="link-btn" data-edit-task="' + escapeHtml(label) + '" data-edit-task-date="' + escapeHtml(date) + '">修改</button>' + defer + (changed ? '<button class="link-btn danger" data-reset-task="' + escapeHtml(label) + '" data-reset-task-date="' + escapeHtml(date) + '">恢复</button>' : '') + check + '</span>'
         : check;
-      const carryoverNote = carryover
+      const carryoverNote = context !== "today" && carryover
         ? '<div class="subline">顺延自 ' + escapeHtml(formatShortDate(carryover.fromDate)) + ' · 原计划：' + escapeHtml(carryover.originalText) + '</div>'
         : '';
       return { actions, carryoverNote };
@@ -3366,7 +3374,7 @@
               name: "task-" + (options.context || "detail") + "-" + date + "-" + task.key,
               doneChecked: status === "done",
               unfinishedChecked: status === "unfinished",
-              attrs: 'data-task="' + escapeHtml(task.key) + '"',
+              attrs: 'data-task="' + escapeHtml(task.key) + '" data-task-date="' + escapeHtml(date) + '"',
               className: "taskStatusRadio",
             })
           : '';
@@ -3435,10 +3443,11 @@
         name: "extra-" + context + "-" + date + "-" + task.id,
         doneChecked: status === "done",
         unfinishedChecked: status === "unfinished",
-        attrs: 'data-extra-id="' + escapeHtml(task.id) + '"',
+        attrs: 'data-extra-id="' + escapeHtml(task.id) + '" data-extra-date="' + escapeHtml(date) + '"',
         className: "extraStatusRadio",
       });
-      return '<div class="task-line extra ' + (status === "unfinished" ? "unfinished" : "") + '"><span class="task-label"><span>补充任务</span><span class="task-actions">' + controls + '<button class="link-btn danger" data-delete-extra="' + escapeHtml(task.id) + '">删除</button></span></span><div class="task-text">' + escapeHtml(task.text) + '</div></div>';
+      const deleteButton = context === "today" ? "" : '<button class="link-btn danger" data-delete-extra="' + escapeHtml(task.id) + '" data-delete-extra-date="' + escapeHtml(date) + '">删除</button>';
+      return '<div class="task-line extra ' + (status === "unfinished" ? "unfinished" : "") + '"><span class="task-label"><span>补充任务</span><span class="task-actions">' + controls + deleteButton + '</span></span><div class="task-text">' + escapeHtml(task.text) + '</div></div>';
     }
 
     function renderCalendar() {
@@ -3663,10 +3672,14 @@
 
     function renderCycleSettings() {
       const profile = getCycleProfile();
-      document.getElementById("cycleStartInput").value = profile.startDate || "";
-      document.getElementById("cycleLengthInput").value = profile.cycleLength || 28;
-      document.getElementById("periodLengthInput").value = profile.periodLength || 5;
-      document.getElementById("radarDateBadge").textContent = formatShortDate(state.selectedDate);
+      const startInput = document.getElementById("cycleStartInput");
+      const cycleLengthInput = document.getElementById("cycleLengthInput");
+      const periodLengthInput = document.getElementById("periodLengthInput");
+      const dateBadge = document.getElementById("radarDateBadge");
+      if (startInput) startInput.value = profile.startDate || "";
+      if (cycleLengthInput) cycleLengthInput.value = profile.cycleLength || 28;
+      if (periodLengthInput) periodLengthInput.value = profile.periodLength || 5;
+      if (dateBadge) dateBadge.textContent = formatShortDate(state.selectedDate);
     }
 
     function buildCycleGauge(value) {
@@ -3717,16 +3730,20 @@
     }
 
     function renderBrainDump() {
+      const count = document.getElementById("brainDumpCount");
+      const list = document.getElementById("brainDumpList");
+      if (!count || !list) return;
       const tools = getToolsForDate();
       const items = tools.brainDump || [];
-      document.getElementById("brainDumpCount").textContent = items.length + " 条";
-      document.getElementById("brainDumpList").innerHTML = items.length
+      count.textContent = items.length + " 条";
+      list.innerHTML = items.length
         ? items.map((item) => '<div class="brain-item"><span>' + escapeHtml(item.text) + '</span><button class="link-btn danger" data-delete-brain="' + escapeHtml(item.id) + '">删除</button></div>').join("")
         : '<div class="brain-item"><span>这里先空着</span></div><div class="brain-item"><span>想到什么就扔进来</span></div>';
     }
 
     function addBrainDumpFromInput() {
       const input = document.getElementById("brainDumpText");
+      if (!input) return;
       const text = input.value.trim();
       if (!text) return;
       const tools = getToolsForDate();
@@ -3773,8 +3790,18 @@
     function renderAdhdTools() {
       renderBrownNoise();
       renderHormoneRadar();
-      renderBrainDump();
       renderFocusVideo();
+    }
+
+    function syncCalendarDetailHeight() {
+      const calendarPanel = document.getElementById("calendarPanel");
+      const detailPanel = document.getElementById("selectedDatePanel");
+      if (!calendarPanel || !detailPanel) return;
+      if (window.innerWidth <= 980) {
+        detailPanel.style.height = "";
+        return;
+      }
+      detailPanel.style.height = calendarPanel.offsetHeight + "px";
     }
 
     function renderAll() {
@@ -3788,6 +3815,7 @@
       renderMacroTimeline();
       renderAdhdTools();
       renderSyncPanel();
+      requestAnimationFrame(syncCalendarDetailHeight);
     }
 
     document.addEventListener("click", (event) => {
@@ -3807,18 +3835,19 @@
 
       const editTask = event.target.closest("[data-edit-task]");
       if (editTask) {
-        const item = getTodayPlan();
+        const date = editTask.dataset.editTaskDate || state.selectedDate;
+        const item = getEffectiveItem(date) || getTodayPlan();
         const label = editTask.dataset.editTask;
         const next = window.prompt("修改任务", getTaskText(item, label));
         if (next !== null) {
-          setTaskOverride(item["日期"], label, next, getScheduledTaskInfo(item["日期"], label).text);
+          setTaskOverride(date, label, next, getScheduledTaskInfo(date, label).text);
           renderAll();
         }
       }
 
       const resetTask = event.target.closest("[data-reset-task]");
       if (resetTask) {
-        clearTaskOverride(state.selectedDate, resetTask.dataset.resetTask);
+        clearTaskOverride(resetTask.dataset.resetTaskDate || state.selectedDate, resetTask.dataset.resetTask);
         renderAll();
       }
 
@@ -3838,7 +3867,7 @@
 
       const deleteExtra = event.target.closest("[data-delete-extra]");
       if (deleteExtra) {
-        deleteExtraTask(state.selectedDate, deleteExtra.dataset.deleteExtra);
+        deleteExtraTask(deleteExtra.dataset.deleteExtraDate || state.selectedDate, deleteExtra.dataset.deleteExtra);
         renderAll();
       }
 
@@ -3958,12 +3987,12 @@
       }
 
       if (event.target.classList.contains("taskStatusRadio")) {
-        setTaskStatus(state.selectedDate, event.target.dataset.task, event.target.value);
+        setTaskStatus(event.target.dataset.taskDate || state.selectedDate, event.target.dataset.task, event.target.value);
         renderAll();
       }
 
       if (event.target.classList.contains("extraStatusRadio")) {
-        setExtraTaskStatus(state.selectedDate, event.target.dataset.extraId, event.target.value);
+        setExtraTaskStatus(event.target.dataset.extraDate || state.selectedDate, event.target.dataset.extraId, event.target.value);
         renderAll();
       }
 
@@ -3974,9 +4003,12 @@
 
       if (event.target.id === "cycleStartInput" || event.target.id === "cycleLengthInput" || event.target.id === "periodLengthInput") {
         const profile = getCycleProfile();
-        profile.startDate = document.getElementById("cycleStartInput").value;
-        profile.cycleLength = Math.min(40, Math.max(21, Number(document.getElementById("cycleLengthInput").value) || 28));
-        profile.periodLength = Math.min(10, Math.max(2, Number(document.getElementById("periodLengthInput").value) || 5));
+        const startInput = document.getElementById("cycleStartInput");
+        const cycleLengthInput = document.getElementById("cycleLengthInput");
+        const periodLengthInput = document.getElementById("periodLengthInput");
+        profile.startDate = startInput ? startInput.value : profile.startDate;
+        profile.cycleLength = Math.min(40, Math.max(21, Number(cycleLengthInput ? cycleLengthInput.value : profile.cycleLength) || 28));
+        profile.periodLength = Math.min(10, Math.max(2, Number(periodLengthInput ? periodLengthInput.value : profile.periodLength) || 5));
         saveTools();
         renderHormoneRadar();
       }
@@ -4021,6 +4053,8 @@
     document.getElementById("nextMonthButton").addEventListener("click", () => {
       shiftMonth(1);
     });
+
+    window.addEventListener("resize", syncCalendarDetailHeight);
 
     document.getElementById("resetButton").addEventListener("click", () => {
       state.completed = {};
