@@ -127,13 +127,21 @@
       display: grid;
       grid-template-columns: minmax(0, 1.08fr) minmax(360px, 0.92fr);
       gap: 18px;
-      align-items: stretch;
+      align-items: start;
       min-width: 0;
+    }
+
+    .hero-dashboard {
+      grid-template-columns: minmax(0, 1.06fr) minmax(360px, 0.94fr);
+    }
+
+    .calendar-dashboard {
+      grid-template-columns: minmax(0, 1.08fr) minmax(340px, 0.82fr);
     }
 
     .dashboard > .panel,
     .dashboard > .side-stack {
-      height: 100%;
+      min-width: 0;
     }
 
     .side-stack {
@@ -472,15 +480,14 @@
     }
 
     .video-panel {
-      min-height: 100%;
       display: grid;
-      grid-template-rows: auto minmax(0, 1fr);
+      grid-template-rows: auto 1fr;
     }
 
     .video-panel .panel-body {
       min-height: 0;
       display: grid;
-      grid-template-rows: auto minmax(0, 1fr) auto;
+      grid-template-rows: auto auto auto;
       gap: 10px;
     }
 
@@ -569,6 +576,70 @@
       padding: 24px 28px 28px;
     }
 
+    .side-stack .tool-card {
+      min-height: 0;
+      height: auto;
+    }
+
+    .side-stack .tool-card .panel-head {
+      padding: 12px 14px 0;
+    }
+
+    .side-stack .tool-card .panel-body {
+      padding: 12px 14px 14px;
+    }
+
+    .side-stack .compact-cycle-card .tool-stack {
+      gap: 10px;
+    }
+
+    .compact-cycle-card .cycle-hero {
+      grid-template-columns: 50px minmax(0, 1fr) 54px;
+      gap: 10px;
+      padding: 12px;
+      border-radius: 14px;
+    }
+
+    .compact-cycle-card .cycle-icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 14px;
+      font-size: 24px;
+    }
+
+    .compact-cycle-card .cycle-day {
+      font-size: 11px;
+      letter-spacing: .06em;
+    }
+
+    .compact-cycle-card .cycle-name {
+      font-size: 22px;
+    }
+
+    .compact-cycle-card .cycle-gauge {
+      width: 54px;
+      height: 54px;
+    }
+
+    .compact-cycle-card .cycle-settings {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 7px;
+    }
+
+    .compact-cycle-card .mini-field {
+      font-size: 11px;
+    }
+
+    .compact-cycle-card .mini-field input {
+      height: 30px;
+      border-radius: 7px;
+      font-size: 12px;
+    }
+
+    .compact-cycle-card .cycle-disclaimer {
+      font-size: 11px;
+    }
+
     .cycle-card .tool-stack {
       max-width: 760px;
       margin: 0 auto;
@@ -596,6 +667,47 @@
       grid-template-rows: minmax(190px, .78fr) auto;
       align-content: start;
       gap: 22px;
+    }
+
+    .compact-dump-card .panel-body,
+    .compact-dump-card .tool-stack {
+      height: auto;
+    }
+
+    .compact-dump-card .tool-stack {
+      grid-template-rows: auto auto;
+      gap: 10px;
+    }
+
+    .compact-dump-card .brain-board {
+      min-height: 104px;
+      max-height: 148px;
+      overflow: auto;
+      border-radius: 14px;
+      padding: 12px 10px;
+      justify-content: flex-start;
+      gap: 10px;
+    }
+
+    .compact-dump-card .brain-item {
+      min-width: 88px;
+      max-width: 150px;
+      padding: 9px 12px;
+      border-radius: 13px;
+      font-size: 13px;
+    }
+
+    .compact-dump-card .brain-capture {
+      border-width: 2px;
+      border-radius: 12px;
+      padding: 6px 8px;
+      gap: 8px;
+    }
+
+    .compact-dump-card .brain-capture textarea {
+      min-height: 34px;
+      font-size: 13px;
+      padding: 6px;
     }
 
     .tool-stack {
@@ -991,6 +1103,41 @@
     .detail-grid {
       display: grid;
       gap: 10px;
+    }
+
+    .calendar-dashboard .panel {
+      align-self: start;
+    }
+
+    .calendar-dashboard .detail-grid {
+      max-height: 620px;
+      overflow: auto;
+      padding-right: 2px;
+    }
+
+    .calendar-dashboard .task-stack {
+      gap: 8px;
+    }
+
+    .calendar-dashboard .task-line {
+      padding: 10px 11px;
+    }
+
+    .calendar-dashboard .subtask-list {
+      gap: 7px;
+    }
+
+    .calendar-dashboard .subtask-row {
+      padding: 8px 9px;
+    }
+
+    .calendar-dashboard .extra-form {
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+
+    .calendar-dashboard .textarea {
+      min-height: 54px;
     }
 
     .detail-top {
@@ -1422,6 +1569,66 @@
       font-weight: 680;
     }
 
+    @media (max-width: 1180px) {
+      main {
+        padding: 18px;
+        gap: 16px;
+      }
+
+      .hero-dashboard {
+        grid-template-columns: minmax(0, 1fr) minmax(350px, 0.82fr);
+        gap: 16px;
+      }
+
+      .calendar-dashboard {
+        grid-template-columns: minmax(0, 1fr) minmax(320px, 0.72fr);
+        gap: 16px;
+      }
+
+      .side-stack {
+        gap: 12px;
+      }
+
+      .today-layout {
+        grid-template-columns: 128px minmax(0, 1fr);
+        gap: 14px;
+        align-items: start;
+      }
+
+      .date-tile {
+        min-height: 132px;
+        padding: 16px;
+      }
+
+      .date-day {
+        font-size: 46px;
+      }
+
+      .date-week {
+        font-size: 16px;
+      }
+
+      .task-line {
+        padding: 11px 12px;
+      }
+
+      .subtask-row {
+        padding: 9px 10px;
+      }
+
+      .video-panel .panel-body {
+        display: block;
+      }
+
+      .video-form {
+        margin-bottom: 10px;
+      }
+
+      .video-caption {
+        margin-top: 10px;
+      }
+    }
+
     @media (max-width: 980px) {
       .topbar-inner,
       .dashboard {
@@ -1441,7 +1648,8 @@
       }
 
       .today-layout {
-        grid-template-columns: 1fr;
+        grid-template-columns: 132px minmax(0, 1fr);
+        align-items: start;
       }
 
       .date-tile {
@@ -1533,6 +1741,19 @@
         flex-direction: column;
       }
 
+      .today-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .date-tile {
+        min-height: 128px;
+      }
+
+      .subtask-row {
+        grid-template-columns: 1fr;
+        align-items: start;
+      }
+
       .task-actions,
       .detail-actions {
         width: 100%;
@@ -1620,7 +1841,7 @@
         </div>
       </section>
 
-      <section class="dashboard">
+      <section class="dashboard hero-dashboard">
         <div class="panel">
           <div class="panel-head">
             <h2 class="panel-title">今日任务</h2>
@@ -1659,57 +1880,52 @@
               <div class="video-caption" id="focusVideoCaption">ADHD七小时超长集中注意力&专注学习&舒缓压力背景音｜脑波音乐</div>
             </div>
           </div>
-        </div>
-      </section>
 
-      <section class="tool-grid" aria-label="ADHD 工具箱">
-        <div class="panel tool-card cycle-card">
-          <div class="panel-head">
-            <h2 class="panel-title">荷尔蒙雷达</h2>
-            <span class="badge" id="radarDateBadge">今日</span>
-          </div>
-          <div class="panel-body">
-            <div class="tool-stack">
-              <div class="cycle-hero" id="cycleHero"></div>
-              <div class="cycle-note" id="cycleNote"></div>
-              <div class="cycle-bars" id="cycleBars"></div>
-              <div class="cycle-tips" id="cycleTips"></div>
-              <div class="cycle-settings">
-                <label class="mini-field">上次开始
-                  <input id="cycleStartInput" type="date">
-                </label>
-                <label class="mini-field">周期
-                  <input id="cycleLengthInput" type="number" min="21" max="40" value="28">
-                </label>
-                <label class="mini-field">经期
-                  <input id="periodLengthInput" type="number" min="2" max="10" value="5">
-                </label>
+          <div class="panel tool-card cycle-card compact-cycle-card">
+            <div class="panel-head">
+              <h2 class="panel-title">荷尔蒙雷达</h2>
+              <span class="badge" id="radarDateBadge">今日</span>
+            </div>
+            <div class="panel-body">
+              <div class="tool-stack">
+                <div class="cycle-hero" id="cycleHero"></div>
+                <div class="cycle-settings">
+                  <label class="mini-field">上次开始
+                    <input id="cycleStartInput" type="date">
+                  </label>
+                  <label class="mini-field">周期
+                    <input id="cycleLengthInput" type="number" min="21" max="40" value="28">
+                  </label>
+                  <label class="mini-field">经期
+                    <input id="periodLengthInput" type="number" min="2" max="10" value="5">
+                  </label>
+                </div>
+                <div class="cycle-disclaimer">仅作自我观察，不是医学判断；如果周期明显不规律，以身体感受优先。</div>
               </div>
-              <div class="cycle-disclaimer">仅作自我观察，不是医学判断；如果周期明显不规律，以身体感受优先。</div>
             </div>
           </div>
-        </div>
 
-        <div class="panel tool-card dump-card">
-          <div class="panel-head">
-            <h2 class="panel-title">Brain dump</h2>
-            <span class="badge" id="brainDumpCount">0 条</span>
-          </div>
-          <div class="panel-body">
-            <div class="tool-stack">
-              <div class="brain-board">
-                <div class="brain-list" id="brainDumpList"></div>
-              </div>
-              <div class="brain-capture">
-                <textarea id="brainDumpText" class="textarea" placeholder="先倒出来，不用分类：担心什么、想到什么、要查什么都可以"></textarea>
-                <button id="addBrainDumpButton" class="btn primary">收集</button>
+          <div class="panel tool-card dump-card compact-dump-card">
+            <div class="panel-head">
+              <h2 class="panel-title">Brain dump</h2>
+              <span class="badge" id="brainDumpCount">0 条</span>
+            </div>
+            <div class="panel-body">
+              <div class="tool-stack">
+                <div class="brain-board">
+                  <div class="brain-list" id="brainDumpList"></div>
+                </div>
+                <div class="brain-capture">
+                  <textarea id="brainDumpText" class="textarea" placeholder="先倒出来，不用分类"></textarea>
+                  <button id="addBrainDumpButton" class="btn primary">收集</button>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section class="dashboard">
+      <section class="dashboard calendar-dashboard">
         <div class="panel">
           <div class="panel-head">
             <h2 class="panel-title">日历</h2>
@@ -3431,13 +3647,20 @@
         '<div><div class="cycle-day">' + escapeHtml(dayLabel) + ' · ' + escapeHtml(info.profile.label) + '</div>' +
         '<div class="cycle-name">' + escapeHtml(info.profile.moodName) + '</div></div>' +
         buildCycleGauge(metrics.baseline);
-      document.getElementById("cycleNote").textContent = info.profile.note;
-      document.getElementById("cycleBars").innerHTML =
-        buildCycleBar("生活底盘", metrics.baseline) +
-        buildCycleBar("执行功能", metrics.executive);
-      document.getElementById("cycleTips").innerHTML =
-        '<div class="cycle-tip"><small>练什么</small>' + escapeHtml(info.profile.train) + '</div>' +
-        '<div class="cycle-tip"><small>吃什么</small>' + escapeHtml(info.profile.food) + '</div>';
+      const note = document.getElementById("cycleNote");
+      const bars = document.getElementById("cycleBars");
+      const tips = document.getElementById("cycleTips");
+      if (note) note.textContent = info.profile.note;
+      if (bars) {
+        bars.innerHTML =
+          buildCycleBar("生活底盘", metrics.baseline) +
+          buildCycleBar("执行功能", metrics.executive);
+      }
+      if (tips) {
+        tips.innerHTML =
+          '<div class="cycle-tip"><small>练什么</small>' + escapeHtml(info.profile.train) + '</div>' +
+          '<div class="cycle-tip"><small>吃什么</small>' + escapeHtml(info.profile.food) + '</div>';
+      }
     }
 
     function renderBrainDump() {
