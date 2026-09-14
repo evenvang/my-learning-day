@@ -1241,6 +1241,7 @@
     .dot-单休 { background: #a5afbd; }
     .dot-顺延 { background: #8f9aaa; }
     .dot-后续安排 { background: #94a3b8; }
+    .dot-考试 { background: #7c3aed; }
 
     .day.done .status-dot { background: var(--green); }
     .day.partial .status-dot { background: var(--amber); }
@@ -1265,6 +1266,11 @@
     .day.followup {
       border-style: dashed;
       background: #fbfdff;
+    }
+
+    .day.exam {
+      border-color: rgba(124, 58, 237, 0.42);
+      background: #f5f3ff;
     }
 
     .day-subject {
@@ -2302,12 +2308,13 @@
         "晚上1.5小时申论": "申论模考或复盘：完成一套申论/整理作答问题和素材缺口",
       },
     };
-    const modules = ["全部", "资料分析", "判断推理", "言语理解", "数量关系", "后续安排", "模考", "单休", "顺延"];
+    const modules = ["全部", "资料分析", "判断推理", "言语理解", "数量关系", "后续安排", "模考", "单休", "顺延", "考试"];
     const weekdayLabels = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"];
     const AFTERNOON_CHECKLIST_START_DATE = "2026-08-17";
     const AFTERNOON_MODE_START_DATE = "2026-08-28";
     const QUANTITY_REVISION_START_DATE = "2026-08-28";
     const QUANTITY_REVISION_DAYS = 19;
+    const EXAM_DAY_START_DATE = "2026-10-01";
     const DEFAULT_AFTERNOON_MODE = "math_judgment_data";
     const AFTERNOON_TASK_TEXT = "3h：10min粉笔速算；40min资料分析一套；45min判断推理一套；15min图推刷题；1h粉笔千词计划；余10min错题标记/缓冲";
     const LEGACY_AFTERNOON_TASK_TEXT = AFTERNOON_TASK_TEXT;
@@ -2422,13 +2429,15 @@
     const bootDeferred = loadDeferred();
     const bootWeekRest = loadWeekRest();
     const bootCrossWeekRest = loadCrossWeekRest();
+    const bootCustom = loadCustom();
+    let state;
     const initialDate = getInitialDate(bootDeferred, bootWeekRest, bootCrossWeekRest);
-    const state = {
+    state = {
       selectedDate: initialDate,
       filter: "全部",
       month: initialDate.slice(0, 7),
       completed: loadCompleted(),
-      custom: loadCustom(),
+      custom: bootCustom,
       timeline: loadTimeline(),
       deferred: bootDeferred,
       weekRest: bootWeekRest,
@@ -2769,7 +2778,7 @@
     }
 
     function getCustomEntry(date) {
-      const entry = state.custom[date] || {};
+      const entry = (state?.custom || bootCustom || {})[date] || {};
       return {
         overrides: entry.overrides || {},
         carryovers: entry.carryovers || {},
@@ -2777,6 +2786,7 @@
         extras: Array.isArray(entry.extras) ? entry.extras : [],
         sundayMode: entry.sundayMode || "",
         afternoonMode: entry.afternoonMode || "",
+        examDay: !!entry.examDay,
       };
     }
 
@@ -2788,8 +2798,9 @@
         extras: Array.isArray(entry.extras) ? entry.extras : [],
         sundayMode: entry.sundayMode || "",
         afternoonMode: afternoonModes[entry.afternoonMode] ? entry.afternoonMode : "",
+        examDay: !!entry.examDay,
       };
-      if (Object.keys(cleaned.overrides).length || Object.keys(cleaned.carryovers).length || Object.keys(cleaned.taskDeferrals).length || cleaned.extras.length || cleaned.sundayMode || cleaned.afternoonMode) {
+      if (Object.keys(cleaned.overrides).length || Object.keys(cleaned.carryovers).length || Object.keys(cleaned.taskDeferrals).length || cleaned.extras.length || cleaned.sundayMode || cleaned.afternoonMode || cleaned.examDay) {
         state.custom[date] = cleaned;
       } else {
         delete state.custom[date];
@@ -2814,6 +2825,23 @@
       entry.afternoonMode = mode;
       setCustomEntry(date, entry);
       ["下午2.5小时行测", ...afternoonSubtasks.map((task) => task.key)].forEach((label) => clearTaskStatus(date, label));
+    }
+
+    function canSetExamDay(date) {
+      return date >= EXAM_DAY_START_DATE;
+    }
+
+    function isExamDay(date) {
+      return canSetExamDay(date) && getCustomEntry(date).examDay;
+    }
+
+    function setExamDay(date, enabled) {
+      if (!canSetExamDay(date)) return;
+      const entry = getCustomEntry(date);
+      entry.examDay = !!enabled;
+      setCustomEntry(date, entry);
+      delete state.completed[date];
+      saveCompleted();
     }
 
     function getAfternoonSubtasks(date, item = getEffectiveItem(date)) {
@@ -2853,6 +2881,7 @@
     }
 
     function getVisibleTaskLabels(item) {
+      if (item?.["主线模块"] === "考试") return [];
       return [
         "早上1小时",
         "上午1.5小时行测",
@@ -2864,6 +2893,7 @@
     function getCompletionTaskLabels(date) {
       const item = getEffectiveItem(date);
       if (!item) return coreTaskLabels;
+      if (item["主线模块"] === "考试") return [];
       const labels = ["早上1小时", "上午1.5小时行测"];
       if (shouldUseAfternoonChecklist(item, getTaskText(item, "下午2.5小时行测"))) {
         labels.push(...getAfternoonSubtasks(date, item).map((task) => task.key));
@@ -3103,7 +3133,7 @@
     }
 
     function isStudyScheduleDate(date, deferred = state.deferred, weekRest = state.weekRest, crossWeekRest = state.crossWeekRest) {
-      return !isCalendarRestDate(date, weekRest, crossWeekRest) && !deferred[date];
+      return !isExamDay(date) && !isCalendarRestDate(date, weekRest, crossWeekRest) && !deferred[date];
     }
 
     function makeRestItem(date) {
@@ -3124,6 +3154,23 @@
         "晚上1.5小时申论": eveningTask,
         "复盘/当日重点": entry.overrides["复盘/当日重点"] || (shiftedRest ? "本周换休：当天休息，本周后续任务只在本周内顺延。" : (crossWeekRest ? "跨周换休：上一个周日已补学习，今天休息。" : template.review)),
         "阶段": shiftedRest ? "本周换休" : (crossWeekRest ? "跨周换休" : template.stage),
+        "来源日期": "",
+      };
+    }
+
+    function makeExamItem(date) {
+      return {
+        "日期": date,
+        "星期": getWeekday(date),
+        "主线模块": "考试",
+        "早上1小时": "",
+        "上午1.5小时行测": "",
+        "下午2.5小时行测": "",
+        "粉笔专项积累": "",
+        "晚上1.5小时申论": "",
+        "申论跟练打卡": "",
+        "复盘/当日重点": "考试日：不安排学习任务，专心考试和休整。",
+        "阶段": "考试日",
         "来源日期": "",
       };
     }
@@ -3232,7 +3279,7 @@
     }
 
     function getDeferredDates(deferred = state.deferred) {
-      return Object.keys(deferred || {}).filter((date) => date >= PLAN[0]["日期"] && !isCalendarRestDate(date)).sort();
+      return Object.keys(deferred || {}).filter((date) => date >= PLAN[0]["日期"] && !isExamDay(date) && !isCalendarRestDate(date)).sort();
     }
 
     function getVisibleDates(deferred = state.deferred, weekRest = state.weekRest, crossWeekRest = state.crossWeekRest) {
@@ -3251,7 +3298,7 @@
     }
 
     function isDateDeferred(date) {
-      return !!state.deferred[date] && !isCalendarRestDate(date);
+      return !!state.deferred[date] && !isExamDay(date) && !isCalendarRestDate(date);
     }
 
     function isVisibleDate(date, deferred = state.deferred, weekRest = state.weekRest, crossWeekRest = state.crossWeekRest) {
@@ -3261,6 +3308,7 @@
 
     function getEffectiveItem(date, deferred = state.deferred, weekRest = state.weekRest, crossWeekRest = state.crossWeekRest) {
       if (!isVisibleDate(date, deferred, weekRest, crossWeekRest)) return null;
+      if (isExamDay(date)) return makeExamItem(date);
       if (isCalendarRestDate(date, weekRest, crossWeekRest)) return makeRestItem(date);
       if (deferred[date]) {
         return {
@@ -3291,6 +3339,7 @@
 
     function deferDate(date) {
       if (!isVisibleDate(date)) return;
+      if (isExamDay(date)) return;
       if (isCalendarRestDate(date)) return;
       state.deferred[date] = true;
       delete state.completed[date];
@@ -3369,6 +3418,7 @@
     function isDayDone(date) {
       const item = getEffectiveItem(date);
       if (!item) return false;
+      if (item["主线模块"] === "考试") return true;
       if (item["主线模块"] === "顺延") return false;
       const extras = getCustomEntry(date).extras;
       const completion = normalizeCompletion(date);
@@ -3383,12 +3433,14 @@
     function hasAnyDoneTask(date) {
       const item = getEffectiveItem(date);
       if (!item) return false;
+      if (item["主线模块"] === "考试") return false;
       if (item["主线模块"] === "顺延") return false;
       const extras = getCustomEntry(date).extras;
       return getCompletionTaskLabels(date).some((label) => isTaskDone(date, label)) || extras.some((task) => normalizeStatus(task.status ?? task.done) === "done");
     }
 
     function getCalendarStatus(date) {
+      if (isExamDay(date)) return "exam";
       if (isDateDeferred(date)) return "deferred-day";
       if (isDayDone(date)) return "done";
       if (hasAnyDoneTask(date)) return "partial";
@@ -3494,7 +3546,7 @@
       const current = getCurrentPlanDate();
       const passed = getVisibleDates().filter((date) => {
         const item = getEffectiveItem(date);
-        return date <= current && item && item["主线模块"] !== "单休" && item["主线模块"] !== "顺延" && item["主线模块"] !== "后续安排";
+        return date <= current && item && item["主线模块"] !== "单休" && item["主线模块"] !== "顺延" && item["主线模块"] !== "后续安排" && item["主线模块"] !== "考试";
       }).length;
       return clamp(Math.round((passed / studyItems.length) * 100), 0, 100);
     }
@@ -3536,7 +3588,7 @@
     function renderMetrics() {
       const completedCount = getVisibleDates().filter((date) => {
         const item = getEffectiveItem(date);
-        return item && item["主线模块"] !== "单休" && item["主线模块"] !== "顺延" && item["主线模块"] !== "后续安排" && isDayDone(date);
+        return item && item["主线模块"] !== "单休" && item["主线模块"] !== "顺延" && item["主线模块"] !== "后续安排" && item["主线模块"] !== "考试" && isDayDone(date);
       }).length;
       const selected = getTodayPlan();
       document.getElementById("metricStudyDays").textContent = String(studyItems.length);
@@ -3554,11 +3606,12 @@
       document.getElementById("dateDay").textContent = day;
       document.getElementById("dateWeek").textContent = item["星期"];
       document.getElementById("todayBadge").textContent = item["主线模块"];
-      const extras = getCustomEntry(item["日期"]).extras;
-      const canCheck = item["主线模块"] !== "顺延";
-      document.getElementById("todayTasks").innerHTML =
-        getVisibleTaskLabels(item).map((label) => taskLineHtml(label, getTaskText(item, label), item["日期"], canCheck, { editable: false, context: "today" })).join("") +
-        extras.map((task) => extraTaskLineHtml(item["日期"], task, "today")).join("");
+      const extras = item["主线模块"] === "考试" ? [] : getCustomEntry(item["日期"]).extras;
+      const canCheck = item["主线模块"] !== "顺延" && item["主线模块"] !== "考试";
+      document.getElementById("todayTasks").innerHTML = item["主线模块"] === "考试"
+        ? '<div class="task-line"><span class="task-label"><span>考试日</span></span><div class="task-text">今天不安排学习任务，专心考试和休整。</div></div>'
+        : getVisibleTaskLabels(item).map((label) => taskLineHtml(label, getTaskText(item, label), item["日期"], canCheck, { editable: false, context: "today" })).join("") +
+          extras.map((task) => extraTaskLineHtml(item["日期"], task, "today")).join("");
     }
 
     function displayTaskLabel(label, item = null, text = "") {
@@ -3739,6 +3792,7 @@
           date === getCurrentPlanDate() ? "today" : "",
           isDateDeferred(date) ? "deferred-day" : (hasDateArrived(date) ? getCalendarStatus(date) : ""),
           module === "单休" ? "rest" : "",
+          module === "考试" ? "exam" : "",
           isWeeklyRestDate(date) ? "week-rest" : "",
           (isWeeklyWorkSunday(date) || isCrossWeekWorkSunday(date)) ? "week-work-sunday" : "",
           module === "后续安排" ? "followup" : "",
@@ -3756,8 +3810,9 @@
 
     function renderDetail() {
       const item = getTodayPlan();
-      const extras = getCustomEntry(item["日期"]).extras;
-      const canCheck = item["主线模块"] !== "顺延";
+      const examActive = isExamDay(item["日期"]);
+      const extras = examActive ? [] : getCustomEntry(item["日期"]).extras;
+      const canCheck = item["主线模块"] !== "顺延" && item["主线模块"] !== "考试";
       const crossSwapActive = isCrossWeekWorkSunday(item["日期"]) || isCrossWeekRestDate(item["日期"]);
       const weekSwapText = isWeeklyRestDate(item["日期"])
         ? " · 本周换休"
@@ -3765,21 +3820,24 @@
           ? " · 本周补学习日"
           : (isCrossWeekWorkSunday(item["日期"]) ? " · 休息挪到下周一" : (isCrossWeekRestDate(item["日期"]) ? " · 跨周换休" : "")));
       const sourceText = item["来源日期"] && item["来源日期"] !== item["日期"] ? " · 原计划 " + formatShortDate(item["来源日期"]) : "";
-      const deferButton = isCalendarRestDate(item["日期"]) || item["主线模块"] === "后续安排"
+      const examDayControl = canSetExamDay(item["日期"])
+        ? '<button class="btn ' + (examActive ? "primary" : "") + '" data-exam-day="' + (examActive ? "off" : "on") + '">' + (examActive ? "取消考试日" : "设为考试日") + '</button>'
+        : "";
+      const deferButton = examActive || isCalendarRestDate(item["日期"]) || item["主线模块"] === "后续安排"
         ? ""
         : (isDateDeferred(item["日期"])
           ? '<button class="btn" data-cancel-defer-date="' + escapeHtml(item["日期"]) + '">取消本日顺延</button>'
           : '<button class="btn" data-defer-date="' + escapeHtml(item["日期"]) + '">从本日顺延一天</button>');
       const doneControl = canCheck ? '<label class="check-row"><input id="doneCheck" type="checkbox" ' + (isDayDone(item["日期"]) ? "checked" : "") + '><span>全部完成</span></label>' : "";
       const sundayMode = getSundayMode(item["日期"]);
-      const sundayModeControl = isSunday(item["日期"]) && !isWeeklyWorkSunday(item["日期"]) && !isCrossWeekWorkSunday(item["日期"])
+      const sundayModeControl = !examActive && isSunday(item["日期"]) && !isWeeklyWorkSunday(item["日期"]) && !isCrossWeekWorkSunday(item["日期"])
         ? '<div class="mode-switch" aria-label="周日安排">' +
             '<button class="mode-option ' + (sundayMode === "rest" ? "active" : "") + '" data-sunday-mode="rest">休息</button>' +
             '<button class="mode-option ' + (sundayMode === "mock" ? "active" : "") + '" data-sunday-mode="mock">模考</button>' +
           '</div>'
         : "";
       const weekSwapActive = isWeekSwapActive(item["日期"]);
-      const weekRestControl = (!isSunday(item["日期"]) || weekSwapActive)
+      const weekRestControl = !examActive && (!isSunday(item["日期"]) || weekSwapActive)
         ? '<div class="week-rest-control">' +
             (!isSunday(item["日期"])
               ? '<button class="btn ' + (isWeeklyRestDate(item["日期"]) ? "primary" : "") + '" data-set-week-rest="' + escapeHtml(item["日期"]) + '">' + (weekSwapActive ? "改为这天休息" : "本周换休到这天") + '</button>'
@@ -3787,7 +3845,7 @@
             (weekSwapActive ? '<button class="btn" data-clear-week-rest="' + escapeHtml(item["日期"]) + '">恢复本周默认</button>' : '') +
           '</div>'
         : "";
-      const crossWeekControl = (isSunday(item["日期"]) || crossSwapActive)
+      const crossWeekControl = !examActive && (isSunday(item["日期"]) || crossSwapActive)
         ? '<div class="week-rest-control">' +
             (isSunday(item["日期"]) && !isWeeklyWorkSunday(item["日期"]) && !isCrossWeekWorkSunday(item["日期"])
               ? '<button class="btn" data-set-cross-week-rest="' + escapeHtml(item["日期"]) + '">休息挪到下周一</button>'
@@ -3795,18 +3853,22 @@
             (crossSwapActive ? '<button class="btn" data-clear-cross-week-rest="' + escapeHtml(item["日期"]) + '">恢复周日休息</button>' : '') +
           '</div>'
         : "";
+      const taskStackHtml = examActive
+        ? '<div class="task-stack"><div class="task-line"><span class="task-label"><span>考试日</span></span><div class="task-text">今天不安排学习任务，专心考试和休整。取消考试日后，原来的排期和你手动编辑过的内容会恢复显示。</div></div></div>'
+        : '<div class="task-stack">' +
+            getVisibleTaskLabels(item).map((label) => taskLineHtml(label, getTaskText(item, label), item["日期"], canCheck, { editable: canCheck, context: "detail" })).join("") +
+            extras.map((task) => extraTaskLineHtml(item["日期"], task, "detail")).join("") +
+            '<div class="task-line"><span class="task-label"><span>复盘/当日重点</span></span><div class="task-text">' + escapeHtml(item["复盘/当日重点"]) + '</div></div>' +
+          '</div>';
+      const extraFormHtml = examActive ? "" : '<div class="extra-form"><textarea id="extraTaskText" class="textarea" placeholder="写下临时补充任务，比如：补做资料错题10道"></textarea><button id="addExtraTaskButton" class="btn primary">添加</button></div>';
       document.getElementById("selectedBadge").textContent = item["主线模块"];
       document.getElementById("detail").innerHTML =
         '<div class="detail-top">' +
           '<div><strong>' + escapeHtml(formatShortDate(item["日期"]) + " " + item["星期"]) + '</strong><div class="subline">' + escapeHtml(item["阶段"] + sourceText + weekSwapText) + '</div></div>' +
-          '<div class="detail-actions">' + sundayModeControl + weekRestControl + crossWeekControl + deferButton + doneControl + '</div>' +
+          '<div class="detail-actions">' + examDayControl + sundayModeControl + weekRestControl + crossWeekControl + deferButton + doneControl + '</div>' +
         '</div>' +
-        '<div class="task-stack">' +
-          getVisibleTaskLabels(item).map((label) => taskLineHtml(label, getTaskText(item, label), item["日期"], canCheck, { editable: canCheck, context: "detail" })).join("") +
-          extras.map((task) => extraTaskLineHtml(item["日期"], task, "detail")).join("") +
-          '<div class="task-line"><span class="task-label"><span>复盘/当日重点</span></span><div class="task-text">' + escapeHtml(item["复盘/当日重点"]) + '</div></div>' +
-        '</div>' +
-        '<div class="extra-form"><textarea id="extraTaskText" class="textarea" placeholder="写下临时补充任务，比如：补做资料错题10道"></textarea><button id="addExtraTaskButton" class="btn primary">添加</button></div>';
+        taskStackHtml +
+        extraFormHtml;
     }
 
     function renderMacroTimeline() {
@@ -4178,6 +4240,12 @@
       const sundayModeButton = event.target.closest("[data-sunday-mode]");
       if (sundayModeButton) {
         setSundayMode(state.selectedDate, sundayModeButton.dataset.sundayMode);
+        renderAll();
+      }
+
+      const examDayButton = event.target.closest("[data-exam-day]");
+      if (examDayButton) {
+        setExamDay(state.selectedDate, examDayButton.dataset.examDay === "on");
         renderAll();
       }
 
