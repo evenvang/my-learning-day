@@ -3046,20 +3046,24 @@
         window.alert("后面没有可顺延的日期了。");
         return false;
       }
+      const previousStatus = getTaskStatus(date, label);
       const entry = getCustomEntry(date);
-      entry.taskDeferrals[label] = true;
+      entry.taskDeferrals[label] = { previousStatus };
       setCustomEntry(date, entry);
       clearTaskStatusForLabelFrom(date, label);
-      setTaskStatus(date, label, "unfinished");
+      setTaskStatus(date, label, "done");
       return true;
     }
 
     function cancelSingleTaskDeferral(date, label) {
       const entry = getCustomEntry(date);
       if (!entry.taskDeferrals[label]) return false;
+      const marker = entry.taskDeferrals[label];
+      const previousStatus = typeof marker === "object" ? normalizeStatus(marker.previousStatus) : "";
       delete entry.taskDeferrals[label];
       setCustomEntry(date, entry);
       clearTaskStatusForLabelFrom(date, label);
+      if (previousStatus) setTaskStatus(date, label, previousStatus);
       return true;
     }
 
@@ -3428,6 +3432,7 @@
     }
 
     function getTaskStatus(date, label) {
+      if (isTaskDeferralAnchor(date, label)) return "done";
       const tasks = normalizeCompletion(date).tasks;
       const status = normalizeStatus(tasks[label]);
       if (!status && afternoonStatusAliases[label]) {
