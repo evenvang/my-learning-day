@@ -2344,11 +2344,11 @@
       },
     };
     const weeklyAfternoonTaskPool = {
-      data: { key: "下午-资料刷题", time: "45min", title: "资料分析（含改错）" },
-      quantity: { key: "下午-数量600题", time: "30min", title: "数量600题（含改错）" },
-      graphic: { key: "下午-图推刷题", time: "40min", title: "图推专项刷题（含改错）" },
-      judgment: { key: "下午-判断推理套题", time: "45min", title: "判断推理（含改错）" },
-      verbal: { key: "下午-言语理解", time: "45min", title: "言语理解（含改错）" },
+      data: { key: "下午-资料刷题", time: "45min", title: "资料分析" },
+      quantity: { key: "下午-数量600题", time: "30min", title: "数量600题" },
+      graphic: { key: "下午-图推刷题", time: "40min", title: "图推专项刷题" },
+      judgment: { key: "下午-判断推理套题", time: "45min", title: "判断推理" },
+      verbal: { key: "下午-言语理解", time: "45min", title: "言语理解" },
       speed: { key: "下午-粉笔速算", time: "10min", title: "粉笔速算" },
       words: { key: "下午-粉笔千词计划", time: "15min", title: "粉笔千词计划" },
     };
@@ -2858,7 +2858,7 @@
         main,
         extra,
         tasks: [weeklyAfternoonTaskPool.data, weeklyAfternoonTaskPool.quantity, main, extra],
-        text: "每日固定资料分析45min、数量600题30min；今日" + main.title.replace("（含改错）", "") + " " + main.time + "；" + extra.title + " " + extra.time,
+        text: "每日固定资料分析45min、数量600题30min；今日" + main.title + " " + main.time + "；" + extra.title + " " + extra.time,
       };
     }
 
