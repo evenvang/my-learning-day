@@ -2312,6 +2312,7 @@
     const weekdayLabels = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"];
     const AFTERNOON_CHECKLIST_START_DATE = "2026-08-17";
     const AFTERNOON_MODE_START_DATE = "2026-08-28";
+    const AFTERNOON_WEEKLY_ROTATION_START_DATE = "2026-09-18";
     const QUANTITY_REVISION_START_DATE = "2026-08-28";
     const QUANTITY_REVISION_DAYS = 19;
     const EXAM_DAY_START_DATE = "2026-10-01";
@@ -2342,6 +2343,15 @@
         ],
       },
     };
+    const weeklyAfternoonTaskPool = {
+      data: { key: "下午-资料刷题", time: "45min", title: "资料分析（含改错）" },
+      quantity: { key: "下午-数量600题", time: "30min", title: "数量600题（含改错）" },
+      graphic: { key: "下午-图推刷题", time: "40min", title: "图推专项刷题（含改错）" },
+      judgment: { key: "下午-判断推理套题", time: "45min", title: "判断推理（含改错）" },
+      verbal: { key: "下午-言语理解", time: "45min", title: "言语理解（含改错）" },
+      speed: { key: "下午-粉笔速算", time: "10min", title: "粉笔速算" },
+      words: { key: "下午-粉笔千词计划", time: "15min", title: "粉笔千词计划" },
+    };
     const legacyAfternoonSubtasks = [
       { key: "下午-粉笔速算", time: "10min", title: "粉笔速算" },
       { key: "下午-资料分析一套", time: "40min", title: "资料分析一套" },
@@ -2352,6 +2362,7 @@
     const afternoonSubtasks = [
       ...legacyAfternoonSubtasks,
       ...Object.values(afternoonModes).flatMap((mode) => mode.tasks),
+      ...Object.values(weeklyAfternoonTaskPool),
     ].filter((task, index, list) => list.findIndex((item) => item.key === task.key) === index);
     const afternoonStatusAliases = {
       "下午-资料刷题": ["下午-资料分析一套"],
@@ -2811,7 +2822,44 @@
     function usesAfternoonModeChoice(item) {
       if (!item) return false;
       if (item["主线模块"] === "单休" || item["主线模块"] === "顺延" || item["主线模块"] === "模考") return false;
-      return item["日期"] >= AFTERNOON_MODE_START_DATE;
+      return item["日期"] >= AFTERNOON_MODE_START_DATE && item["日期"] < AFTERNOON_WEEKLY_ROTATION_START_DATE;
+    }
+
+    function usesWeeklyAfternoonRotation(item) {
+      if (!item) return false;
+      if (item["主线模块"] === "单休" || item["主线模块"] === "顺延" || item["主线模块"] === "模考" || item["主线模块"] === "考试") return false;
+      return item["日期"] >= AFTERNOON_WEEKLY_ROTATION_START_DATE;
+    }
+
+    function getWeeklyAfternoonRotation(date, item = getEffectiveItem(date)) {
+      const sourceDate = item?.["来源日期"] || date;
+      const weekday = getWeekday(sourceDate);
+      const mainByWeekday = {
+        "周一": weeklyAfternoonTaskPool.graphic,
+        "周二": weeklyAfternoonTaskPool.judgment,
+        "周三": weeklyAfternoonTaskPool.verbal,
+        "周四": weeklyAfternoonTaskPool.graphic,
+        "周五": weeklyAfternoonTaskPool.judgment,
+        "周六": weeklyAfternoonTaskPool.verbal,
+        "周日": weeklyAfternoonTaskPool.verbal,
+      };
+      const extraByWeekday = {
+        "周一": weeklyAfternoonTaskPool.speed,
+        "周二": weeklyAfternoonTaskPool.words,
+        "周三": weeklyAfternoonTaskPool.speed,
+        "周四": weeklyAfternoonTaskPool.words,
+        "周五": weeklyAfternoonTaskPool.speed,
+        "周六": weeklyAfternoonTaskPool.words,
+        "周日": weeklyAfternoonTaskPool.words,
+      };
+      const main = mainByWeekday[weekday] || weeklyAfternoonTaskPool.graphic;
+      const extra = extraByWeekday[weekday] || weeklyAfternoonTaskPool.speed;
+      return {
+        main,
+        extra,
+        tasks: [weeklyAfternoonTaskPool.data, weeklyAfternoonTaskPool.quantity, main, extra],
+        text: "每日固定资料分析45min、数量600题30min；今日" + main.title.replace("（含改错）", "") + " " + main.time + "；" + extra.title + " " + extra.time,
+      };
     }
 
     function getAfternoonMode(date) {
@@ -2845,6 +2893,9 @@
     }
 
     function getAfternoonSubtasks(date, item = getEffectiveItem(date)) {
+      if (usesWeeklyAfternoonRotation(item)) {
+        return getWeeklyAfternoonRotation(date, item).tasks;
+      }
       if (usesAfternoonModeChoice(item)) {
         return afternoonModes[getAfternoonMode(date)].tasks;
       }
@@ -3182,7 +3233,9 @@
         "主线模块": "后续安排",
         "早上1小时": "晨读",
         "上午1.5小时行测": "",
-        "下午2.5小时行测": date >= AFTERNOON_MODE_START_DATE ? "下午3小时行测：数判资 / 数言资二选一" : AFTERNOON_TASK_TEXT,
+        "下午2.5小时行测": date >= AFTERNOON_WEEKLY_ROTATION_START_DATE
+          ? "下午3小时：资料和数量每日固定；图推、判断、言语每周各2次；速算和千词隔天轮换"
+          : (date >= AFTERNOON_MODE_START_DATE ? "下午3小时行测：数判资 / 数言资二选一" : AFTERNOON_TASK_TEXT),
         "粉笔专项积累": "",
         "晚上1.5小时申论": "",
         "申论跟练打卡": FOLLOWUP_SHENLUN_TASKS[date] || "",
@@ -3696,8 +3749,11 @@
           '<span class="task-actions">' + controls + '</span>' +
         '</div>';
       }).join("");
+      const weeklyRotation = usesWeeklyAfternoonRotation(item) ? getWeeklyAfternoonRotation(date, item) : null;
       const currentModeText = usesAfternoonModeChoice(item) ? afternoonModes[getAfternoonMode(date)].text : "";
-      const note = usesAfternoonModeChoice(item)
+      const note = weeklyRotation
+        ? '<div class="subtask-text">' + escapeHtml(weeklyRotation.text) + '。数量单题最多思考4分钟，图推单题最多3分钟；到时标记并看解析。其余时间用于休息和卡题缓冲。</div>'
+        : usesAfternoonModeChoice(item)
         ? '<div class="subtask-text">' + escapeHtml(currentModeText) + '</div>'
         : (text && text !== LEGACY_AFTERNOON_TASK_TEXT
         ? '<div class="subtask-text">备注：' + escapeHtml(text) + '</div>'
