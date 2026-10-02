@@ -1,0 +1,4840 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>考公学习计划看板</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f5f7fb;
+      --panel: #ffffff;
+      --ink: #17212b;
+      --muted: #637083;
+      --line: #d9e1ec;
+      --blue: #2b5b9e;
+      --green: #2f6f5e;
+      --amber: #b7791f;
+      --rose: #8b1e3f;
+      --cyan: #176b87;
+      --soft-blue: #e8f0fb;
+      --soft-green: #e8f3ef;
+      --soft-amber: #fbf0d8;
+      --soft-rose: #f8e7ed;
+      --shadow: 0 12px 30px rgba(23, 33, 43, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+    html {
+      width: 100%;
+      overflow-x: hidden;
+    }
+
+    body {
+      width: 100%;
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      letter-spacing: 0;
+      overflow-x: hidden;
+    }
+
+    button, input, select {
+      font: inherit;
+    }
+
+    .app {
+      min-height: 100vh;
+      min-width: 0;
+    }
+
+    .topbar {
+      background: #fbfcfe;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .topbar-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 18px 22px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 16px;
+      align-items: center;
+      min-width: 0;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 24px;
+      line-height: 1.2;
+      font-weight: 760;
+    }
+
+    .subline {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .btn, .select, .input {
+      height: 36px;
+      border: 1px solid var(--line);
+      background: #ffffff;
+      color: var(--ink);
+      border-radius: 8px;
+      padding: 0 12px;
+    }
+
+    .btn {
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn.primary {
+      background: var(--ink);
+      color: #ffffff;
+      border-color: var(--ink);
+    }
+
+    .btn:focus-visible, .select:focus-visible, .input:focus-visible {
+      outline: 3px solid rgba(43, 91, 158, 0.24);
+      outline-offset: 2px;
+    }
+
+    main {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 22px;
+      display: grid;
+      gap: 18px;
+      min-width: 0;
+    }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(400px, .88fr);
+      gap: 18px;
+      align-items: start;
+      min-width: 0;
+    }
+
+    .hero-dashboard {
+      grid-template-columns: minmax(0, 1fr) minmax(400px, .88fr);
+    }
+
+    .calendar-dashboard {
+      grid-template-columns: minmax(0, 1fr) minmax(400px, .88fr);
+    }
+
+    .dashboard > .panel,
+    .dashboard > .side-stack {
+      min-width: 0;
+    }
+
+    .side-stack {
+      display: grid;
+      grid-template-rows: auto minmax(390px, 1fr);
+      gap: 12px;
+      align-content: stretch;
+      min-width: 0;
+      min-height: 0;
+      overflow: auto;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      min-width: 0;
+    }
+
+    .panel-head {
+      padding: 16px 16px 0;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .panel-title {
+      margin: 0;
+      font-size: 16px;
+      line-height: 1.25;
+      font-weight: 720;
+    }
+
+    .panel-body {
+      padding: 16px;
+      min-width: 0;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .metric {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      min-height: 92px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .metric .label {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .metric .value {
+      font-size: 26px;
+      font-weight: 780;
+      line-height: 1.1;
+    }
+
+    .noise-metric {
+      min-height: 92px;
+      border: 0;
+      border-radius: 999px;
+      padding: 14px 16px;
+      background: linear-gradient(135deg, #fff3bc, #ffe9a8);
+      box-shadow: 0 12px 28px rgba(132, 96, 55, .12);
+      display: grid;
+      grid-template-columns: 42px minmax(0, 1fr) 42px;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .noise-icon,
+    .noise-play {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      border: 0;
+    }
+
+    .noise-icon {
+      background: rgba(255, 255, 255, .34);
+      color: #9a4f14;
+      font-size: 20px;
+    }
+
+    .noise-play {
+      background: #ffffff;
+      color: #d08b1f;
+      cursor: pointer;
+      font-size: 18px;
+      box-shadow: 0 8px 18px rgba(132, 96, 55, .10);
+    }
+
+    .noise-title {
+      color: #7c3512;
+      font-size: 18px;
+      font-weight: 900;
+      line-height: 1.1;
+    }
+
+    .noise-subtitle {
+      margin-top: 4px;
+      color: #d18a27;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .today-layout {
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      gap: 16px;
+      align-items: stretch;
+    }
+
+    .date-tile {
+      border-radius: 8px;
+      background: #152534;
+      color: #ffffff;
+      padding: 18px;
+      display: grid;
+      align-content: center;
+      min-height: 220px;
+      align-self: stretch;
+    }
+
+    .date-month {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.74);
+    }
+
+    .date-day {
+      font-size: 56px;
+      line-height: 1;
+      font-weight: 820;
+      margin: 8px 0;
+    }
+
+    .date-week {
+      font-size: 18px;
+      font-weight: 650;
+    }
+
+    .task-stack {
+      display: grid;
+      gap: 10px;
+    }
+
+    .task-line {
+      border: 1px solid var(--line);
+      border-left: 5px solid var(--blue);
+      border-radius: 8px;
+      padding: 12px 14px;
+      background: #ffffff;
+    }
+
+    .task-line:nth-child(2) { border-left-color: var(--green); }
+    .task-line:nth-child(3) { border-left-color: var(--amber); }
+    .task-line:nth-child(4) { border-left-color: var(--rose); }
+    .task-line.followup-task { border-left-color: var(--cyan); background: #fbfdff; }
+
+    .task-label {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: flex-start;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .task-check {
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+      color: var(--green);
+      font-size: 12px;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    .task-check input {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--green);
+    }
+
+    .task-check.done input {
+      accent-color: var(--green);
+    }
+
+    .task-check.unfinished {
+      color: var(--rose);
+    }
+
+    .task-check.unfinished input {
+      accent-color: var(--rose);
+    }
+
+    .task-check:has(input:checked) {
+      font-weight: 760;
+    }
+
+    .task-line.unfinished {
+      border-left-color: var(--rose);
+      background: #fffafb;
+    }
+
+    .task-actions {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .link-btn {
+      border: 0;
+      background: transparent;
+      color: var(--blue);
+      padding: 0;
+      cursor: pointer;
+      font-size: 12px;
+      line-height: 1.2;
+    }
+
+    .link-btn.danger {
+      color: var(--rose);
+    }
+
+    .task-line.extra {
+      border-left-color: var(--cyan);
+      background: #fbfdff;
+    }
+
+    .extra-form {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: start;
+    }
+
+    .textarea {
+      min-height: 74px;
+      resize: vertical;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px 12px;
+      line-height: 1.45;
+      color: var(--ink);
+      background: #ffffff;
+    }
+
+    .textarea:focus-visible {
+      outline: 3px solid rgba(43, 91, 158, 0.24);
+      outline-offset: 2px;
+    }
+
+    .task-text {
+      font-size: 14px;
+      line-height: 1.55;
+      overflow-wrap: anywhere;
+    }
+
+    .task-group {
+      background: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
+    }
+
+    .task-group.afternoon {
+      border-left-color: var(--green);
+    }
+
+    .task-group.evening {
+      border-left-color: var(--rose);
+      background: linear-gradient(135deg, #ffffff 0%, #fff8fb 100%);
+    }
+
+    .subtask-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .mode-switch {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .mode-btn {
+      border: 1px solid #dbe5f1;
+      background: rgba(255, 255, 255, .78);
+      color: #607089;
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .mode-btn.active {
+      border-color: rgba(42, 101, 176, .38);
+      background: #eaf2ff;
+      color: var(--blue);
+      box-shadow: 0 6px 14px rgba(42, 101, 176, .10);
+    }
+
+    .subtask-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+      padding: 10px 12px;
+      border: 1px solid #dde6f2;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.72);
+    }
+
+    .subtask-row.unfinished {
+      border-color: rgba(169, 32, 74, 0.3);
+      background: #fffafb;
+    }
+
+    .subtask-main {
+      display: flex;
+      gap: 10px;
+      align-items: baseline;
+      min-width: 0;
+      color: var(--ink);
+      font-size: 14px;
+      font-weight: 760;
+      line-height: 1.45;
+    }
+
+    .subtask-time {
+      flex: 0 0 auto;
+      color: #64748b;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+    }
+
+    .subtask-text {
+      margin-top: 4px;
+      color: #45556b;
+      font-size: 13px;
+      line-height: 1.5;
+      overflow-wrap: anywhere;
+    }
+
+    .empty-task-text {
+      color: #a5afbd;
+      font-size: 13px;
+    }
+
+    .video-panel {
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    .video-panel .panel-body {
+      min-height: 0;
+      display: grid;
+      grid-template-rows: auto auto;
+      gap: 10px;
+      align-content: start;
+    }
+
+    .video-frame {
+      width: min(100%, 560px);
+      height: auto;
+      min-height: 0;
+      aspect-ratio: 16 / 9;
+      border: 0;
+      border-radius: 8px;
+      background: #101820;
+      display: block;
+      align-self: center;
+      justify-self: center;
+    }
+
+    .video-caption {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+      min-width: 0;
+      max-width: 60%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      text-align: right;
+    }
+
+    .video-form {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .video-form input {
+      height: 28px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 0 8px;
+      color: var(--text);
+      font-size: 12px;
+      min-width: 0;
+    }
+
+    .video-form .btn {
+      height: 28px;
+      padding: 0 9px;
+      font-size: 12px;
+    }
+
+    .tool-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .tool-card {
+      position: relative;
+      overflow: hidden;
+      min-height: 248px;
+      height: 100%;
+    }
+
+    .tool-card::before {
+      content: "";
+      position: absolute;
+      inset: -40% auto auto -22%;
+      width: 170px;
+      height: 170px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, .28);
+      filter: blur(4px);
+      pointer-events: none;
+    }
+
+    .tool-card .panel-head,
+    .tool-card .panel-body {
+      position: relative;
+      z-index: 1;
+    }
+
+    .cycle-card {
+      background:
+        radial-gradient(circle at 12% 8%, rgba(251, 191, 36, .20), transparent 34%),
+        linear-gradient(135deg, #ffffff 0%, #fffaf0 54%, #fff7ed 100%);
+      border-radius: 16px;
+    }
+
+    .cycle-card .panel-body {
+      padding: 24px 28px 28px;
+    }
+
+    .side-stack .tool-card {
+      min-height: 0;
+      height: auto;
+    }
+
+    .side-stack .compact-cycle-card {
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      height: 100%;
+      min-height: 390px;
+      overflow: hidden;
+      container-type: inline-size;
+    }
+
+    .side-stack .compact-cycle-card .panel-body {
+      min-height: 0;
+      overflow: auto;
+    }
+
+    .side-stack .tool-card .panel-head {
+      padding: 12px 16px 0;
+    }
+
+    .side-stack .tool-card .panel-body {
+      padding: 12px 16px 16px;
+    }
+
+    .side-stack .compact-cycle-card .tool-stack {
+      gap: 12px;
+    }
+
+    .compact-cycle-card .cycle-hero,
+    .compact-cycle-card .cycle-note,
+    .compact-cycle-card .cycle-bars,
+    .compact-cycle-card .cycle-tips,
+    .compact-cycle-card .cycle-settings,
+    .compact-cycle-card .cycle-disclaimer {
+      min-width: 0;
+    }
+
+    .compact-cycle-card .panel-title {
+      font-size: 16px;
+    }
+
+    .compact-cycle-card .badge {
+      font-size: 12px;
+      padding: 6px 10px;
+    }
+
+    .compact-cycle-card .cycle-hero {
+      grid-template-columns: 52px minmax(0, 1fr) 58px;
+      gap: 12px;
+      padding: 14px;
+      border-radius: 14px;
+    }
+
+    .compact-cycle-card .cycle-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      font-size: 24px;
+    }
+
+    .compact-cycle-card .cycle-day {
+      font-size: 11px;
+      letter-spacing: .06em;
+    }
+
+    .compact-cycle-card .cycle-name {
+      font-size: 23px;
+    }
+
+    .compact-cycle-card .cycle-gauge {
+      width: 58px;
+      height: 58px;
+    }
+
+    .compact-cycle-card .cycle-note {
+      padding: 11px 12px;
+      border-radius: 12px;
+      font-size: 13px;
+      line-height: 1.48;
+    }
+
+    .compact-cycle-card .cycle-bars,
+    .compact-cycle-card .cycle-tips {
+      gap: 8px;
+    }
+
+    .compact-cycle-card .cycle-bar-label,
+    .compact-cycle-card .cycle-tip small {
+      font-size: 11px;
+    }
+
+    .compact-cycle-card .cycle-bar-track {
+      height: 8px;
+    }
+
+    .compact-cycle-card .cycle-tip {
+      padding: 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .compact-cycle-card .cycle-settings {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 7px;
+    }
+
+    .compact-cycle-card .mini-field {
+      font-size: 11px;
+    }
+
+    .compact-cycle-card .mini-field input {
+      height: 30px;
+      border-radius: 7px;
+      font-size: 12px;
+    }
+
+    .compact-cycle-card .cycle-disclaimer {
+      font-size: 11px;
+    }
+
+    @container (min-width: 920px) {
+      .compact-cycle-card .tool-stack {
+        grid-template-columns: minmax(280px, .94fr) minmax(300px, 1.06fr);
+        grid-template-areas:
+          "hero note"
+          "hero bars"
+          "tips settings"
+          "disclaimer disclaimer";
+        align-items: stretch;
+      }
+
+      .compact-cycle-card .cycle-hero {
+        grid-area: hero;
+        grid-template-columns: 52px minmax(0, 1fr) 62px;
+        grid-template-areas:
+          "icon copy gauge";
+        align-content: center;
+        gap: 12px;
+        min-height: 132px;
+      }
+
+      .compact-cycle-card .cycle-icon {
+        grid-area: icon;
+      }
+
+      .compact-cycle-card .cycle-copy {
+        grid-area: copy;
+      }
+
+      .compact-cycle-card .cycle-gauge {
+        grid-area: gauge;
+        justify-self: end;
+        margin-top: 0;
+      }
+
+      .compact-cycle-card .cycle-note {
+        grid-area: note;
+        display: flex;
+        align-items: center;
+      }
+
+      .compact-cycle-card .cycle-bars {
+        grid-area: bars;
+        align-content: center;
+      }
+
+      .compact-cycle-card .cycle-tips {
+        grid-area: tips;
+        grid-template-columns: 1fr;
+      }
+
+      .compact-cycle-card .cycle-settings {
+        grid-area: settings;
+        align-content: start;
+      }
+
+      .compact-cycle-card .cycle-disclaimer {
+        grid-area: disclaimer;
+      }
+    }
+
+    .cycle-card .tool-stack {
+      max-width: 760px;
+      margin: 0 auto;
+      gap: 14px;
+    }
+
+    .dump-card {
+      background:
+        radial-gradient(circle at 18% 12%, rgba(14, 165, 233, .12), transparent 38%),
+        linear-gradient(135deg, #ffffff 0%, #fbfdff 55%, #f1f7ff 100%);
+      border-radius: 16px;
+      min-height: 100%;
+    }
+
+    .dump-card .panel-body,
+    .dump-card .tool-stack {
+      height: 100%;
+    }
+
+    .dump-card .panel-body {
+      padding-bottom: 24px;
+    }
+
+    .dump-card .tool-stack {
+      grid-template-rows: minmax(190px, .78fr) auto;
+      align-content: start;
+      gap: 22px;
+    }
+
+    .compact-dump-card .panel-body,
+    .compact-dump-card .tool-stack {
+      height: auto;
+    }
+
+    .compact-dump-card .tool-stack {
+      grid-template-rows: auto auto;
+      gap: 10px;
+    }
+
+    .compact-dump-card .brain-board {
+      min-height: 104px;
+      max-height: 148px;
+      overflow: auto;
+      border-radius: 14px;
+      padding: 12px 10px;
+      justify-content: flex-start;
+      gap: 10px;
+    }
+
+    .compact-dump-card .brain-item {
+      min-width: 88px;
+      max-width: 150px;
+      padding: 9px 12px;
+      border-radius: 13px;
+      font-size: 13px;
+    }
+
+    .compact-dump-card .brain-capture {
+      border-width: 2px;
+      border-radius: 12px;
+      padding: 6px 8px;
+      gap: 8px;
+    }
+
+    .subtask-head {
+      display: flex;
+      gap: 10px;
+      justify-content: space-between;
+      align-items: center;
+      min-width: 0;
+    }
+
+    .subtask-row.evening-subtask {
+      display: block;
+    }
+
+    .subtask-row.evening-subtask .subtask-text {
+      margin-top: 8px;
+    }
+
+    .compact-dump-card .brain-capture textarea {
+      min-height: 34px;
+      font-size: 13px;
+      padding: 6px;
+    }
+
+    .tool-stack {
+      display: grid;
+      gap: 12px;
+    }
+
+    .tool-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+
+    .range-row {
+      display: grid;
+      grid-template-columns: 68px minmax(0, 1fr) 34px;
+      gap: 10px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .range-row input[type="range"] {
+      width: 100%;
+      accent-color: var(--green);
+    }
+
+    .cycle-settings {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .mini-field {
+      display: grid;
+      gap: 5px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .mini-field input {
+      width: 100%;
+      height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 0 8px;
+      color: var(--text);
+      background: rgba(255, 255, 255, .78);
+    }
+
+    .cycle-hero {
+      display: grid;
+      grid-template-columns: 70px minmax(0, 1fr) 76px;
+      gap: 14px;
+      align-items: center;
+      border-radius: 16px;
+      padding: 16px;
+      background: linear-gradient(135deg, #fff8e7, #fff4e1);
+      box-shadow: 0 10px 22px rgba(132, 96, 55, .10);
+    }
+
+    .cycle-icon {
+      width: 58px;
+      height: 58px;
+      border-radius: 18px;
+      display: grid;
+      place-items: center;
+      background: #ffffff;
+      font-size: 30px;
+      box-shadow: 0 8px 18px rgba(132, 96, 55, .10);
+    }
+
+    .cycle-day {
+      color: #7b8798;
+      font-weight: 900;
+      letter-spacing: .08em;
+      font-size: 13px;
+      text-transform: uppercase;
+    }
+
+    .cycle-name {
+      margin-top: 3px;
+      color: var(--text);
+      font-size: 28px;
+      line-height: 1.1;
+      font-weight: 900;
+    }
+
+    .cycle-gauge {
+      width: 70px;
+      height: 70px;
+    }
+
+    .cycle-note {
+      border: 1px solid rgba(217, 225, 236, .75);
+      border-radius: 14px;
+      padding: 14px;
+      background: rgba(255, 255, 255, .82);
+      color: #40506a;
+      font-size: 15px;
+      font-weight: 750;
+      line-height: 1.6;
+    }
+
+    .cycle-bars {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .cycle-bar-label {
+      display: flex;
+      justify-content: space-between;
+      color: #8a97aa;
+      font-size: 12px;
+      font-weight: 800;
+      margin-bottom: 7px;
+    }
+
+    .cycle-bar-track {
+      height: 10px;
+      border-radius: 999px;
+      background: #e9eef5;
+      overflow: hidden;
+    }
+
+    .cycle-bar-fill {
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #20c997, #34d399);
+    }
+
+    .cycle-tips {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .cycle-tip {
+      border: 1px solid rgba(217, 225, 236, .72);
+      border-radius: 14px;
+      padding: 12px;
+      background: rgba(248, 250, 252, .88);
+      color: #40506a;
+      line-height: 1.55;
+      font-weight: 750;
+      font-size: 13px;
+    }
+
+    .cycle-tip small {
+      display: block;
+      color: #8a97aa;
+      font-size: 12px;
+      font-weight: 800;
+      margin-bottom: 5px;
+    }
+
+    .cycle-disclaimer {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .brain-board {
+      min-height: 260px;
+      border-radius: 18px;
+      padding: 18px 12px;
+      background: rgba(255, 255, 255, .58);
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      align-content: flex-start;
+      justify-content: center;
+      border: 1px solid rgba(217, 225, 236, .55);
+    }
+
+    .brain-list {
+      display: contents;
+    }
+
+    .brain-item {
+      border: 0;
+      border-radius: 16px;
+      padding: 12px 16px;
+      min-width: 104px;
+      max-width: 210px;
+      background: #ffe2e7;
+      color: #d71954;
+      font-size: 15px;
+      font-weight: 820;
+      line-height: 1.42;
+      box-shadow: 0 10px 20px rgba(54, 65, 85, .08);
+      transform: rotate(-1.5deg);
+      display: grid;
+      gap: 8px;
+    }
+
+    .brain-item:nth-child(even) {
+      background: #ffefd5;
+      color: #c2410c;
+      transform: rotate(1.2deg);
+    }
+
+    .brain-item .link-btn {
+      justify-self: end;
+      font-size: 12px;
+      opacity: .72;
+    }
+
+    .brain-capture {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+      border: 3px solid #0d66d0;
+      border-radius: 14px;
+      padding: 8px 10px;
+      background: #ffffff;
+      margin-bottom: 4px;
+    }
+
+    .brain-capture textarea {
+      min-height: 44px;
+      border: 0;
+      padding: 8px;
+      resize: none;
+      box-shadow: none;
+      background: transparent;
+      font-size: 15px;
+    }
+
+    .filters {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .calendar-tools {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    .calendar-month-nav {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .calendar-month-nav .btn {
+      height: 32px;
+      padding: 0 10px;
+    }
+
+    .chip {
+      border: 1px solid var(--line);
+      background: #ffffff;
+      border-radius: 999px;
+      height: 32px;
+      padding: 0 12px;
+      cursor: pointer;
+      color: var(--muted);
+    }
+
+    .chip.active {
+      color: #ffffff;
+      background: var(--blue);
+      border-color: var(--blue);
+    }
+
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .weekday {
+      color: var(--muted);
+      font-size: 12px;
+      text-align: center;
+      padding-bottom: 2px;
+    }
+
+    .day {
+      min-height: 98px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+      padding: 9px;
+      display: grid;
+      align-content: start;
+      gap: 7px;
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .day.blank {
+      background: transparent;
+      border-color: transparent;
+      cursor: default;
+    }
+
+    .day.selected {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(43, 91, 158, 0.16);
+    }
+
+    .day.today {
+      background: #fbfcfe;
+    }
+
+    .day.rest {
+      background: #f1f4f8;
+      color: var(--muted);
+    }
+
+    .day .suite-tag-xingce { color: var(--blue); font-weight: 720; }
+    .day .suite-tag-shenlun { color: var(--rose); font-weight: 720; }
+
+    .day.done {
+      border-color: rgba(47, 111, 94, 0.5);
+      background: var(--soft-green);
+    }
+
+    .day.partial {
+      border-color: rgba(183, 121, 31, 0.65);
+      background: var(--soft-amber);
+    }
+
+    .day.no-progress {
+      border-color: rgba(139, 30, 63, 0.48);
+      background: var(--soft-rose);
+    }
+
+    .day-number {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 720;
+      font-size: 13px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--line);
+    }
+
+    .dot-资料分析 { background: var(--blue); }
+    .dot-判断推理 { background: var(--green); }
+    .dot-言语理解 { background: var(--amber); }
+    .dot-数量关系 { background: var(--rose); }
+    .dot-查漏补缺 { background: var(--amber); }
+    .dot-事业编套题 { background: var(--blue); }
+    .dot-套题阶段 { background: var(--rose); }
+    .dot-模考 { background: var(--green); }
+    .dot-行测套题 { background: var(--blue); }
+    .dot-申论套题 { background: var(--rose); }
+    .dot-单休 { background: #a5afbd; }
+    .dot-顺延 { background: #8f9aaa; }
+    .dot-后续安排 { background: #94a3b8; }
+    .dot-考试 { background: #7c3aed; }
+
+    .day.done .status-dot { background: var(--green); }
+    .day.partial .status-dot { background: var(--amber); }
+    .day.no-progress .status-dot { background: var(--rose); }
+
+    .day.deferred-day {
+      border-color: #ccd5df;
+      background: #f4f6f9;
+      color: var(--muted);
+    }
+
+    .day.week-rest {
+      border-color: rgba(148, 163, 184, 0.7);
+      background: #eef2f7;
+    }
+
+    .day.week-work-sunday {
+      border-color: rgba(47, 111, 94, 0.45);
+      background: #fbfffc;
+    }
+
+    .day.followup {
+      border-style: dashed;
+      background: #fbfdff;
+    }
+
+    .day.exam {
+      border-color: rgba(124, 58, 237, 0.42);
+      background: #f5f3ff;
+    }
+
+    .day-subject {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.25;
+      overflow-wrap: anywhere;
+    }
+
+    .detail-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .calendar-dashboard .panel {
+      align-self: start;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .calendar-dashboard #selectedDatePanel {
+      align-self: start;
+    }
+
+    .calendar-dashboard .panel-body {
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .calendar-dashboard .detail-grid {
+      max-height: none;
+      height: 100%;
+      overflow: auto;
+      padding-right: 2px;
+    }
+
+    .calendar-dashboard .task-stack {
+      gap: 8px;
+    }
+
+    .calendar-dashboard .task-line {
+      padding: 10px 11px;
+    }
+
+    .calendar-dashboard .subtask-list {
+      gap: 7px;
+    }
+
+    .calendar-dashboard .subtask-row {
+      padding: 8px 9px;
+    }
+
+    .calendar-dashboard .extra-form {
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+
+    .calendar-dashboard .textarea {
+      min-height: 54px;
+    }
+
+    .detail-top {
+      display: flex;
+      gap: 10px;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .detail-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .mode-switch {
+      display: inline-flex;
+      gap: 4px;
+      padding: 4px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #f7f9fc;
+    }
+
+    .mode-option {
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--muted);
+      padding: 6px 12px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 760;
+    }
+
+    .mode-option.active {
+      background: var(--green);
+      color: #ffffff;
+      box-shadow: 0 6px 14px rgba(47, 111, 94, 0.16);
+    }
+
+    .week-rest-control {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .badge {
+      display: inline-flex;
+      min-height: 28px;
+      align-items: center;
+      border-radius: 999px;
+      padding: 0 10px;
+      font-size: 12px;
+      background: var(--soft-blue);
+      color: var(--blue);
+      font-weight: 680;
+    }
+
+    .check-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .check-row input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--green);
+    }
+
+    .timeline-wrap {
+      overflow-x: auto;
+      max-width: 100%;
+      padding-bottom: 2px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .timeline-grid {
+      min-width: 1520px;
+      display: grid;
+      grid-template-columns: 112px repeat(12, minmax(104px, 1fr));
+      gap: 8px;
+      align-items: stretch;
+    }
+
+    .timeline-head,
+    .timeline-row-label,
+    .timeline-cell {
+      border-radius: 8px;
+      min-height: 72px;
+    }
+
+    .timeline-head {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 680;
+      border-bottom: 1px dashed var(--line);
+    }
+
+    .timeline-row-label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-size: 22px;
+      font-weight: 820;
+      min-height: 112px;
+    }
+
+    .timeline-row-label.thesis {
+      background: #486f93;
+    }
+
+    .timeline-row-label.exam {
+      background: #df676d;
+    }
+
+    .timeline-cell {
+      position: relative;
+      border: 1px solid transparent;
+      padding: 9px;
+      min-height: 112px;
+    }
+
+    .timeline-cell.thesis {
+      background: #edf3f7;
+      border-color: #dde9f1;
+    }
+
+    .timeline-cell.exam {
+      background: #fff0ef;
+      border-color: #f5dcda;
+    }
+
+    .timeline-input {
+      width: 100%;
+      min-height: 78px;
+      border: 0;
+      resize: vertical;
+      background: transparent;
+      color: var(--ink);
+      font-size: 13px;
+      line-height: 1.42;
+      padding: 0;
+      outline: none;
+      text-align: center;
+    }
+
+    .timeline-input:focus {
+      text-align: left;
+    }
+
+    .timeline-cell:focus-within {
+      border-color: rgba(43, 91, 158, 0.48);
+      box-shadow: 0 0 0 3px rgba(43, 91, 158, 0.12);
+    }
+
+    .timeline-reset {
+      position: absolute;
+      right: 7px;
+      bottom: 6px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.15s ease;
+    }
+
+    .timeline-cell.changed .timeline-reset,
+    .timeline-cell:focus-within .timeline-reset {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .learned-panel {
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 4% 12%, rgba(43, 91, 158, .10), transparent 28%),
+        linear-gradient(135deg, #ffffff 0%, #fbfdff 58%, #f6fbf8 100%);
+    }
+
+    .learned-panel .panel-head {
+      padding: 18px 20px 0;
+    }
+
+    .learned-panel .panel-title {
+      font-size: 18px;
+    }
+
+    .learned-wrap {
+      overflow-x: auto;
+      max-width: 100%;
+      padding: 2px 2px 4px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .learned-grid {
+      min-width: 1040px;
+      display: grid;
+      grid-template-columns: 128px repeat(6, minmax(132px, 1fr));
+      gap: 8px;
+      align-items: stretch;
+    }
+
+    .learned-head,
+    .learned-row-label,
+    .learned-cell {
+      border-radius: 14px;
+      border: 1px solid rgba(217, 225, 236, .86);
+    }
+
+    .learned-head {
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+      background: linear-gradient(135deg, #e8f0fb, #edf7f3);
+      color: #32435a;
+      font-size: 13px;
+      font-weight: 850;
+      box-shadow: 0 8px 18px rgba(23, 33, 43, .04);
+    }
+
+    .learned-row-label {
+      min-height: 78px;
+      display: flex;
+      align-items: center;
+      padding: 12px;
+      background: #ffffff;
+      color: #243449;
+      font-size: 15px;
+      font-weight: 850;
+      box-shadow: 0 8px 18px rgba(23, 33, 43, .035);
+    }
+
+    .learned-row-label::before {
+      content: "";
+      width: 8px;
+      height: 32px;
+      margin-right: 10px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, #2b5b9e, #34d399);
+      flex: 0 0 auto;
+    }
+
+    .learned-cell {
+      min-height: 78px;
+      padding: 8px;
+      background: rgba(255, 255, 255, .78);
+      transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+    }
+
+    .learned-cell:nth-child(10n + 3),
+    .learned-cell:nth-child(10n + 5),
+    .learned-cell:nth-child(10n + 7),
+    .learned-cell:nth-child(10n + 9) {
+      background: rgba(248, 251, 255, .86);
+    }
+
+    .learned-cell:focus-within {
+      border-color: rgba(43, 91, 158, .50);
+      box-shadow: 0 0 0 3px rgba(43, 91, 158, .12);
+      background: #ffffff;
+    }
+
+    .learned-input {
+      width: 100%;
+      min-height: 60px;
+      border: 0;
+      resize: vertical;
+      background: transparent;
+      color: var(--ink);
+      font-size: 13px;
+      line-height: 1.45;
+      padding: 2px 4px;
+      outline: none;
+    }
+
+    .learned-input::placeholder {
+      color: #a5afbd;
+    }
+
+    .empty {
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      padding: 18px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .sync-fab {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 30;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: 1px solid rgba(43, 91, 158, 0.18);
+      background: rgba(255, 255, 255, 0.92);
+      color: var(--blue);
+      box-shadow: 0 12px 30px rgba(23, 33, 43, 0.14);
+      cursor: pointer;
+      font-size: 22px;
+      display: grid;
+      place-items: center;
+      backdrop-filter: blur(10px);
+    }
+
+    .sync-fab.synced {
+      color: var(--green);
+    }
+
+    .sync-fab.error {
+      color: var(--rose);
+    }
+
+    .sync-popover {
+      position: fixed;
+      right: 18px;
+      bottom: 76px;
+      z-index: 31;
+      width: min(360px, calc(100vw - 28px));
+      background: rgba(255, 255, 255, 0.96);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: 0 18px 48px rgba(23, 33, 43, 0.18);
+      padding: 16px;
+      backdrop-filter: blur(14px);
+    }
+
+    .sync-popover[hidden] {
+      display: none;
+    }
+
+    .sync-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .sync-title {
+      font-size: 16px;
+      font-weight: 820;
+      line-height: 1.2;
+    }
+
+    .sync-close {
+      border: 0;
+      background: var(--soft-blue);
+      color: var(--blue);
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+
+    .sync-form {
+      display: grid;
+      gap: 10px;
+    }
+
+    .sync-field {
+      display: grid;
+      gap: 5px;
+    }
+
+    .sync-field span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 680;
+    }
+
+    .sync-field input {
+      width: 100%;
+      height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 0 11px;
+      color: var(--ink);
+      background: #ffffff;
+    }
+
+    .sync-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 2px;
+    }
+
+    .sync-actions .btn {
+      width: 100%;
+      border-radius: 10px;
+    }
+
+    .sync-note,
+    .sync-status {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .sync-status {
+      min-height: 18px;
+      margin-top: 2px;
+    }
+
+    .sync-status.ok {
+      color: var(--green);
+      font-weight: 680;
+    }
+
+    .sync-status.warn {
+      color: var(--amber);
+      font-weight: 680;
+    }
+
+    .sync-status.error {
+      color: var(--rose);
+      font-weight: 680;
+    }
+
+    @media (max-width: 1180px) {
+      main {
+        padding: 18px;
+        gap: 16px;
+      }
+
+      .hero-dashboard {
+        grid-template-columns: minmax(0, 1fr) minmax(360px, .88fr);
+        gap: 16px;
+      }
+
+      .calendar-dashboard {
+        grid-template-columns: minmax(0, 1fr) minmax(360px, .88fr);
+        gap: 16px;
+      }
+
+      .side-stack {
+        gap: 12px;
+      }
+
+      .today-layout {
+        grid-template-columns: 128px minmax(0, 1fr);
+        gap: 14px;
+        align-items: stretch;
+      }
+
+      .date-tile {
+        min-height: 180px;
+        padding: 16px;
+      }
+
+      .date-day {
+        font-size: 46px;
+      }
+
+      .date-week {
+        font-size: 16px;
+      }
+
+      .task-line {
+        padding: 11px 12px;
+      }
+
+      .subtask-row {
+        padding: 9px 10px;
+      }
+
+      .video-panel .panel-body {
+        display: block;
+      }
+
+      .video-form {
+        margin-bottom: 10px;
+      }
+    }
+
+    @media (max-width: 980px) {
+      .topbar-inner,
+      .dashboard {
+        grid-template-columns: 1fr;
+      }
+
+      .toolbar {
+        justify-content: flex-start;
+      }
+
+      .metric-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .tool-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .today-layout {
+        grid-template-columns: 132px minmax(0, 1fr);
+        align-items: stretch;
+      }
+
+      .date-tile {
+        min-height: 140px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      main {
+        padding: 14px;
+      }
+
+      .topbar-inner {
+        padding: 16px 14px;
+      }
+
+      .toolbar {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .toolbar .select {
+        grid-column: 1 / -1;
+        width: 100%;
+      }
+
+      .toolbar .btn {
+        width: 100%;
+        padding: 0 8px;
+      }
+
+      h1 {
+        font-size: 21px;
+      }
+
+      .metric-grid,
+      .tool-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .dump-card,
+      .cycle-card {
+        grid-column: auto;
+        grid-row: auto;
+      }
+
+      .radar-wrap {
+        grid-template-columns: 1fr;
+      }
+
+      .cycle-settings {
+        grid-template-columns: 1fr;
+      }
+
+      .calendar {
+        gap: 5px;
+      }
+
+      .day {
+        min-height: 78px;
+        padding: 6px;
+      }
+
+      .day-number {
+        font-size: 12px;
+      }
+
+      .day-subject {
+        font-size: 10px;
+      }
+
+      .panel-head {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .calendar-tools {
+        width: 100%;
+        justify-content: flex-start;
+      }
+
+      .panel-body {
+        padding: 14px;
+      }
+
+      .task-label {
+        flex-direction: column;
+      }
+
+      .today-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .date-tile {
+        min-height: 128px;
+      }
+
+      .subtask-row {
+        grid-template-columns: 1fr;
+        align-items: start;
+      }
+
+      .task-actions,
+      .detail-actions {
+        width: 100%;
+        justify-content: flex-start;
+      }
+
+      .extra-form {
+        grid-template-columns: 1fr;
+      }
+
+      .timeline-grid {
+        min-width: 920px;
+        grid-template-columns: 72px repeat(12, 64px);
+        gap: 6px;
+      }
+
+      .timeline-head {
+        min-height: 48px;
+        font-size: 12px;
+      }
+
+      .timeline-row-label {
+        min-height: 96px;
+        font-size: 18px;
+      }
+
+      .timeline-cell {
+        min-height: 96px;
+        padding: 7px;
+      }
+
+      .timeline-input {
+        min-height: 68px;
+        font-size: 12px;
+        text-align: left;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div>
+          <h1>考公学习计划看板</h1>
+          <div class="subline" id="planRangeSummary">2026-06-03 至 2026-12-31 · 10.1–11.29 已排入申论60天计划（申论50题+内蒙50题，对策/公文先听回放再写，周日休整）· 其余空白可编辑</div>
+        </div>
+        <div class="toolbar">
+          <select id="monthSelect" class="select" aria-label="月份"></select>
+          <button id="prevDayButton" class="btn">前一日</button>
+          <button id="todayButton" class="btn">今日</button>
+          <button id="nextDayButton" class="btn">后一日</button>
+          <button id="resetButton" class="btn">清空打卡</button>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="metric-grid" aria-label="总览">
+        <div class="metric">
+          <span class="label">计划学习日</span>
+          <span class="value" id="metricStudyDays">182</span>
+        </div>
+        <div class="metric">
+          <span class="label">已到进度</span>
+          <span class="value" id="metricScheduled">0%</span>
+        </div>
+        <div class="metric">
+          <span class="label">打卡完成</span>
+          <span class="value" id="metricCompleted">0</span>
+        </div>
+        <div class="metric">
+          <span class="label">当前模块</span>
+          <span class="value" id="metricModule">资料</span>
+        </div>
+        <div class="metric noise-metric">
+          <div class="noise-icon" aria-hidden="true">🔇</div>
+          <div>
+            <div class="noise-title">大脑静音</div>
+            <div class="noise-subtitle" id="brownNoiseHint">棕色噪音</div>
+          </div>
+          <button id="brownNoiseButton" class="noise-play" aria-label="播放棕色噪音">▶</button>
+          <span id="brownNoiseBadge" hidden>待机</span>
+          <span id="noiseOrb" hidden></span>
+        </div>
+      </section>
+
+      <section class="dashboard hero-dashboard">
+        <div class="panel" id="todayPanel">
+          <div class="panel-head">
+            <h2 class="panel-title">今日任务</h2>
+            <span class="badge" id="todayBadge">资料分析</span>
+          </div>
+          <div class="panel-body">
+            <div class="today-layout">
+              <div class="date-tile">
+                <div class="date-month" id="dateMonth">2026-06</div>
+                <div class="date-day" id="dateDay">03</div>
+                <div class="date-week" id="dateWeek">周三</div>
+              </div>
+              <div class="task-stack" id="todayTasks"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="side-stack" id="todaySideStack">
+          <div class="panel video-panel">
+            <div class="panel-head">
+              <h2 class="panel-title">专注背景音</h2>
+              <div class="video-caption" id="focusVideoCaption">ADHD七小时超长集中注意力&专注学习&舒缓压力背景音｜脑波音乐</div>
+            </div>
+            <div class="panel-body">
+              <div class="video-form">
+                <input id="focusVideoUrl" type="url" placeholder="粘贴 B 站链接，Enter 更新" aria-label="B站视频链接">
+                <button id="updateFocusVideoButton" class="btn primary">更新</button>
+              </div>
+              <iframe
+                class="video-frame"
+                id="focusVideoFrame"
+                src="https://player.bilibili.com/player.html?isOutside=true&bvid=BV1884y137AZ&page=1&autoplay=0"
+                title="ADHD七小时超长集中注意力&专注学习&舒缓压力背景音｜脑波音乐"
+                allow="autoplay; fullscreen; picture-in-picture"
+                allowfullscreen
+              ></iframe>
+            </div>
+          </div>
+
+          <div class="panel tool-card cycle-card compact-cycle-card">
+            <div class="panel-head">
+              <h2 class="panel-title">荷尔蒙雷达</h2>
+              <span class="badge" id="radarDateBadge">今日</span>
+            </div>
+            <div class="panel-body">
+              <div class="tool-stack">
+                <div class="cycle-hero" id="cycleHero"></div>
+                <div class="cycle-note" id="cycleNote"></div>
+                <div class="cycle-bars" id="cycleBars"></div>
+                <div class="cycle-tips" id="cycleTips"></div>
+                <div class="cycle-settings">
+                  <label class="mini-field">上次开始
+                    <input id="cycleStartInput" type="date">
+                  </label>
+                  <label class="mini-field">周期
+                    <input id="cycleLengthInput" type="number" min="21" max="40" value="28">
+                  </label>
+                  <label class="mini-field">经期
+                    <input id="periodLengthInput" type="number" min="2" max="10" value="5">
+                  </label>
+                </div>
+                <div class="cycle-disclaimer">仅作自我观察，不是医学判断；如果周期明显不规律，以身体感受优先。</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="dashboard calendar-dashboard">
+        <div class="panel" id="calendarPanel">
+          <div class="panel-head">
+            <h2 class="panel-title">日历</h2>
+            <div class="calendar-tools">
+              <div class="calendar-month-nav" aria-label="切换日历月份">
+                <button id="prevMonthButton" class="btn">上个月</button>
+                <button id="nextMonthButton" class="btn">下个月</button>
+              </div>
+              <div class="filters" id="filters"></div>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="calendar" id="calendar"></div>
+          </div>
+        </div>
+
+        <div class="panel" id="selectedDatePanel">
+          <div class="panel-head">
+            <h2 class="panel-title">选中日期</h2>
+            <span class="badge" id="selectedBadge">资料分析</span>
+          </div>
+          <div class="panel-body">
+            <div class="detail-grid" id="detail"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel learned-panel">
+        <div class="panel-head">
+          <h2 class="panel-title">已学内容整理</h2>
+          <span class="badge">可编辑</span>
+        </div>
+        <div class="panel-body">
+          <div class="learned-wrap">
+            <div class="learned-grid" id="learnedContentGrid"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2 class="panel-title">年度总览</h2>
+          <span class="badge">2026.06-2027.05</span>
+        </div>
+        <div class="panel-body">
+          <div class="timeline-wrap">
+            <div class="timeline-grid" id="macroTimeline"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <button id="syncToggle" class="sync-fab" type="button" aria-label="打开坚果云同步">☁️</button>
+  <aside id="syncPopover" class="sync-popover" hidden aria-label="坚果云同步设置">
+    <div class="sync-head">
+      <div>
+        <div class="sync-title">Cloudflare 云同步</div>
+        <div class="sync-note">电脑和平板用同一个同步密钥即可同步。</div>
+      </div>
+      <button id="syncClose" class="sync-close" type="button" aria-label="关闭同步设置">×</button>
+    </div>
+    <div class="sync-form">
+      <label class="sync-field">
+        <span>同步地址</span>
+        <input id="syncEndpoint" type="url" autocomplete="off" placeholder="https://你的同步地址.workers.dev" />
+      </label>
+      <label class="sync-field">
+        <span>同步密钥</span>
+        <input id="syncPassphrase" type="password" autocomplete="current-password" placeholder="自己设置一个密钥，电脑和平板填一样" />
+      </label>
+      <div class="sync-actions">
+        <button id="saveSyncConfigButton" class="btn" type="button">保存配置</button>
+        <button id="uploadSyncButton" class="btn primary" type="button">上传</button>
+        <button id="downloadSyncButton" class="btn" type="button">恢复</button>
+      </div>
+      <div class="sync-note">同步密钥只保存在这个浏览器里，不会进入 GitHub。换设备时填同一个密钥即可恢复。</div>
+      <div id="syncStatus" class="sync-status" role="status"></div>
+    </div>
+  </aside>
+
+  <script>
+    const PLAN = [{"日期":"2026-06-03","星期":"周三","主线模块":"资料分析","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：补完粉笔980第4节，梳理前3节断点","下午2.5小时行测":"2.5h：速算练习15m；速算热身、建立资料错题本、整理公式卡","晚上1.5小时申论":"1.5h：白鹭60天D1：只学1-9，先做题再听课，整理题型识别","复盘/当日重点":"因6月1日前已听3节，今天用于闭环基础课","阶段":"基础衔接","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-06-04","星期":"周四","主线模块":"资料分析","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午听课+例题：资料理论 1/10","下午2.5小时行测":"2.5h：速算练习15m；下午限时练：速算+模块题 1/10","晚上1.5小时申论":"1.5h：白鹭60天D2：只学1-9，先做题再听课，整理题型识别","复盘/当日重点":"目标：速度和正确率同步提升 1/10","阶段":"理论课10天","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-06-05","星期":"周五","主线模块":"资料分析","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午听课+例题：资料理论 2/10","下午2.5小时行测":"2.5h：速算练习15m；下午限时练：速算+模块题 2/10","晚上1.5小时申论":"1.5h：白鹭60天D3：只学1-9，先做题再听课，整理题型识别","复盘/当日重点":"目标：速度和正确率同步提升 2/10","阶段":"理论课10天","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-06-06","星期":"周六","主线模块":"资料分析","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午听课+例题：资料理论 3/10","下午2.5小时行测":"2.5h：速算练习15m；下午限时练：速算+模块题 3/10","晚上1.5小时申论":"1.5h：白鹭60天D4：只学1-9，先做题再听课，整理题型识别","复盘/当日重点":"目标：速度和正确率同步提升 3/10","阶段":"理论课10天","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-06-07","星期":"周日","主线模块":"单休","早上1小时":"休息，不安排硬性任务","上午1.5小时行测":"休息","下午2.5小时行测":"休息","晚上1.5小时申论":"","复盘/当日重点":"周日默认休息，可切换为模考日","阶段":"休息/机动","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-06-08","星期":"周一","主线模块":"资料分析","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午听课+例题：资料理论 4/10","下午2.5小时行测":"2.5h：速算练习15m；下午限时练：速算+模块题 4/10","晚上1.5小时申论":"1.5h：白鹭60天D5：只学1-9，先做题再听课，整理题型识别","复盘/当日重点":"目标：速度和正确率同步提升 4/10","阶段":"理论课10天","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-06-09","星期":"周二","主线模块":"资料分析","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午听课+例题：资料理论 5/10","下午2.5小时行测":"2.5h：速算练习15m；下午限时练：速算+模块题 5/10","晚上1.5小时申论":"1.5h：白鹭60天D6：只学1-9，先做题再听课，整理题型识别","复盘/当日重点":"目标：速度和正确率同步提升 5/10","阶段":"理论课10天","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-06-10","星期":"周三","主线模块":"资料分析","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午听课+例题：资料理论 6/10","下午2.5小时行测":"2.5h：速算练习15m；下午限时练：速算+模块题 6/10","晚上1.5小时申论":"1.5h：白鹭60天D7：只学1-9，先做题再听课，整理题型识别","复盘/当日重点":"目标：速度和正确率同步提升 6/10","阶段":"理论课10天","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-06-11","星期":"周四","主线模块":"资料分析","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午听课+例题：资料理论 7/10","下午2.5小时行测":"2.5h：速算练习15m；下午限时练：速算+模块题 7/10","晚上1.5小时申论":"1.5h：白鹭60天D8：只学1-9，先做题再听课，整理题型识别","复盘/当日重点":"目标：速度和正确率同步提升 7/10","阶段":"理论课10天","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-06-12","星期":"周五","主线模块":"资料分析","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午听课+例题：资料理论 8/10","下午2.5小时行测":"2.5h：速算练习15m；下午限时练：速算+模块题 8/10","晚上1.5小时申论":"1.5h：白鹭60天D9：只学1-9，先做题再听课，整理题型识别","复盘/当日重点":"目标：速度和正确率同步提升 8/10","阶段":"理论课10天","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-06-13","星期":"周六","主线模块":"资料分析","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午听课+例题：资料理论 9/10","下午2.5小时行测":"2.5h：速算练习15m；下午限时练：速算+模块题 9/10","晚上1.5小时申论":"1.5h：白鹭60天D22：只学22-51，小题专项先写后听，整理作答清单","复盘/当日重点":"目标：速度和正确率同步提升 9/10","阶段":"理论课10天","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-06-14","星期":"周日","主线模块":"单休","早上1小时":"休息，不安排硬性任务","上午1.5小时行测":"休息","下午2.5小时行测":"休息","晚上1.5小时申论":"","复盘/当日重点":"周日默认休息，可切换为模考日","阶段":"休息/机动","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-06-15","星期":"周一","主线模块":"资料分析","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午听课+例题：资料理论 10/10","下午2.5小时行测":"2.5h：速算练习15m；下午限时练：速算+模块题 10/10","晚上1.5小时申论":"1.5h：白鹭60天D23：只学22-51，小题专项先写后听，整理作答清单","复盘/当日重点":"目标：速度和正确率同步提升 10/10","阶段":"理论课10天","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-06-16","星期":"周二","主线模块":"资料分析","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午复盘错题+公式回忆 1/7","下午2.5小时行测":"2.5h：速算练习15m；下午20分钟限时资料套组+订正 1/7","晚上1.5小时申论":"1.5h：白鹭60天D24：只学22-51，小题专项先写后听，整理作答清单","复盘/当日重点":"后续每天保留20-40题资料维护 1/7","阶段":"题本练习7天","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-06-17","星期":"周三","主线模块":"资料分析","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午复盘错题+公式回忆 2/7","下午2.5小时行测":"2.5h：速算练习15m；下午20分钟限时资料套组+订正 2/7","晚上1.5小时申论":"1.5h：白鹭60天D25：只学22-51，小题专项先写后听，整理作答清单","复盘/当日重点":"后续每天保留20-40题资料维护 2/7","阶段":"题本练习7天","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-06-18","星期":"周四","主线模块":"资料分析","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午复盘错题+公式回忆 3/7","下午2.5小时行测":"2.5h：速算练习15m；下午20分钟限时资料套组+订正 3/7","晚上1.5小时申论":"1.5h：白鹭60天D26：只学22-51，小题专项先写后听，整理作答清单","复盘/当日重点":"后续每天保留20-40题资料维护 3/7","阶段":"题本练习7天","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-06-19","星期":"周五","主线模块":"资料分析","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午复盘错题+公式回忆 4/7","下午2.5小时行测":"2.5h：速算练习15m；下午20分钟限时资料套组+订正 4/7","晚上1.5小时申论":"1.5h：白鹭60天D27：只学22-51，小题专项先写后听，整理作答清单","复盘/当日重点":"后续每天保留20-40题资料维护 4/7","阶段":"题本练习7天","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-06-20","星期":"周六","主线模块":"资料分析","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午复盘错题+公式回忆 5/7","下午2.5小时行测":"2.5h：速算练习15m；下午20分钟限时资料套组+订正 5/7","晚上1.5小时申论":"1.5h：白鹭60天D28：只学22-51，小题专项先写后听，整理作答清单","复盘/当日重点":"后续每天保留20-40题资料维护 5/7","阶段":"题本练习7天","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-06-21","星期":"周日","主线模块":"单休","早上1小时":"休息，不安排硬性任务","上午1.5小时行测":"休息","下午2.5小时行测":"休息","晚上1.5小时申论":"","复盘/当日重点":"周日默认休息，可切换为模考日","阶段":"休息/机动","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-06-22","星期":"周一","主线模块":"资料分析","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午复盘错题+公式回忆 6/7","下午2.5小时行测":"2.5h：速算练习15m；下午20分钟限时资料套组+订正 6/7","晚上1.5小时申论":"1.5h：白鹭60天D29：只学22-51，小题专项先写后听，整理作答清单","复盘/当日重点":"后续每天保留20-40题资料维护 6/7","阶段":"题本练习7天","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-06-23","星期":"周二","主线模块":"资料分析","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午复盘错题+公式回忆 7/7","下午2.5小时行测":"2.5h：速算练习15m；下午20分钟限时资料套组+订正 7/7","晚上1.5小时申论":"1.5h：白鹭60天D30：只学22-51，小题专项先写后听，整理作答清单","复盘/当日重点":"后续每天保留20-40题资料维护 7/7","阶段":"题本练习7天","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-06-24","星期":"周三","主线模块":"判断推理","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午听逻辑推理课 1/8","下午2.5小时行测":"2.5h：速算练习15m；下午配套例题+笔记框架 1/8；带练：资料分析20题/1组限时，复盘公式和速算","晚上1.5小时申论":"1.5h：白鹭60天D31：只学22-51，小题专项先写后听，整理作答清单","复盘/当日重点":"重点：论证、翻译推理、真假推理 1/8","阶段":"逻辑推理听课","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-06-25","星期":"周四","主线模块":"判断推理","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午听逻辑推理课 2/8","下午2.5小时行测":"2.5h：速算练习15m；下午配套例题+笔记框架 2/8；带练：资料分析20题/1组限时，复盘公式和速算","晚上1.5小时申论":"1.5h：白鹭60天D32：只学22-51，小题专项先写后听，整理作答清单","复盘/当日重点":"重点：论证、翻译推理、真假推理 2/8","阶段":"逻辑推理听课","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-06-26","星期":"周五","主线模块":"判断推理","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午听逻辑推理课 3/8","下午2.5小时行测":"2.5h：速算练习15m；下午配套例题+笔记框架 3/8；带练：资料分析20题/1组限时，复盘公式和速算","晚上1.5小时申论":"1.5h：白鹭60天D33：只学22-51，小题专项先写后听，整理作答清单","复盘/当日重点":"重点：论证、翻译推理、真假推理 3/8","阶段":"逻辑推理听课","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-06-27","星期":"周六","主线模块":"判断推理","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午听逻辑推理课 4/8","下午2.5小时行测":"2.5h：速算练习15m；下午配套例题+笔记框架 4/8；带练：资料分析20题/1组限时，复盘公式和速算","晚上1.5小时申论":"1.5h：白鹭60天D34：只学22-51，小题专项先写后听，整理作答清单","复盘/当日重点":"重点：论证、翻译推理、真假推理 4/8","阶段":"逻辑推理听课","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-06-28","星期":"周日","主线模块":"单休","早上1小时":"休息，不安排硬性任务","上午1.5小时行测":"休息","下午2.5小时行测":"休息","晚上1.5小时申论":"","复盘/当日重点":"周日默认休息，可切换为模考日","阶段":"休息/机动","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-06-29","星期":"周一","主线模块":"判断推理","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午听逻辑推理课 5/8","下午2.5小时行测":"2.5h：速算练习15m；下午配套例题+笔记框架 5/8；带练：资料分析20题/1组限时，复盘公式和速算","晚上1.5小时申论":"1.5h：白鹭60天D35：只学22-51，小题专项先写后听，整理作答清单","复盘/当日重点":"重点：论证、翻译推理、真假推理 5/8","阶段":"逻辑推理听课","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-06-30","星期":"周二","主线模块":"判断推理","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午听逻辑推理课 6/8","下午2.5小时行测":"2.5h：速算练习15m；下午配套例题+笔记框架 6/8；带练：资料分析20题/1组限时，复盘公式和速算","晚上1.5小时申论":"1.5h：白鹭60天D36：只学22-51，小题专项先写后听，整理作答清单","复盘/当日重点":"重点：论证、翻译推理、真假推理 6/8","阶段":"逻辑推理听课","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-07-01","星期":"周三","主线模块":"判断推理","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午听逻辑推理课 7/8","下午2.5小时行测":"2.5h：速算练习15m；下午配套例题+笔记框架 7/8；带练：资料分析20题/1组限时，复盘公式和速算","晚上1.5小时申论":"1.5h：白鹭60天D37：只学22-51，小题专项先写后听，整理作答清单","复盘/当日重点":"重点：论证、翻译推理、真假推理 7/8","阶段":"逻辑推理听课","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-07-02","星期":"周四","主线模块":"判断推理","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午听逻辑推理课 8/8","下午2.5小时行测":"2.5h：速算练习15m；下午配套例题+笔记框架 8/8；带练：资料分析20题/1组限时，复盘公式和速算","晚上1.5小时申论":"1.5h：白鹭60天D38：只学22-51，小题专项先写后听，整理作答清单","复盘/当日重点":"重点：论证、翻译推理、真假推理 8/8","阶段":"逻辑推理听课","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-07-03","星期":"周五","主线模块":"判断推理","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午回顾模型+错题重做 1/8","下午2.5小时行测":"2.5h：速算练习15m；下午逻辑100题限时训练 1/8；带练：资料分析20题/1组限时，复盘公式和速算","晚上1.5小时申论":"1.5h：白鹭60天D39：只学22-51，小题专项先写后听，整理作答清单","复盘/当日重点":"目标：形成固定解题路径 1/8","阶段":"逻辑推理刷题","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-07-04","星期":"周六","主线模块":"判断推理","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午回顾模型+错题重做 2/8","下午2.5小时行测":"2.5h：速算练习15m；下午逻辑100题限时训练 2/8；带练：资料分析20题/1组限时，复盘公式和速算","晚上1.5小时申论":"1.5h：白鹭60天D40：只学22-51，小题专项先写后听，整理作答清单","复盘/当日重点":"目标：形成固定解题路径 2/8","阶段":"逻辑推理刷题","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-07-05","星期":"周日","主线模块":"单休","早上1小时":"休息，不安排硬性任务","上午1.5小时行测":"休息","下午2.5小时行测":"休息","晚上1.5小时申论":"","复盘/当日重点":"周日默认休息，可切换为模考日","阶段":"休息/机动","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-07-06","星期":"周一","主线模块":"判断推理","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午回顾模型+错题重做 3/8","下午2.5小时行测":"2.5h：速算练习15m；下午逻辑100题限时训练 3/8；带练：资料分析20题/1组限时，复盘公式和速算","晚上1.5小时申论":"1.5h：白鹭60天D41：只学22-51，小题专项先写后听，整理作答清单","复盘/当日重点":"目标：形成固定解题路径 3/8","阶段":"逻辑推理刷题","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-07-07","星期":"周二","主线模块":"判断推理","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午回顾模型+错题重做 4/8","下午2.5小时行测":"2.5h：速算练习15m；下午逻辑100题限时训练 4/8；带练：资料分析20题/1组限时，复盘公式和速算","晚上1.5小时申论":"1.5h：白鹭60天D42：只学22-51，小题专项先写后听，整理作答清单","复盘/当日重点":"目标：形成固定解题路径 4/8","阶段":"逻辑推理刷题","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-07-08","星期":"周三","主线模块":"判断推理","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午回顾模型+错题重做 5/8","下午2.5小时行测":"2.5h：速算练习15m；下午逻辑100题限时训练 5/8；带练：资料分析20题/1组限时，复盘公式和速算","晚上1.5小时申论":"1.5h：白鹭60天D43：只学22-51，小题专项先写后听，整理作答清单","复盘/当日重点":"目标：形成固定解题路径 5/8","阶段":"逻辑推理刷题","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-07-09","星期":"周四","主线模块":"判断推理","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午回顾模型+错题重做 6/8","下午2.5小时行测":"2.5h：速算练习15m；下午逻辑100题限时训练 6/8；带练：资料分析20题/1组限时，复盘公式和速算","晚上1.5小时申论":"1.5h：白鹭60天D44：只学22-51，小题专项先写后听，整理作答清单","复盘/当日重点":"目标：形成固定解题路径 6/8","阶段":"逻辑推理刷题","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-07-10","星期":"周五","主线模块":"判断推理","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午回顾模型+错题重做 7/8","下午2.5小时行测":"2.5h：速算练习15m；下午逻辑100题限时训练 7/8；带练：资料分析20题/1组限时，复盘公式和速算","晚上1.5小时申论":"1.5h：白鹭60天D45：只学22-51，小题专项先写后听，整理作答清单","复盘/当日重点":"目标：形成固定解题路径 7/8","阶段":"逻辑推理刷题","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-07-11","星期":"周六","主线模块":"判断推理","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午回顾模型+错题重做 8/8","下午2.5小时行测":"2.5h：速算练习15m；下午逻辑100题限时训练 8/8；带练：资料分析20题/1组限时，复盘公式和速算","晚上1.5小时申论":"1.5h：白鹭60天D46：只学22-51，小题专项先写后听，整理作答清单","复盘/当日重点":"目标：形成固定解题路径 8/8","阶段":"逻辑推理刷题","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-07-12","星期":"周日","主线模块":"单休","早上1小时":"休息，不安排硬性任务","上午1.5小时行测":"休息","下午2.5小时行测":"休息","晚上1.5小时申论":"","复盘/当日重点":"周日默认休息，可切换为模考日","阶段":"休息/机动","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-07-13","星期":"周一","主线模块":"判断推理","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午图推方法课 1/8","下午2.5小时行测":"2.5h：速算练习15m；下午图推例题+规律笔记 1/8；带练：资料分析20题/1组限时，复盘公式和速算","晚上1.5小时申论":"1.5h：白鹭60天D47：只学22-51，小题专项先写后听，整理作答清单","复盘/当日重点":"记录位置、样式、数量、属性规律 1/8","阶段":"图形推理听课","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-07-14","星期":"周二","主线模块":"判断推理","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午图推方法课 2/8","下午2.5小时行测":"2.5h：速算练习15m；下午图推例题+规律笔记 2/8；带练：资料分析20题/1组限时，复盘公式和速算","晚上1.5小时申论":"1.5h：白鹭60天D48：只学22-51，小题专项先写后听，整理作答清单","复盘/当日重点":"记录位置、样式、数量、属性规律 2/8","阶段":"图形推理听课","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-07-15","星期":"周三","主线模块":"判断推理","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午图推方法课 3/8","下午2.5小时行测":"2.5h：速算练习15m；下午图推例题+规律笔记 3/8；带练：资料分析20题/1组限时，复盘公式和速算","晚上1.5小时申论":"1.5h：白鹭60天D49：只学22-51，小题专项先写后听，整理作答清单","复盘/当日重点":"记录位置、样式、数量、属性规律 3/8","阶段":"图形推理听课","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-07-16","星期":"周四","主线模块":"判断推理","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午图推方法课 4/8","下午2.5小时行测":"2.5h：速算练习15m；下午图推例题+规律笔记 4/8；带练：资料分析20题/1组限时，复盘公式和速算","晚上1.5小时申论":"1.5h：白鹭60天D50：只学22-51，小题专项先写后听，整理作答清单","复盘/当日重点":"记录位置、样式、数量、属性规律 4/8","阶段":"图形推理听课","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-07-17","星期":"周五","主线模块":"判断推理","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午图推方法课 5/8","下午2.5小时行测":"2.5h：速算练习15m；下午图推例题+规律笔记 5/8；带练：资料分析20题/1组限时，复盘公式和速算","晚上1.5小时申论":"1.5h：白鹭60天D51：只学22-51，小题专项先写后听，整理作答清单","复盘/当日重点":"记录位置、样式、数量、属性规律 5/8","阶段":"图形推理听课","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-07-18","星期":"周六","主线模块":"判断推理","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午图推方法课 6/8","下午2.5小时行测":"2.5h：速算练习15m；下午图推例题+规律笔记 6/8；带练：资料分析20题/1组限时，复盘公式和速算","晚上1.5小时申论":"1.5h：袁东大作文专练第1/17天：拆题立意、搭框架、积累标题和分论点表达","复盘/当日重点":"记录位置、样式、数量、属性规律 6/8","阶段":"图形推理听课","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-07-19","星期":"周日","主线模块":"单休","早上1小时":"休息，不安排硬性任务","上午1.5小时行测":"休息","下午2.5小时行测":"休息","晚上1.5小时申论":"","复盘/当日重点":"周日默认休息，可切换为模考日","阶段":"休息/机动","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-07-20","星期":"周一","主线模块":"判断推理","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午图推方法课 7/8","下午2.5小时行测":"2.5h：速算练习15m；下午图推例题+规律笔记 7/8；带练：资料分析20题/1组限时，复盘公式和速算","晚上1.5小时申论":"1.5h：袁东大作文专练第2/17天：拆题立意、搭框架、积累标题和分论点表达","复盘/当日重点":"记录位置、样式、数量、属性规律 7/8","阶段":"图形推理听课","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-07-21","星期":"周二","主线模块":"判断推理","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午图推方法课 8/8","下午2.5小时行测":"2.5h：速算练习15m；下午图推例题+规律笔记 8/8；带练：资料分析20题/1组限时，复盘公式和速算","晚上1.5小时申论":"1.5h：袁东大作文专练第3/17天：拆题立意、搭框架、积累标题和分论点表达","复盘/当日重点":"记录位置、样式、数量、属性规律 8/8","阶段":"图形推理听课","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-07-22","星期":"周三","主线模块":"判断推理","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午图推规律晨复盘 1/7","下午2.5小时行测":"2.5h：速算练习15m；下午真题/花生每日练+错题整理 1/7；带练：资料分析20题/1组限时，复盘公式和速算","晚上1.5小时申论":"1.5h：袁东大作文专练第4/17天：拆题立意、搭框架、积累标题和分论点表达","复盘/当日重点":"目标：形成图推笔记库 1/7","阶段":"图形推理刷题","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-07-23","星期":"周四","主线模块":"判断推理","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午图推规律晨复盘 2/7","下午2.5小时行测":"2.5h：速算练习15m；下午真题/花生每日练+错题整理 2/7；带练：资料分析20题/1组限时，复盘公式和速算","晚上1.5小时申论":"1.5h：袁东大作文专练第5/17天：拆题立意、搭框架、积累标题和分论点表达","复盘/当日重点":"目标：形成图推笔记库 2/7","阶段":"图形推理刷题","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-07-24","星期":"周五","主线模块":"判断推理","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午图推规律晨复盘 3/7","下午2.5小时行测":"2.5h：速算练习15m；下午真题/花生每日练+错题整理 3/7；带练：资料分析20题/1组限时，复盘公式和速算","晚上1.5小时申论":"1.5h：袁东大作文专练第6/17天：拆题立意、搭框架、积累标题和分论点表达","复盘/当日重点":"目标：形成图推笔记库 3/7","阶段":"图形推理刷题","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-07-25","星期":"周六","主线模块":"判断推理","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午图推规律晨复盘 4/7","下午2.5小时行测":"2.5h：速算练习15m；下午真题/花生每日练+错题整理 4/7；带练：资料分析20题/1组限时，复盘公式和速算","晚上1.5小时申论":"1.5h：袁东大作文专练第7/17天：拆题立意、搭框架、积累标题和分论点表达","复盘/当日重点":"目标：形成图推笔记库 4/7","阶段":"图形推理刷题","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-07-26","星期":"周日","主线模块":"单休","早上1小时":"休息，不安排硬性任务","上午1.5小时行测":"休息","下午2.5小时行测":"休息","晚上1.5小时申论":"","复盘/当日重点":"周日默认休息，可切换为模考日","阶段":"休息/机动","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-07-27","星期":"周一","主线模块":"判断推理","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午图推规律晨复盘 5/7","下午2.5小时行测":"2.5h：速算练习15m；下午真题/花生每日练+错题整理 5/7；带练：资料分析20题/1组限时，复盘公式和速算","晚上1.5小时申论":"1.5h：袁东大作文专练第8/17天：拆题立意、搭框架、积累标题和分论点表达","复盘/当日重点":"目标：形成图推笔记库 5/7","阶段":"图形推理刷题","申论跟练打卡":"申论跟练打卡：2026国考行政执法第一题（执法方式发生了哪些变化）","粉笔专项积累":""},{"日期":"2026-07-28","星期":"周二","主线模块":"判断推理","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午图推规律晨复盘 6/7","下午2.5小时行测":"2.5h：速算练习15m；下午真题/花生每日练+错题整理 6/7；带练：资料分析20题/1组限时，复盘公式和速算","晚上1.5小时申论":"1.5h：袁东大作文专练第9/17天：拆题立意、搭框架、积累标题和分论点表达","复盘/当日重点":"目标：形成图推笔记库 6/7","阶段":"图形推理刷题","申论跟练打卡":"申论跟练打卡：2026国考行政执法第二题（毛所长这句话的意思）","粉笔专项积累":""},{"日期":"2026-07-29","星期":"周三","主线模块":"判断推理","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午图推规律晨复盘 7/7","下午2.5小时行测":"2.5h：速算练习15m；下午真题/花生每日练+错题整理 7/7；带练：资料分析20题/1组限时，复盘公式和速算","晚上1.5小时申论":"1.5h：袁东大作文专练第10/17天：拆题立意、搭框架、积累标题和分论点表达","复盘/当日重点":"目标：形成图推笔记库 7/7","阶段":"图形推理刷题","申论跟练打卡":"申论跟练打卡：2026国考行政执法第三题（执法情况汇报提纲）","粉笔专项积累":""},{"日期":"2026-07-30","星期":"周四","主线模块":"判断推理","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午类比关系课 1/3","下午2.5小时行测":"2.5h：速算练习15m；下午关系分类+例题 1/3；带练：资料分析20题/1组限时，复盘公式和速算","晚上1.5小时申论":"1.5h：袁东大作文专练第11/17天：拆题立意、搭框架、积累标题和分论点表达","复盘/当日重点":"建立语义、逻辑、语法关系清单 1/3","阶段":"类比推理听课","申论跟练打卡":"申论跟练打卡：2026国考行政执法第四题（推荐材料）","粉笔专项积累":""},{"日期":"2026-07-31","星期":"周五","主线模块":"判断推理","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午类比关系课 2/3","下午2.5小时行测":"2.5h：速算练习15m；下午关系分类+例题 2/3；带练：资料分析20题/1组限时，复盘公式和速算","晚上1.5小时申论":"1.5h：袁东大作文专练第12/17天：拆题立意、搭框架、积累标题和分论点表达","复盘/当日重点":"建立语义、逻辑、语法关系清单 2/3","阶段":"类比推理听课","申论跟练打卡":"申论跟练打卡：2023国考行政执法第一题（GEP核算实现生态产品价值）","粉笔专项积累":""},{"日期":"2026-08-01","星期":"周六","主线模块":"判断推理","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午类比关系课 3/3","下午2.5小时行测":"2.5h：速算练习15m；下午关系分类+例题 3/3；带练：资料分析20题/1组限时，复盘公式和速算","晚上1.5小时申论":"1.5h：袁东大作文专练第13/17天：拆题立意、搭框架、积累标题和分论点表达","复盘/当日重点":"建立语义、逻辑、语法关系清单 3/3","阶段":"类比推理听课","申论跟练打卡":"申论跟练打卡：2023国考行政执法第二题（无人经济座谈会发言提纲）","粉笔专项积累":"粉笔专项积累"},{"日期":"2026-08-02","星期":"周日","主线模块":"单休","早上1小时":"休息，不安排硬性任务","上午1.5小时行测":"休息","下午2.5小时行测":"休息","晚上1.5小时申论":"","复盘/当日重点":"周日默认休息，可切换为模考日","阶段":"休息/机动","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-08-03","星期":"周一","主线模块":"判断推理","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午错题关系回忆 1/3","下午2.5小时行测":"2.5h：速算练习15m；下午类比限时刷题 1/3；带练：资料分析20题/1组限时，复盘公式和速算","晚上1.5小时申论":"1.5h：袁东大作文专练第14/17天：拆题立意、搭框架、积累标题和分论点表达","复盘/当日重点":"目标：稳定高正确率 1/3","阶段":"类比推理刷题","申论跟练打卡":"申论跟练打卡：2023国考行政执法第三题（语言文字规范化整治汇报提纲）","粉笔专项积累":"粉笔专项积累"},{"日期":"2026-08-04","星期":"周二","主线模块":"判断推理","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午错题关系回忆 2/3","下午2.5小时行测":"2.5h：速算练习15m；下午类比限时刷题 2/3；带练：资料分析20题/1组限时，复盘公式和速算","晚上1.5小时申论":"1.5h：袁东大作文专练第15/17天：拆题立意、搭框架、积累标题和分论点表达","复盘/当日重点":"目标：稳定高正确率 2/3","阶段":"类比推理刷题","申论跟练打卡":"申论跟练打卡：2023国考行政执法第四题（知识产权服务案例摘要）","粉笔专项积累":"粉笔专项积累"},{"日期":"2026-08-05","星期":"周三","主线模块":"判断推理","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午错题关系回忆 3/3","下午2.5小时行测":"2.5h：速算练习15m；下午类比限时刷题 3/3；带练：资料分析20题/1组限时，复盘公式和速算","晚上1.5小时申论":"1.5h：袁东大作文专练第16/17天：拆题立意、搭框架、积累标题和分论点表达","复盘/当日重点":"目标：稳定高正确率 3/3","阶段":"类比推理刷题","申论跟练打卡":"申论跟练打卡：2023国考行政执法第五题（大作文：追寻长期价值）","粉笔专项积累":"粉笔专项积累"},{"日期":"2026-08-06","星期":"周四","主线模块":"判断推理","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午定义判断方法课 1/1","下午2.5小时行测":"2.5h：速算练习15m；下午做基础例题并归纳关键词 1/1；带练：资料分析20题/1组限时，复盘公式和速算","晚上1.5小时申论":"1.5h：袁东大作文专练第17/17天：拆题立意、搭框架、积累标题和分论点表达","复盘/当日重点":"定义判断尽量满分 1/1","阶段":"定义判断听课","申论跟练打卡":"申论跟练打卡：2024国考行政执法第一题（乡村文化“运营官”的做法）","粉笔专项积累":"粉笔专项积累"},{"日期":"2026-08-07","星期":"周五","主线模块":"判断推理","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午复盘规则 1/2","下午2.5小时行测":"2.5h：速算练习15m；下午定义判断限时刷题 1/2；带练：资料分析20题/1组限时，复盘公式和速算","晚上1.5小时申论":"1.5h：北宋内蒙选调课程 1/10：听课+整理内蒙选调申论要点","复盘/当日重点":"重点：主体、客体、条件、结果 1/2","阶段":"定义判断刷题","申论跟练打卡":"申论跟练打卡：2024国考行政执法第二题（隆金公司成为“市场主角”的原因）","粉笔专项积累":"粉笔专项积累"},{"日期":"2026-08-08","星期":"周六","主线模块":"判断推理","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午复盘规则 2/2","下午2.5小时行测":"2.5h：速算练习15m；下午定义判断限时刷题 2/2；带练：资料分析20题/1组限时，复盘公式和速算","晚上1.5小时申论":"1.5h：北宋内蒙选调课程 2/10：听课+整理内蒙选调申论要点","复盘/当日重点":"重点：主体、客体、条件、结果 2/2","阶段":"定义判断刷题","申论跟练打卡":"申论跟练打卡：2024国考行政执法第三题（非遗法实施情况报告）","粉笔专项积累":"粉笔专项积累"},{"日期":"2026-08-09","星期":"周日","主线模块":"单休","早上1小时":"休息，不安排硬性任务","上午1.5小时行测":"休息","下午2.5小时行测":"休息","晚上1.5小时申论":"","复盘/当日重点":"周日默认休息，可切换为模考日","阶段":"休息/机动","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-08-10","星期":"周一","主线模块":"言语理解","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午言语理解综合听课 1/9（片段阅读主旨题、意图题、细节题）","下午2.5小时行测":"2.5h：速算练习15m；下午言语例题+方法笔记 1/9；带练：判断推理/资料分析轮换维护","晚上1.5小时申论":"1.5h：北宋内蒙选调课程 3/10：听课+整理内蒙选调申论要点","复盘/当日重点":"统一言语方法：不再拆分片段和逻辑填空，按题型识别+语境判断推进 1/9","阶段":"言语理解综合听课","申论跟练打卡":"申论跟练打卡：2024国考行政执法第四题（退休人员再就业问题与建议）","粉笔专项积累":"粉笔专项积累"},{"日期":"2026-08-11","星期":"周二","主线模块":"言语理解","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午言语理解综合听课 2/9（标题填入、语句排序、语句填空）","下午2.5小时行测":"2.5h：速算练习15m；下午言语例题+方法笔记 2/9；带练：判断推理/资料分析轮换维护","晚上1.5小时申论":"1.5h：北宋内蒙选调课程 4/10：听课+整理内蒙选调申论要点","复盘/当日重点":"统一言语方法：不再拆分片段和逻辑填空，按题型识别+语境判断推进 2/9","阶段":"言语理解综合听课","申论跟练打卡":"申论跟练打卡：2024国考行政执法第五题（大作文：行政执法中的“力、理、利”）","粉笔专项积累":"粉笔专项积累"},{"日期":"2026-08-12","星期":"周三","主线模块":"言语理解","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午言语理解综合听课 3/9（中心理解和行文脉络）","下午2.5小时行测":"2.5h：速算练习15m；下午言语例题+方法笔记 3/9；带练：判断推理/资料分析轮换维护","晚上1.5小时申论":"1.5h：北宋内蒙选调课程 5/10：听课+整理内蒙选调申论要点","复盘/当日重点":"统一言语方法：不再拆分片段和逻辑填空，按题型识别+语境判断推进 3/9","阶段":"言语理解综合听课","申论跟练打卡":"申论跟练打卡：2025国考行政执法第一题（高科技企业和新兴产业发展做法）","粉笔专项积累":"粉笔专项积累"},{"日期":"2026-08-13","星期":"周四","主线模块":"言语理解","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午言语理解综合听课 4/9（逻辑填空语境分析）","下午2.5小时行测":"2.5h：速算练习15m；下午言语例题+方法笔记 4/9；带练：判断推理/资料分析轮换维护","晚上1.5小时申论":"1.5h：北宋内蒙选调课程 6/10：听课+整理内蒙选调申论要点","复盘/当日重点":"统一言语方法：不再拆分片段和逻辑填空，按题型识别+语境判断推进 4/9","阶段":"言语理解综合听课","申论跟练打卡":"申论跟练打卡：2025国考行政执法第二题（以职工需求推动服务的新格局）","粉笔专项积累":"粉笔专项积累"},{"日期":"2026-08-14","星期":"周五","主线模块":"言语理解","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午言语理解综合听课 5/9（高频成语和实词辨析）","下午2.5小时行测":"2.5h：速算练习15m；下午言语例题+方法笔记 5/9；带练：判断推理/资料分析轮换维护","晚上1.5小时申论":"1.5h：北宋内蒙选调课程 7/10：听课+整理内蒙选调申论要点","复盘/当日重点":"统一言语方法：不再拆分片段和逻辑填空，按题型识别+语境判断推进 5/9","阶段":"言语理解综合听课","申论跟练打卡":"申论跟练打卡：2025国考行政执法第三题（平安夜市安全巡查工作指南）","粉笔专项积累":"粉笔专项积累"},{"日期":"2026-08-15","星期":"周六","主线模块":"言语理解","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午言语理解综合听课 6/9（篇章阅读与综合判断）","下午2.5小时行测":"2.5h：速算练习15m；下午言语例题+方法笔记 6/9；带练：判断推理/资料分析轮换维护","晚上1.5小时申论":"1.5h：北宋内蒙选调课程 8/10：听课+整理内蒙选调申论要点","复盘/当日重点":"统一言语方法：不再拆分片段和逻辑填空，按题型识别+语境判断推进 6/9","阶段":"言语理解综合听课","申论跟练打卡":"申论跟练打卡：2025国考行政执法第四题（西瑞药业现场指导谈话提纲）","粉笔专项积累":"粉笔专项积累"},{"日期":"2026-08-16","星期":"周日","主线模块":"单休","早上1小时":"休息，不安排硬性任务","上午1.5小时行测":"休息","下午2.5小时行测":"休息","晚上1.5小时申论":"","复盘/当日重点":"周日默认休息，可切换为模考日","阶段":"休息/机动","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-08-17","星期":"周一","主线模块":"言语理解","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午言语理解综合听课 7/9（易错题型串讲）","下午2.5小时行测":"3h：10min粉笔速算；40min资料分析一套；45min判断推理一套；15min图推刷题；1h粉笔千词计划；余10min错题标记/缓冲","晚上1.5小时申论":"1.5h：北宋内蒙选调课程 9/10：听课+整理内蒙选调申论要点","复盘/当日重点":"统一言语方法：不再拆分片段和逻辑填空，按题型识别+语境判断推进 7/9","阶段":"言语理解综合听课","申论跟练打卡":"申论跟练打卡：2025国考行政执法第五题（大作文：为群众办好事、好办事、办好群众事）","粉笔专项积累":""},{"日期":"2026-08-18","星期":"周二","主线模块":"言语理解","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午言语理解综合听课 8/9（言语方法课回看+笔记整理）","下午2.5小时行测":"3h：10min粉笔速算；40min资料分析一套；45min判断推理一套；15min图推刷题；1h粉笔千词计划；余10min错题标记/缓冲","晚上1.5小时申论":"1.5h：北宋内蒙选调课程 10/10：听课+整理内蒙选调申论要点","复盘/当日重点":"统一言语方法：不再拆分片段和逻辑填空，按题型识别+语境判断推进 8/9","阶段":"言语理解综合听课","申论跟练打卡":"申论跟练打卡：2025江苏省考A类、乡镇选调卷第一题（文创与旅游深度融合成效）","粉笔专项积累":""},{"日期":"2026-08-19","星期":"周三","主线模块":"言语理解","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午言语理解综合听课 9/9（言语综合课收尾+错题归类）","下午2.5小时行测":"3h：10min粉笔速算；40min资料分析一套；45min判断推理一套；15min图推刷题；1h粉笔千词计划；余10min错题标记/缓冲","晚上1.5小时申论":"","复盘/当日重点":"统一言语方法：不再拆分片段和逻辑填空，按题型识别+语境判断推进 9/9","阶段":"言语理解综合听课","申论跟练打卡":"申论跟练打卡：2025江苏省考A类、乡镇选调卷第二题（流量经济健康发展）","粉笔专项积累":""},{"日期":"2026-08-20","星期":"周四","主线模块":"言语理解","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午言语错题复盘+词语积累 1/7","下午2.5小时行测":"3h：10min粉笔速算；40min资料分析一套；45min判断推理一套；15min图推刷题；1h粉笔千词计划；余10min错题标记/缓冲","晚上1.5小时申论":"","复盘/当日重点":"目标：片段阅读和逻辑填空混合训练，降低摇摆题 1/7","阶段":"言语理解综合刷题","申论跟练打卡":"申论跟练打卡：2025江苏省考A类、乡镇选调卷第三题（大运河青年文创大会简讯）","粉笔专项积累":""},{"日期":"2026-08-21","星期":"周五","主线模块":"言语理解","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午言语错题复盘+词语积累 2/7","下午2.5小时行测":"3h：10min粉笔速算；40min资料分析一套；45min判断推理一套；15min图推刷题；1h粉笔千词计划；余10min错题标记/缓冲","晚上1.5小时申论":"","复盘/当日重点":"目标：片段阅读和逻辑填空混合训练，降低摇摆题 2/7","阶段":"言语理解综合刷题","申论跟练打卡":"申论跟练打卡：2025江苏省考A类、乡镇选调卷第四题（大作文：文化创新创造赋能新质生产力）","粉笔专项积累":""},{"日期":"2026-08-22","星期":"周六","主线模块":"言语理解","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午言语错题复盘+词语积累 3/7","下午2.5小时行测":"3h：10min粉笔速算；40min资料分析一套；45min判断推理一套；15min图推刷题；1h粉笔千词计划；余10min错题标记/缓冲","晚上1.5小时申论":"","复盘/当日重点":"目标：片段阅读和逻辑填空混合训练，降低摇摆题 3/7","阶段":"言语理解综合刷题","申论跟练打卡":"申论跟练打卡：2026浙江省考B卷第一题（提升青少年身心健康的举措）","粉笔专项积累":""},{"日期":"2026-08-23","星期":"周日","主线模块":"单休","早上1小时":"休息，不安排硬性任务","上午1.5小时行测":"休息","下午2.5小时行测":"休息","晚上1.5小时申论":"","复盘/当日重点":"周日默认休息，可切换为模考日","阶段":"休息/机动","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-08-24","星期":"周一","主线模块":"言语理解","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午言语错题复盘+词语积累 4/7","下午2.5小时行测":"3h：10min粉笔速算；40min资料分析一套；45min判断推理一套；15min图推刷题；1h粉笔千词计划；余10min错题标记/缓冲","晚上1.5小时申论":"","复盘/当日重点":"目标：片段阅读和逻辑填空混合训练，降低摇摆题 4/7","阶段":"言语理解综合刷题","申论跟练打卡":"申论跟练打卡：2026浙江省考B卷第二题（“轻燃计划”健康体重管理公开信）","粉笔专项积累":""},{"日期":"2026-08-25","星期":"周二","主线模块":"言语理解","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午言语错题复盘+词语积累 5/7","下午2.5小时行测":"3h：10min粉笔速算；40min资料分析一套；45min判断推理一套；15min图推刷题；1h粉笔千词计划；余10min错题标记/缓冲","晚上1.5小时申论":"","复盘/当日重点":"目标：片段阅读和逻辑填空混合训练，降低摇摆题 5/7","阶段":"言语理解综合刷题","申论跟练打卡":"申论跟练打卡：2026浙江省考B卷第三题（大作文：“小切口”与“大健康”的辩证之道）","粉笔专项积累":""},{"日期":"2026-08-26","星期":"周三","主线模块":"言语理解","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午言语错题复盘+词语积累 6/7","下午2.5小时行测":"3h：10min粉笔速算；40min资料分析一套；45min判断推理一套；15min图推刷题；1h粉笔千词计划；余10min错题标记/缓冲","晚上1.5小时申论":"","复盘/当日重点":"目标：片段阅读和逻辑填空混合训练，降低摇摆题 6/7","阶段":"言语理解综合刷题","申论跟练打卡":"申论跟练打卡：2026广东省考公安卷第一题（高空抛物治理做法）","粉笔专项积累":""},{"日期":"2026-08-27","星期":"周四","主线模块":"言语理解","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午言语错题复盘+词语积累 7/7","下午2.5小时行测":"3h：10min粉笔速算；40min资料分析一套；45min判断推理一套；15min图推刷题；1h粉笔千词计划；余10min错题标记/缓冲","晚上1.5小时申论":"","复盘/当日重点":"目标：片段阅读和逻辑填空混合训练，降低摇摆题 7/7","阶段":"言语理解综合刷题","申论跟练打卡":"申论跟练打卡：2026广东省考公安卷第二题（社区警务工作做法）","粉笔专项积累":""},{"日期":"2026-08-28","星期":"周五","主线模块":"数量关系","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午数量超大杯课程 1/7","下午2.5小时行测":"3h：10min粉笔速算；40min资料分析一套；45min判断推理一套；15min图推刷题；1h粉笔千词计划；余10min错题标记/缓冲","晚上1.5小时申论":"","复盘/当日重点":"优先掌握高频题型和取舍策略 1/7","阶段":"数量关系听课","申论跟练打卡":"申论跟练打卡：2026广东省考公安卷第三题（车管服务创新工作简报）","粉笔专项积累":""},{"日期":"2026-08-29","星期":"周六","主线模块":"数量关系","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午数量超大杯课程 2/7","下午2.5小时行测":"3h：10min粉笔速算；40min资料分析一套；45min判断推理一套；15min图推刷题；1h粉笔千词计划；余10min错题标记/缓冲","晚上1.5小时申论":"","复盘/当日重点":"优先掌握高频题型和取舍策略 2/7","阶段":"数量关系听课","申论跟练打卡":"申论跟练打卡：2022国考副省级第一题（企业科技创新启示）","粉笔专项积累":""},{"日期":"2026-08-30","星期":"周日","主线模块":"单休","早上1小时":"休息，不安排硬性任务","上午1.5小时行测":"休息","下午2.5小时行测":"休息","晚上1.5小时申论":"","复盘/当日重点":"周日默认休息，可切换为模考日","阶段":"休息/机动","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-08-31","星期":"周一","主线模块":"数量关系","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午数量超大杯课程 3/7","下午2.5小时行测":"3h：10min粉笔速算；40min资料分析一套；45min判断推理一套；15min图推刷题；1h粉笔千词计划；余10min错题标记/缓冲","晚上1.5小时申论":"","复盘/当日重点":"优先掌握高频题型和取舍策略 3/7","阶段":"数量关系听课","申论跟练打卡":"申论跟练打卡：2022国考副省级第二题（粮食产业发展问题与解决措施）","粉笔专项积累":""},{"日期":"2026-09-01","星期":"周二","主线模块":"数量关系","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午数量超大杯课程 4/7","下午2.5小时行测":"3h：10min粉笔速算；40min资料分析一套；45min判断推理一套；15min图推刷题；1h粉笔千词计划；余10min错题标记/缓冲","晚上1.5小时申论":"","复盘/当日重点":"优先掌握高频题型和取舍策略 4/7","阶段":"数量关系听课","申论跟练打卡":"申论跟练打卡：2022国考副省级第三题（临诗村乡村旅游宣传材料）","粉笔专项积累":""},{"日期":"2026-09-02","星期":"周三","主线模块":"数量关系","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午数量超大杯课程 5/7","下午2.5小时行测":"3h：10min粉笔速算；40min资料分析一套；45min判断推理一套；15min图推刷题；1h粉笔千词计划；余10min错题标记/缓冲","晚上1.5小时申论":"","复盘/当日重点":"优先掌握高频题型和取舍策略 5/7","阶段":"数量关系听课","申论跟练打卡":"申论跟练打卡：2022国考副省级第四题（“未来学校”的教育境界）","粉笔专项积累":""},{"日期":"2026-09-03","星期":"周四","主线模块":"数量关系","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午数量超大杯课程 6/7","下午2.5小时行测":"3h：10min粉笔速算；40min资料分析一套；45min判断推理一套；15min图推刷题；1h粉笔千词计划；余10min错题标记/缓冲","晚上1.5小时申论":"","复盘/当日重点":"优先掌握高频题型和取舍策略 6/7","阶段":"数量关系听课","申论跟练打卡":"申论跟练打卡：2022国考副省级第五题（大作文：今天的思维和播种决定未来收获）","粉笔专项积累":""},{"日期":"2026-09-04","星期":"周五","主线模块":"数量关系","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午数量超大杯课程 7/7","下午2.5小时行测":"3h：10min粉笔速算；40min资料分析一套；45min判断推理一套；15min图推刷题；1h粉笔千词计划；余10min错题标记/缓冲","晚上1.5小时申论":"","复盘/当日重点":"优先掌握高频题型和取舍策略 7/7","阶段":"数量关系听课","申论跟练打卡":"申论跟练打卡：2022国考地市级第一题（交通旅游融合案例亮点）","粉笔专项积累":""},{"日期":"2026-09-05","星期":"周六","主线模块":"数量关系","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午公式回忆+典型题重做 1/7","下午2.5小时行测":"3h：10min粉笔速算；40min资料分析一套；45min判断推理一套；15min图推刷题；1h粉笔千词计划；余10min错题标记/缓冲","晚上1.5小时申论":"","复盘/当日重点":"目标：会做题拿稳，难题学会放弃 1/7","阶段":"数量关系刷题","申论跟练打卡":"申论跟练打卡：2022国考地市级第二题（农村公路养护问题与建议）","粉笔专项积累":""},{"日期":"2026-09-06","星期":"周日","主线模块":"单休","早上1小时":"休息，不安排硬性任务","上午1.5小时行测":"休息","下午2.5小时行测":"休息","晚上1.5小时申论":"","复盘/当日重点":"周日默认休息，可切换为模考日","阶段":"休息/机动","申论跟练打卡":"","粉笔专项积累":""},{"日期":"2026-09-07","星期":"周一","主线模块":"数量关系","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午公式回忆+典型题重做 2/7","下午2.5小时行测":"3h：10min粉笔速算；40min资料分析一套；45min判断推理一套；15min图推刷题；1h粉笔千词计划；余10min错题标记/缓冲","晚上1.5小时申论":"","复盘/当日重点":"目标：会做题拿稳，难题学会放弃 2/7","阶段":"数量关系刷题","申论跟练打卡":"申论跟练打卡：2022国考地市级第三题（“五育”融合育人简报编者按）","粉笔专项积累":""},{"日期":"2026-09-08","星期":"周二","主线模块":"数量关系","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午公式回忆+典型题重做 3/7","下午2.5小时行测":"3h：10min粉笔速算；40min资料分析一套；45min判断推理一套；15min图推刷题；1h粉笔千词计划；余10min错题标记/缓冲","晚上1.5小时申论":"","复盘/当日重点":"目标：会做题拿稳，难题学会放弃 3/7","阶段":"数量关系刷题","申论跟练打卡":"申论跟练打卡：2022国考地市级第四题（M公司发展前景的信心来源）","粉笔专项积累":""},{"日期":"2026-09-09","星期":"周三","主线模块":"数量关系","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午公式回忆+典型题重做 4/7","下午2.5小时行测":"3h：10min粉笔速算；40min资料分析一套；45min判断推理一套；15min图推刷题；1h粉笔千词计划；余10min错题标记/缓冲","晚上1.5小时申论":"","复盘/当日重点":"目标：会做题拿稳，难题学会放弃 4/7","阶段":"数量关系刷题","申论跟练打卡":"申论跟练打卡：2022国考地市级第五题（大作文：融和·融活）","粉笔专项积累":""},{"日期":"2026-09-10","星期":"周四","主线模块":"数量关系","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午公式回忆+典型题重做 5/7","下午2.5小时行测":"3h：10min粉笔速算；40min资料分析一套；45min判断推理一套；15min图推刷题；1h粉笔千词计划；余10min错题标记/缓冲","晚上1.5小时申论":"","复盘/当日重点":"目标：会做题拿稳，难题学会放弃 5/7","阶段":"数量关系刷题","申论跟练打卡":"申论跟练打卡：2022国考行政执法第一题（惠企政策做法与成效）","粉笔专项积累":""},{"日期":"2026-09-11","星期":"周五","主线模块":"数量关系","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午公式回忆+典型题重做 6/7","下午2.5小时行测":"3h：10min粉笔速算；40min资料分析一套；45min判断推理一套；15min图推刷题；1h粉笔千词计划；余10min错题标记/缓冲","晚上1.5小时申论":"","复盘/当日重点":"目标：会做题拿稳，难题学会放弃 6/7","阶段":"数量关系刷题","申论跟练打卡":"申论跟练打卡：2022国考行政执法第二题（撤掉“眼中的柜台”与“心中的柜台”）","粉笔专项积累":""},{"日期":"2026-09-12","星期":"周六","主线模块":"数量关系","早上1小时":"1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m","上午1.5小时行测":"1.5h：上午公式回忆+典型题重做 7/7","下午2.5小时行测":"3h：10min粉笔速算；40min资料分析一套；45min判断推理一套；15min图推刷题；1h粉笔千词计划；余10min错题标记/缓冲","晚上1.5小时申论":"","复盘/当日重点":"目标：会做题拿稳，难题学会放弃 7/7","阶段":"数量关系刷题","申论跟练打卡":"申论跟练打卡：2022国考行政执法第三题（税收服务长效机制工作建议）","粉笔专项积累":""}];
+    function applyQuantityRevision(plan) {
+      const revisionStart = "2026-08-28";
+      const revisionDays = 19;
+      const afternoonChoiceText = "下午3小时行测：数判资 / 数言资二选一";
+      const followupShenlun = {
+        "2026-09-14": "申论跟练打卡：2022国考行政执法第四题（海关执法服务经验交流材料提纲）",
+        "2026-09-15": "申论跟练打卡：2022国考行政执法第五题（反食品浪费执法公开信）",
+        "2026-09-16": "申论跟练打卡：2023国考副省级第一题（玉陵湖大桥“巧”在何处）",
+        "2026-09-17": "申论跟练打卡：2023国考副省级第二题（窑洞修复：从旁观者到传承者）",
+        "2026-09-18": "申论跟练打卡：2023国考副省级第三题（凤凰河流域文化建设建议）",
+      };
+      const byPlanDate = new Map(plan.map((item) => [item["日期"], item]));
+      const defaultMorning = plan.find((item) => item["日期"] === "2026-08-27")?.["早上1小时"] || "晨读";
+      let date = revisionStart;
+      let count = 0;
+      while (count < revisionDays) {
+        if (!isSunday(date)) {
+          count++;
+          const existing = byPlanDate.get(date);
+          const item = existing || {
+            "日期": date,
+            "星期": getWeekday(date),
+            "主线模块": "数量关系",
+            "早上1小时": defaultMorning,
+            "晚上1.5小时申论": "",
+            "申论跟练打卡": followupShenlun[date] || "",
+            "粉笔专项积累": "",
+          };
+          Object.assign(item, {
+            "日期": date,
+            "星期": getWeekday(date),
+            "主线模块": "数量关系",
+            "上午1.5小时行测": "1.5h：小p数量关系+作业+数量600题 " + count + "/" + revisionDays,
+            "下午2.5小时行测": afternoonChoiceText,
+            "复盘/当日重点": "小p数量关系+作业+数量600题 " + count + "/" + revisionDays,
+            "阶段": "数量关系听课+刷题",
+          });
+          if (!item["申论跟练打卡"] && followupShenlun[date]) item["申论跟练打卡"] = followupShenlun[date];
+          if (!existing) {
+            plan.push(item);
+            byPlanDate.set(date, item);
+          }
+        }
+        date = addDays(date, 1);
+      }
+      plan.sort((a, b) => a["日期"].localeCompare(b["日期"]));
+    }
+
+    // 逻辑推理完成后：图形推理结束，再听类比和定义，最后刷类比和定义。
+    applyQuantityRevision(PLAN);
+
+    // 只重排判断推理专题任务，保留各日期原有的申论安排、周日休息和专题学习天数。
+    const JUDGMENT_PHASE_ORDER = [
+      "图形推理听课",
+      "图形推理刷题",
+      "类比推理听课",
+      "定义判断听课",
+      "类比推理刷题",
+      "定义判断刷题",
+    ];
+    const judgmentTaskFields = ["上午1.5小时行测", "下午2.5小时行测", "复盘/当日重点", "阶段"];
+    const reorderedJudgmentTasks = JUDGMENT_PHASE_ORDER.flatMap((phase) =>
+      PLAN.filter((item) => item["阶段"] === phase)
+        .map((item) => Object.fromEntries(judgmentTaskFields.map((field) => [field, item[field]])))
+    );
+    PLAN.filter((item) =>
+      item["主线模块"] === "判断推理" && !item["阶段"].startsWith("逻辑推理")
+    ).forEach((item, index) => Object.assign(item, reorderedJudgmentTasks[index]));
+
+    const STAGES = [{"name":"资料分析","start":"2026-06-03","end":"2026-06-23","days":18,"material":"牟立志粉笔980 / 高照 / 夸夸刷+超大杯"},{"name":"判断推理","start":"2026-06-24","end":"2026-08-08","days":40,"material":"花生十三 / 超格程意 / 刘义恒 / 龙飞真题"},{"name":"言语理解","start":"2026-08-10","end":"2026-08-27","days":16,"material":"花生十三 / 大懒猫 / 红领巾可选"},{"name":"数量关系","start":"2026-08-28","end":"2026-10-02","days":19,"material":"小p数量关系+作业+数量600题"},{"name":"查漏补缺","start":"2026-10-03","end":"2026-10-18","days":13,"material":"模块弱项回炉 / 错题整理"},{"name":"套题阶段","start":"2026-10-19","end":"2026-12-31","days":64,"material":"行测套题 / 申论整卷 / 模考复盘"},{"name":"申论","start":"2026-06-03","end":"2026-12-31","days":182,"material":"申论跟练打卡 / 套题训练 / 复盘"}];
+    const FOLLOWUP_SHENLUN_TASKS = {"2026-09-14":"申论跟练打卡：2022国考行政执法第四题（海关执法服务经验交流材料提纲）","2026-09-15":"申论跟练打卡：2022国考行政执法第五题（反食品浪费执法公开信）","2026-09-16":"申论跟练打卡：2023国考副省级第一题（玉陵湖大桥“巧”在何处）","2026-09-17":"申论跟练打卡：2023国考副省级第二题（窑洞修复：从旁观者到传承者）","2026-09-18":"申论跟练打卡：2023国考副省级第三题（凤凰河流域文化建设建议）","2026-09-19":"申论跟练打卡：2023国考副省级第四题（乐原市产业发展汇报内容）","2026-09-21":"申论跟练打卡：2023国考副省级第五题（大作文：流动与新生）","2026-09-22":"申论跟练打卡：2023国考地市级第一题（GEP核算实现生态产品价值）","2026-09-23":"申论跟练打卡：2023国考地市级第二题（知识产权服务案例摘要）","2026-09-24":"申论跟练打卡：2023国考地市级第三题（整县屋顶分布式光伏问题与建议）","2026-09-25":"申论跟练打卡：2023国考地市级第四题（F银行“金融向善”短评）","2026-09-26":"申论跟练打卡：2023国考地市级第五题（大作文：追寻长期价值）","2026-09-28":"申论跟练打卡：2024国考副省级第一题（“耀然灯饰”成功经验）","2026-09-29":"申论跟练打卡：2024国考副省级第二题（新民乐走红引发的网络议论）","2026-09-30":"申论跟练打卡：2024国考副省级第三题（青年就业“两难”的原因与对策）"};
+    // 申论60天备考计划（10.1–11.29）：白天写题→「申论跟练打卡」，晚上直播课→「晚上1.5小时申论」。
+    // 规则：周日休整（有晚课的周日只听回放）；对策/公文一律先听回放再写；作文白天先写、晚上听讲评。
+    const SHENLUN_60_PLAN = {
+      "2026-10-01": { "申论跟练打卡": "白天限时写：作文1；内蒙1" },
+      "2026-10-02": { "申论跟练打卡": "白天限时写：作文2；内蒙2" },
+      "2026-10-03": { "申论跟练打卡": "白天限时写：作文3；内蒙3", "晚上1.5小时申论": "22:00直播：作文1讲评" },
+      "2026-10-04": { "晚上1.5小时申论": "周日休整·听回放：作文2讲评" },
+      "2026-10-05": { "申论跟练打卡": "白天限时写：作文4；内蒙4", "晚上1.5小时申论": "直播：作文3讲评" },
+      "2026-10-06": { "申论跟练打卡": "白天限时写：作文5；内蒙5", "晚上1.5小时申论": "直播：作文4讲评" },
+      "2026-10-07": { "申论跟练打卡": "白天限时写：内蒙6、内蒙7、内蒙8", "晚上1.5小时申论": "直播：作文5讲评" },
+      "2026-10-08": { "申论跟练打卡": "白天限时写：内蒙9、内蒙10、内蒙11", "晚上1.5小时申论": "19:00直播：对策1–2" },
+      "2026-10-09": { "申论跟练打卡": "先听回放再写：对策1、2；内蒙12", "晚上1.5小时申论": "直播：对策3–4" },
+      "2026-10-10": { "申论跟练打卡": "先听回放再写：对策3、4；内蒙13", "晚上1.5小时申论": "直播：对策5–6" },
+      "2026-10-11": { "晚上1.5小时申论": "周日休整·听回放：对策7–8" },
+      "2026-10-12": { "申论跟练打卡": "先听回放再写：对策5、6；内蒙14", "晚上1.5小时申论": "19:00直播：对策9–10；22:30直播：公文1" },
+      "2026-10-13": { "申论跟练打卡": "先听回放再写：对策7、8、9", "晚上1.5小时申论": "直播：公文2" },
+      "2026-10-14": { "申论跟练打卡": "先听回放再写：对策10、公文1；内蒙15", "晚上1.5小时申论": "直播：公文3" },
+      "2026-10-15": { "申论跟练打卡": "先听回放再写：公文2；内蒙16、内蒙17", "晚上1.5小时申论": "直播：公文4" },
+      "2026-10-16": { "申论跟练打卡": "先听回放再写：公文3；内蒙18、内蒙19", "晚上1.5小时申论": "直播：公文5" },
+      "2026-10-17": { "申论跟练打卡": "先听回放再写：公文4；内蒙20、内蒙21" },
+      "2026-10-19": { "申论跟练打卡": "先听回放再写：公文5；内蒙22、内蒙23", "晚上1.5小时申论": "直播：公文6" },
+      "2026-10-20": { "申论跟练打卡": "先听回放再写：公文6；内蒙24、内蒙25", "晚上1.5小时申论": "直播：公文7" },
+      "2026-10-21": { "申论跟练打卡": "先听回放再写：公文7；内蒙26、内蒙27", "晚上1.5小时申论": "直播：公文8" },
+      "2026-10-22": { "申论跟练打卡": "先听回放再写：公文8；内蒙28、内蒙29", "晚上1.5小时申论": "直播：公文9" },
+      "2026-10-23": { "申论跟练打卡": "先听回放再写：公文9；内蒙30、内蒙31", "晚上1.5小时申论": "直播：公文10" },
+      "2026-10-24": { "申论跟练打卡": "先听回放再写：公文10；内蒙32、内蒙33" },
+      "2026-10-26": { "申论跟练打卡": "白天限时写：内蒙34、内蒙35、内蒙36" },
+      "2026-10-27": { "申论跟练打卡": "白天限时写：内蒙37、内蒙38、内蒙39" },
+      "2026-10-28": { "申论跟练打卡": "白天限时写：内蒙40、内蒙41、内蒙42" },
+      "2026-10-29": { "申论跟练打卡": "白天限时写：内蒙43、内蒙44、内蒙45" },
+      "2026-10-30": { "申论跟练打卡": "白天限时写：内蒙46、内蒙47、内蒙48", "晚上1.5小时申论": "直播：对策11–12" },
+      "2026-10-31": { "申论跟练打卡": "先听回放再写：对策11、12；内蒙49", "晚上1.5小时申论": "直播：对策13–14" },
+      "2026-11-01": { "晚上1.5小时申论": "周日休整·听回放：对策15–16" },
+      "2026-11-02": { "申论跟练打卡": "先听回放再写：对策13、14、15", "晚上1.5小时申论": "直播：对策17–18；公文11" },
+      "2026-11-03": { "申论跟练打卡": "先听回放再写：对策16、17、18", "晚上1.5小时申论": "直播：对策19–20；公文12" },
+      "2026-11-04": { "申论跟练打卡": "先听回放再写：对策19、20、公文11", "晚上1.5小时申论": "直播：公文13" },
+      "2026-11-05": { "申论跟练打卡": "先听回放再写：公文12；内蒙50（申论50题收官）", "晚上1.5小时申论": "直播：公文14" },
+      "2026-11-06": { "申论跟练打卡": "先听回放再写：公文13、14", "晚上1.5小时申论": "直播：公文15" },
+      "2026-11-07": { "申论跟练打卡": "先听回放再写：公文15" },
+      "2026-11-09": { "申论跟练打卡": "自由安排：建议补欠账、复盘错题", "晚上1.5小时申论": "直播：公文16" },
+      "2026-11-10": { "申论跟练打卡": "先听回放再写：公文16", "晚上1.5小时申论": "直播：公文17" },
+      "2026-11-11": { "申论跟练打卡": "先听回放再写：公文17", "晚上1.5小时申论": "直播：公文18" },
+      "2026-11-12": { "申论跟练打卡": "先听回放再写：公文18", "晚上1.5小时申论": "直播：公文19" },
+      "2026-11-13": { "申论跟练打卡": "先听回放再写：公文19；白天限时写作文6", "晚上1.5小时申论": "直播：公文20" },
+      "2026-11-14": { "申论跟练打卡": "先听回放再写：公文20；白天限时写作文7", "晚上1.5小时申论": "直播：作文6讲评" },
+      "2026-11-15": { "晚上1.5小时申论": "周日休整·听回放：作文7讲评" },
+      "2026-11-16": { "申论跟练打卡": "白天限时写：作文8", "晚上1.5小时申论": "直播：作文8讲评" },
+      "2026-11-17": { "申论跟练打卡": "白天限时写：作文9", "晚上1.5小时申论": "直播：作文9讲评" },
+      "2026-11-18": { "申论跟练打卡": "白天限时写：作文10", "晚上1.5小时申论": "直播：作文10讲评" }
+    };
+    const SUITE_STAGES = [{"stage":"套卷启动","time":"2026-10-19 至 2026-11-08","rhythm":"每周2套行测+1套申论","focus":"从模块思维切到整卷节奏"},{"stage":"套卷强化","time":"2026-11-09 至 2026-11-30","rhythm":"每周3套行测+1-2套申论","focus":"错题按模块回填"},{"stage":"套题阶段","time":"2026-12-01 至 2026-12-31","rhythm":"按考试时间滚动安排套题","focus":"稳定做题顺序和书写节奏"}];
+    const MACRO_TIMELINE = {"months":[{"key":"2026-06","label":"26年6月"},{"key":"2026-07","label":"7月"},{"key":"2026-08","label":"8月"},{"key":"2026-09","label":"9月"},{"key":"2026-10","label":"10月"},{"key":"2026-11","label":"11月"},{"key":"2026-12","label":"12月"},{"key":"2027-01","label":"27年1月"},{"key":"2027-02","label":"2月"},{"key":"2027-03","label":"3月"},{"key":"2027-04","label":"4月"},{"key":"2027-05","label":"5月"}],"rows":[{"id":"thesis","label":"毕业","cells":{"2026-06":"中期答辩准备\n6月底中期答辩","2026-07":"论文方向复盘\n整理修改清单","2026-08":"补文献\n调整论文框架","2026-09":"补案例和材料\n沉淀章节素材","2026-10":"明确写作提纲\n搭建章节结构","2026-11":"文献和案例归档\n准备正式写作","2026-12":"初稿启动\n推进主体章节","2027-01":"寒假写作\n完善章节草稿","2027-02":"初稿收尾\n准备3月提交","2027-03":"毕业论文初稿\n初稿修改稿","2027-04":"论文修改稿\n4月底定稿","2027-05":"盲审\n预答辩\n衔接6月答辩"}},{"id":"exam","label":"考公","cells":{"2026-06":"资料分析\n判断推理启动","2026-07":"判断推理\n资料带练","2026-08":"判断推理收尾\n言语理解启动","2026-09":"数量关系","2026-10":"查漏补缺\n10.19套题启动","2026-11":"套卷强化\n央选/辽宁/贵州准备","2026-12":"央选\n辽宁选调\n贵州选调","2027-01":"广东省考准备\n常识政治巩固","2027-02":"广东省考\n内蒙古选调准备","2027-03":"内蒙古选调\n广东选调","2027-04":"海南选调\n内蒙古省考强化","2027-05":"内蒙古省考冲刺\n错题回炉"}}]};
+    const STORAGE_KEY = "gongkao-study-dashboard-v1";
+    const CUSTOM_KEY = "gongkao-study-dashboard-custom-v1";
+    const TIMELINE_KEY = "gongkao-study-dashboard-timeline-v1";
+    const DEFER_KEY = "gongkao-study-dashboard-defer-v1";
+    const WEEK_REST_KEY = "gongkao-study-dashboard-week-rest-v1";
+    const CROSS_WEEK_REST_KEY = "gongkao-study-dashboard-cross-week-rest-v1";
+    const ADHD_TOOLS_KEY = "gongkao-study-dashboard-adhd-tools-v1";
+    const SYNC_KEY = "gongkao-study-dashboard-sync-v1";
+    const DEFAULT_SYNC_CONFIG = {
+      endpoint: "https://my-learning-day-webdav-proxy.purring-washer.workers.dev",
+      passphrase: "",
+      lastSyncedAt: "",
+    };
+    const CALENDAR_END_DATE = "2026-12-31";
+    const LEARNED_ROWS = ["资料分析", "逻辑判断", "图形推理", "类比推理", "定义判断", "言语理解", "数量关系", "政治理论", "常识判断", "申论"];
+    const LEARNED_COLUMNS = [
+      { id: "earlyClass", label: "前期听课" },
+      { id: "blackRoom", label: "小黑屋刷题" },
+      { id: "drillPractice", label: "带练刷题" },
+      { id: "lateUpgrade", label: "后期拔高" },
+      { id: "fenbiMock", label: "粉笔模考" },
+      { id: "setsPractice", label: "套题刷题" },
+    ];
+    const BROWN_NOISE_SRC = "assets/brown-noise.mp3";
+    const DEFAULT_FOCUS_VIDEO = {
+      bvid: "BV1884y137AZ",
+      url: "https://www.bilibili.com/video/BV1884y137AZ/",
+      caption: "ADHD七小时超长集中注意力&专注学习&舒缓压力背景音｜脑波音乐",
+    };
+    const SUNDAY_REST_TEMPLATE = {
+      module: "单休",
+      stage: "休息/机动",
+      review: "周日默认休息，也可以切换为模考日",
+      tasks: {
+        "早上1小时": "休息，不安排硬性任务",
+        "上午1.5小时行测": "休息，或轻量整理错题",
+        "下午2.5小时行测": "休息，或补做本周遗留任务",
+        "晚上1.5小时申论": "",
+      },
+    };
+    const SUNDAY_MOCK_TEMPLATE = {
+      module: "模考",
+      stage: "周末模考",
+      review: "按整卷节奏复盘：记录时间分配、错题模块、下周回炉清单",
+      tasks: {
+        "早上1小时": "模考准备：打印/打开试卷，整理答题卡、计时器和草稿纸",
+        "上午1.5小时行测": "行测模考：严格计时，按正式顺序完成",
+        "下午2.5小时行测": "行测订正：统计正确率，标记资料/判断/言语/数量薄弱点",
+        "晚上1.5小时申论": "申论模考或复盘：完成一套申论/整理作答问题和素材缺口",
+      },
+    };
+    const modules = ["全部", "资料分析", "判断推理", "言语理解", "数量关系", "查漏补缺", "事业编套题", "套题阶段", "后续安排", "模考", "单休", "顺延", "考试"];
+    const weekdayLabels = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"];
+    const AFTERNOON_CHECKLIST_START_DATE = "2026-08-17";
+    const AFTERNOON_MODE_START_DATE = "2026-08-28";
+    const AFTERNOON_WEEKLY_ROTATION_START_DATE = "2026-09-18";
+    const QUANTITY_REVISION_START_DATE = "2026-08-28";
+    const QUANTITY_REVISION_DAYS = 19;
+    const QUANTITY_PHASE_BASE_END_DATE = "2026-10-01";
+    const CHECK_PHASE_START_DATE = "2026-10-02";
+    const SUITE_PHASE_START_DATE = "2026-10-19";
+    const MOCK_EXAM_DATE = "2026-10-12";
+    const SHIYEBIAN_PHASE_START_DATE = "2026-10-13";
+    const SHIYEBIAN_PHASE_END_DATE = "2026-10-16";
+    const MORNING_REVISION_START_DATE = "2026-10-01";
+    const MORNING_REVISION_TEXT = "1h：政治理论打卡20m + 现有所学理论复习15m + 言语理解成语记忆5m + 申论积累20m";
+    const SUITE_TASKS = {
+      xingce: {
+        morning: "上午2h：行测套卷（严格计时整卷模拟，按正式考试顺序完成并涂卡）",
+        afternoon: "下午3h：行测套卷订正复盘（错题归因、错题本登记、时间分配与做题策略回顾）",
+        stage: "行测套题",
+      },
+      shenlun: {
+        morning: "上午2h：粉笔每日演练60分钟67题 + 每日演练修订",
+        afternoon: "下午3h：申论套题2小时 + 套题答案比对和修订1小时",
+        stage: "申论套题",
+      },
+    };
+    const EXAM_DAY_START_DATE = "2026-10-01";
+    const DEFAULT_AFTERNOON_MODE = "math_judgment_data";
+    const AFTERNOON_TASK_TEXT = "3h：10min粉笔速算；40min资料分析一套；45min判断推理一套；15min图推刷题；1h粉笔千词计划；余10min错题标记/缓冲";
+    const LEGACY_AFTERNOON_TASK_TEXT = AFTERNOON_TASK_TEXT;
+    const afternoonModes = {
+      math_judgment_data: {
+        label: "数判资",
+        text: "下午3小时：数量600题、图推刷题、判断推理套题、资料刷题、速算大练兵",
+        tasks: [
+          { key: "下午-数量600题", time: "", title: "数量600题" },
+          { key: "下午-图推刷题", time: "", title: "图推刷题" },
+          { key: "下午-判断推理套题", time: "", title: "判断推理套题" },
+          { key: "下午-资料刷题", time: "", title: "资料刷题" },
+          { key: "下午-速算大练兵", time: "", title: "速算大练兵" },
+        ],
+      },
+      math_verbal_data: {
+        label: "数言资",
+        text: "下午3小时：数量600题、图推刷题、红领巾言语题本、粉笔千词计划、资料刷题",
+        tasks: [
+          { key: "下午-数量600题", time: "", title: "数量600题" },
+          { key: "下午-图推刷题", time: "", title: "图推刷题" },
+          { key: "下午-红领巾言语题本", time: "", title: "红领巾言语题本" },
+          { key: "下午-粉笔千词计划", time: "", title: "粉笔千词计划" },
+          { key: "下午-资料刷题", time: "", title: "资料刷题" },
+        ],
+      },
+    };
+    const weeklyAfternoonTaskPool = {
+      data: { key: "下午-资料刷题", time: "45min", title: "资料分析" },
+      quantity: { key: "下午-数量600题", time: "30min", title: "数量600题" },
+      graphic: { key: "下午-图推刷题", time: "40min", title: "图推专项刷题" },
+      judgment: { key: "下午-判断推理套题", time: "45min", title: "判断推理" },
+      verbal: { key: "下午-言语理解", time: "45min", title: "言语理解" },
+      speed: { key: "下午-粉笔速算", time: "10min", title: "粉笔速算" },
+      words: { key: "下午-粉笔千词计划", time: "15min", title: "粉笔千词计划" },
+    };
+    const legacyAfternoonSubtasks = [
+      { key: "下午-粉笔速算", time: "10min", title: "粉笔速算" },
+      { key: "下午-资料分析一套", time: "40min", title: "资料分析一套" },
+      { key: "下午-判断推理一套", time: "45min", title: "判断推理一套" },
+      { key: "下午-图推刷题", time: "15min", title: "图推刷题" },
+      { key: "下午-粉笔千词计划", time: "1h", title: "粉笔千词计划" },
+    ];
+    const afternoonSubtasks = [
+      ...legacyAfternoonSubtasks,
+      ...Object.values(afternoonModes).flatMap((mode) => mode.tasks),
+      ...Object.values(weeklyAfternoonTaskPool),
+    ].filter((task, index, list) => list.findIndex((item) => item.key === task.key) === index);
+    const afternoonStatusAliases = {
+      "下午-资料刷题": ["下午-资料分析一套"],
+      "下午-判断推理套题": ["下午-判断推理一套"],
+      "下午-速算大练兵": ["下午-粉笔速算"],
+    };
+    const coreTaskLabels = ["早上1小时", "上午1.5小时行测", "下午2.5小时行测", "晚上1.5小时申论"];
+    const plannedExtraLabels = ["粉笔专项积累", "申论跟练打卡"];
+    const taskLabels = [...coreTaskLabels, ...plannedExtraLabels, ...afternoonSubtasks.map((task) => task.key)];
+    const cycleRadarMetrics = [
+      { id: "energy", label: "能量" },
+      { id: "focus", label: "专注" },
+      { id: "mood", label: "情绪" },
+      { id: "sensitivity", label: "敏感" },
+      { id: "body", label: "身体" },
+    ];
+    const cyclePhaseProfiles = {
+      period: {
+        label: "经期",
+        moodName: "身体优先日",
+        icon: "🌙",
+        metrics: { baseline: 42, executive: 50, energy: 3, focus: 4, mood: 5, sensitivity: 7, body: 3 },
+        note: "能量偏低，别硬扛。今天适合轻刷题、复盘、整理错题，把任务切到最小。",
+        train: "复盘错题、看课回放、轻量背诵。",
+        food: "热饮、温热主食、补铁食物。少冰少熬夜。",
+      },
+      follicular: {
+        label: "卵泡期",
+        moodName: "大脑晴天",
+        icon: "☀️",
+        metrics: { baseline: 88, executive: 86, energy: 8, focus: 8, mood: 7, sensitivity: 3, body: 7 },
+        note: "能量回升，脑子比较亮。适合攻坚新课、难题、需要强专注的模块。",
+        train: "新课、重训、限时刷题。挑战 PR 的最佳时机！",
+        food: "高纤维蔬果、优质蛋白。少食多餐保持精力稳定。",
+      },
+      ovulation: {
+        label: "排卵期",
+        moodName: "输出高光日",
+        icon: "✨",
+        metrics: { baseline: 82, executive: 78, energy: 7, focus: 7, mood: 8, sensitivity: 4, body: 8 },
+        note: "表达和连接感更好。适合申论输出、套卷复盘、把题讲给自己听。",
+        train: "申论表达、复盘讲解、整组限时。",
+        food: "清爽蛋白、蔬菜、水果。保持水分。",
+      },
+      luteal: {
+        label: "黄体期",
+        moodName: "稳住节奏日",
+        icon: "🍃",
+        metrics: { baseline: 64, executive: 62, energy: 5, focus: 5, mood: 5, sensitivity: 6, body: 5 },
+        note: "状态不一定差，但容易被打断。今天少改计划，按清单推进就赢了。",
+        train: "固定题量、错题回炉、低摩擦复习。",
+        food: "复合碳水、镁元素食物、温和蛋白。",
+      },
+      premenstrual: {
+        label: "经前期",
+        moodName: "低刺激模式",
+        icon: "☁️",
+        metrics: { baseline: 45, executive: 48, energy: 4, focus: 4, mood: 3, sensitivity: 8, body: 4 },
+        note: "情绪和身体更敏感。今天目标是别崩盘：完成最小闭环，比完美重要。",
+        train: "短番茄钟、简单题、整理资料。",
+        food: "温热食物、少咖啡因、少高盐高糖。",
+      },
+      unknown: {
+        label: "待设置",
+        moodName: "先校准周期",
+        icon: "🧭",
+        metrics: { baseline: 55, executive: 55, energy: 5, focus: 5, mood: 5, sensitivity: 5, body: 5 },
+        note: "填入上次月经开始日期后，会按你选中的日期估算今日状态。",
+        train: "先设置周期，再给你当天学习建议。",
+        food: "保持稳定作息和饮水。",
+      },
+    };
+    const byDate = new Map(PLAN.map((item) => [item["日期"], item]));
+    const studyItems = PLAN.filter((item) => item["主线模块"] !== "单休");
+    const studyItemDateSet = new Set(studyItems.map((item) => item["日期"]));
+
+    // 9/19 之后的申论安排不再来自 studyItems（那里只排到 09-18），而是按日期锚定的
+    // FOLLOWUP_SHENLUN_TASKS + SHENLUN_60_PLAN。这里合并成一张表，
+    // 让整体顺延 / 考试日 / 单项顺延都能共用同一套递推。
+    const ANCHORED_SHENLUN_PLAN = (() => {
+      const map = {};
+      Object.keys(FOLLOWUP_SHENLUN_TASKS)
+        .filter((date) => !studyItemDateSet.has(date))
+        .sort()
+        .forEach((date) => {
+          map[date] = { "申论跟练打卡": FOLLOWUP_SHENLUN_TASKS[date] };
+        });
+      Object.keys(SHENLUN_60_PLAN)
+        .filter((date) => !studyItemDateSet.has(date))
+        .sort()
+        .forEach((date) => {
+          map[date] = { ...(map[date] || {}), ...SHENLUN_60_PLAN[date] };
+        });
+      return map;
+    })();
+    const ANCHORED_SHENLUN_DATES = Object.keys(ANCHORED_SHENLUN_PLAN).sort();
+    const bootDeferred = loadDeferred();
+    const bootWeekRest = loadWeekRest();
+    const bootCrossWeekRest = loadCrossWeekRest();
+    const bootCustom = loadCustom();
+    let state;
+    const initialDate = getInitialDate(bootDeferred, bootWeekRest, bootCrossWeekRest);
+    state = {
+      selectedDate: initialDate,
+      filter: "全部",
+      month: initialDate.slice(0, 7),
+      completed: loadCompleted(),
+      custom: bootCustom,
+      timeline: loadTimeline(),
+      deferred: bootDeferred,
+      weekRest: bootWeekRest,
+      crossWeekRest: bootCrossWeekRest,
+      tools: loadTools(),
+      sync: loadSyncConfig(),
+    };
+    const audioState = {
+      element: null,
+      playing: false,
+    };
+
+    function loadCompleted() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+      } catch {
+        return {};
+      }
+    }
+
+    function saveCompleted() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state.completed));
+    }
+
+    function loadCustom() {
+      try {
+        return JSON.parse(localStorage.getItem(CUSTOM_KEY) || "{}");
+      } catch {
+        return {};
+      }
+    }
+
+    function saveCustom() {
+      localStorage.setItem(CUSTOM_KEY, JSON.stringify(state.custom));
+    }
+
+    function loadTimeline() {
+      try {
+        return JSON.parse(localStorage.getItem(TIMELINE_KEY) || "{}");
+      } catch {
+        return {};
+      }
+    }
+
+    function saveTimeline() {
+      localStorage.setItem(TIMELINE_KEY, JSON.stringify(state.timeline));
+    }
+
+    function loadDeferred() {
+      try {
+        return JSON.parse(localStorage.getItem(DEFER_KEY) || "{}");
+      } catch {
+        return {};
+      }
+    }
+
+    function saveDeferred() {
+      localStorage.setItem(DEFER_KEY, JSON.stringify(state.deferred));
+    }
+
+    function loadWeekRest() {
+      try {
+        return JSON.parse(localStorage.getItem(WEEK_REST_KEY) || "{}");
+      } catch {
+        return {};
+      }
+    }
+
+    function saveWeekRest() {
+      localStorage.setItem(WEEK_REST_KEY, JSON.stringify(state.weekRest));
+    }
+
+    function loadCrossWeekRest() {
+      try {
+        return JSON.parse(localStorage.getItem(CROSS_WEEK_REST_KEY) || "{}");
+      } catch {
+        return {};
+      }
+    }
+
+    function saveCrossWeekRest() {
+      localStorage.setItem(CROSS_WEEK_REST_KEY, JSON.stringify(state.crossWeekRest));
+    }
+
+    function loadTools() {
+      try {
+        return JSON.parse(localStorage.getItem(ADHD_TOOLS_KEY) || "{}");
+      } catch {
+        return {};
+      }
+    }
+
+    function saveTools() {
+      localStorage.setItem(ADHD_TOOLS_KEY, JSON.stringify(state.tools));
+    }
+
+    function loadSyncConfig() {
+      try {
+        return { ...DEFAULT_SYNC_CONFIG, ...JSON.parse(localStorage.getItem(SYNC_KEY) || "{}") };
+      } catch {
+        return { ...DEFAULT_SYNC_CONFIG };
+      }
+    }
+
+    function saveSyncConfig() {
+      localStorage.setItem(SYNC_KEY, JSON.stringify(state.sync));
+    }
+
+    function collectSyncConfigFromForm() {
+      state.sync = {
+        ...state.sync,
+        endpoint: document.getElementById("syncEndpoint").value.trim() || DEFAULT_SYNC_CONFIG.endpoint,
+        passphrase: document.getElementById("syncPassphrase").value,
+      };
+      saveSyncConfig();
+    }
+
+    function renderSyncPanel() {
+      const config = state.sync || DEFAULT_SYNC_CONFIG;
+      document.getElementById("syncEndpoint").value = config.endpoint || config.proxyUrl || DEFAULT_SYNC_CONFIG.endpoint;
+      document.getElementById("syncPassphrase").value = config.passphrase || "";
+    }
+
+    function setSyncStatus(message, type = "") {
+      const status = document.getElementById("syncStatus");
+      const toggle = document.getElementById("syncToggle");
+      status.textContent = message;
+      status.className = "sync-status " + type;
+      toggle.classList.remove("synced", "error");
+      if (type === "ok") toggle.classList.add("synced");
+      if (type === "error" || type === "warn") toggle.classList.add("error");
+    }
+
+    async function requestCloudSync(action, payload = null) {
+      return fetch((state.sync.endpoint || DEFAULT_SYNC_CONFIG.endpoint).trim(), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json; charset=utf-8",
+        },
+        body: JSON.stringify({
+          action,
+          passphrase: state.sync.passphrase,
+          payload,
+        }),
+      });
+    }
+
+    function getSyncPayload() {
+      return {
+        app: "my-learning-day",
+        version: 1,
+        updatedAt: new Date().toISOString(),
+        data: {
+          completed: state.completed,
+          custom: state.custom,
+          timeline: state.timeline,
+          deferred: state.deferred,
+          weekRest: state.weekRest,
+          crossWeekRest: state.crossWeekRest,
+          tools: state.tools,
+        },
+      };
+    }
+
+    function applySyncPayload(payload) {
+      if (!payload || !payload.data) {
+        throw new Error("同步文件格式不对");
+      }
+      state.completed = payload.data.completed || {};
+      state.custom = payload.data.custom || {};
+      state.timeline = payload.data.timeline || {};
+      state.deferred = payload.data.deferred || {};
+      state.weekRest = payload.data.weekRest || {};
+      state.crossWeekRest = payload.data.crossWeekRest || {};
+      state.tools = payload.data.tools || {};
+      saveCompleted();
+      saveCustom();
+      saveTimeline();
+      saveDeferred();
+      saveWeekRest();
+      saveCrossWeekRest();
+      saveTools();
+      const dates = getVisibleDates();
+      if (!dates.includes(state.selectedDate)) {
+        state.selectedDate = getInitialDate(state.deferred, state.weekRest, state.crossWeekRest);
+      }
+      state.month = state.selectedDate.slice(0, 7);
+    }
+
+    function assertSyncConfig(config) {
+      if (!config.endpoint) {
+        throw new Error("先填写同步地址");
+      }
+      if (!config.passphrase || config.passphrase.length < 6) {
+        throw new Error("请设置至少 6 位同步密钥，电脑和平板要填同一个");
+      }
+    }
+
+    function describeSyncError(error) {
+      const message = error?.message || String(error);
+      if (message.includes("Failed to fetch") || message.includes("NetworkError") || message.includes("Load failed")) {
+        return "连接同步云失败。请检查同步地址是否正确，或稍后再试。";
+      }
+      return message;
+    }
+
+    async function readSyncError(response, fallback) {
+      const text = await response.text().catch(() => "");
+      if (!text) return fallback;
+      try {
+        const payload = JSON.parse(text);
+        return payload.error || fallback;
+      } catch {
+        return text.slice(0, 180) || fallback;
+      }
+    }
+
+    async function uploadToWebdav() {
+      collectSyncConfigFromForm();
+      assertSyncConfig(state.sync);
+      setSyncStatus("正在上传到 Cloudflare 云同步…", "warn");
+      const response = await requestCloudSync("put", getSyncPayload());
+      if (!response.ok) {
+        throw new Error(await readSyncError(response, "上传失败：" + response.status + " " + response.statusText));
+      }
+      state.sync.lastSyncedAt = new Date().toISOString();
+      saveSyncConfig();
+      setSyncStatus("已上传到坚果云：" + formatSyncTime(state.sync.lastSyncedAt), "ok");
+    }
+
+    async function downloadFromWebdav() {
+      collectSyncConfigFromForm();
+      assertSyncConfig(state.sync);
+      if (!window.confirm("确定用云端数据覆盖当前浏览器里的看板数据吗？")) return;
+      setSyncStatus("正在从 Cloudflare 云同步恢复…", "warn");
+      const response = await requestCloudSync("get");
+      if (!response.ok) {
+        throw new Error(await readSyncError(response, "恢复失败：" + response.status + " " + response.statusText));
+      }
+      const payload = await response.json();
+      applySyncPayload(payload);
+      state.sync.lastSyncedAt = new Date().toISOString();
+      saveSyncConfig();
+      renderAll();
+      setSyncStatus("已从坚果云恢复：" + formatSyncTime(state.sync.lastSyncedAt), "ok");
+    }
+
+    function formatSyncTime(value) {
+      if (!value) return "";
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return "";
+      return date.toLocaleString("zh-CN", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
+    }
+
+    function getToolsForDate(date = state.selectedDate) {
+      if (!state.tools.days) state.tools.days = {};
+      if (state.tools[date] && !state.tools.days[date]) {
+        state.tools.days[date] = {
+          brainDump: state.tools[date].brainDump || [],
+        };
+      }
+      if (!state.tools.days[date]) {
+        state.tools.days[date] = { brainDump: [] };
+      }
+      return state.tools.days[date];
+    }
+
+    function getCycleProfile() {
+      if (!state.tools.cycleProfile) {
+        state.tools.cycleProfile = {
+          startDate: "",
+          cycleLength: 28,
+          periodLength: 5,
+        };
+      }
+      return state.tools.cycleProfile;
+    }
+
+    function getFocusVideo() {
+      if (!state.tools.focusVideo) {
+        state.tools.focusVideo = { ...DEFAULT_FOCUS_VIDEO };
+      }
+      return state.tools.focusVideo;
+    }
+
+    function getLearnedContent() {
+      if (!state.tools.learnedContent || typeof state.tools.learnedContent !== "object") {
+        state.tools.learnedContent = {};
+      }
+      return state.tools.learnedContent;
+    }
+
+    function getLearnedCell(row, column) {
+      return getLearnedContent()[row]?.[column] || "";
+    }
+
+    function setLearnedCell(row, column, text) {
+      if (!LEARNED_ROWS.includes(row) || !LEARNED_COLUMNS.some((item) => item.id === column)) return;
+      const content = getLearnedContent();
+      if (!content[row]) content[row] = {};
+      const trimmed = text.trim();
+      if (trimmed) content[row][column] = trimmed;
+      else delete content[row][column];
+      if (!Object.keys(content[row]).length) delete content[row];
+      saveTools();
+    }
+
+    function getTimelineRow(rowId) {
+      return MACRO_TIMELINE.rows.find((row) => row.id === rowId);
+    }
+
+    function getTimelineText(rowId, month) {
+      const row = getTimelineRow(rowId);
+      return state.timeline[rowId]?.[month] ?? row?.cells?.[month] ?? "";
+    }
+
+    function isTimelineChanged(rowId, month) {
+      return Object.prototype.hasOwnProperty.call(state.timeline[rowId] || {}, month);
+    }
+
+    function setTimelineText(rowId, month, text) {
+      const row = getTimelineRow(rowId);
+      if (!row) return;
+      const base = row.cells[month] || "";
+      const trimmed = text.trim();
+      if (!state.timeline[rowId]) state.timeline[rowId] = {};
+      if (!trimmed || trimmed === base) delete state.timeline[rowId][month];
+      else state.timeline[rowId][month] = trimmed;
+      if (!Object.keys(state.timeline[rowId]).length) delete state.timeline[rowId];
+      saveTimeline();
+    }
+
+    function resetTimelineText(rowId, month) {
+      if (!state.timeline[rowId]) return;
+      delete state.timeline[rowId][month];
+      if (!Object.keys(state.timeline[rowId]).length) delete state.timeline[rowId];
+      saveTimeline();
+    }
+
+    function getCustomEntry(date) {
+      const entry = (state?.custom || bootCustom || {})[date] || {};
+      return {
+        overrides: entry.overrides || {},
+        carryovers: entry.carryovers || {},
+        taskDeferrals: entry.taskDeferrals || {},
+        extras: Array.isArray(entry.extras) ? entry.extras : [],
+        sundayMode: entry.sundayMode || "",
+        afternoonMode: entry.afternoonMode || "",
+        suiteChoice: entry.suiteChoice === "shenlun" ? "shenlun" : "xingce",
+        examDay: !!entry.examDay,
+      };
+    }
+
+    function setCustomEntry(date, entry) {
+      const cleaned = {
+        overrides: entry.overrides || {},
+        carryovers: entry.carryovers || {},
+        taskDeferrals: entry.taskDeferrals || {},
+        extras: Array.isArray(entry.extras) ? entry.extras : [],
+        sundayMode: entry.sundayMode || "",
+        afternoonMode: afternoonModes[entry.afternoonMode] ? entry.afternoonMode : "",
+        suiteChoice: entry.suiteChoice === "shenlun" ? "shenlun" : "xingce",
+        examDay: !!entry.examDay,
+      };
+      if (Object.keys(cleaned.overrides).length || Object.keys(cleaned.carryovers).length || Object.keys(cleaned.taskDeferrals).length || cleaned.extras.length || cleaned.sundayMode || cleaned.afternoonMode || cleaned.suiteChoice === "shenlun" || cleaned.examDay) {
+        state.custom[date] = cleaned;
+      } else {
+        delete state.custom[date];
+      }
+      saveCustom();
+    }
+
+    function usesAfternoonModeChoice(item) {
+      if (!item) return false;
+      if (item["主线模块"] === "单休" || item["主线模块"] === "顺延" || item["主线模块"] === "模考") return false;
+      return item["日期"] >= AFTERNOON_MODE_START_DATE && item["日期"] < AFTERNOON_WEEKLY_ROTATION_START_DATE;
+    }
+
+    function usesWeeklyAfternoonRotation(item) {
+      if (!item) return false;
+      if (item["主线模块"] === "单休" || item["主线模块"] === "顺延" || item["主线模块"] === "模考" || item["主线模块"] === "考试") return false;
+      return item["日期"] >= AFTERNOON_WEEKLY_ROTATION_START_DATE;
+    }
+
+    function getWeeklyAfternoonRotation(date, item = getEffectiveItem(date)) {
+      const sourceDate = item?.["来源日期"] || date;
+      const weekday = getWeekday(sourceDate);
+      const mainByWeekday = {
+        "周一": weeklyAfternoonTaskPool.graphic,
+        "周二": weeklyAfternoonTaskPool.judgment,
+        "周三": weeklyAfternoonTaskPool.verbal,
+        "周四": weeklyAfternoonTaskPool.graphic,
+        "周五": weeklyAfternoonTaskPool.judgment,
+        "周六": weeklyAfternoonTaskPool.verbal,
+        "周日": weeklyAfternoonTaskPool.verbal,
+      };
+      const extraByWeekday = {
+        "周一": weeklyAfternoonTaskPool.speed,
+        "周二": weeklyAfternoonTaskPool.words,
+        "周三": weeklyAfternoonTaskPool.speed,
+        "周四": weeklyAfternoonTaskPool.words,
+        "周五": weeklyAfternoonTaskPool.speed,
+        "周六": weeklyAfternoonTaskPool.words,
+        "周日": weeklyAfternoonTaskPool.words,
+      };
+      const main = mainByWeekday[weekday] || weeklyAfternoonTaskPool.graphic;
+      const extra = extraByWeekday[weekday] || weeklyAfternoonTaskPool.speed;
+      return {
+        main,
+        extra,
+        tasks: [weeklyAfternoonTaskPool.data, weeklyAfternoonTaskPool.quantity, main, extra],
+        text: "每日固定资料分析45min、数量600题30min；今日" + main.title + " " + main.time + "；" + extra.title + " " + extra.time,
+      };
+    }
+
+    function getAfternoonMode(date) {
+      const mode = getCustomEntry(date).afternoonMode;
+      return afternoonModes[mode] ? mode : DEFAULT_AFTERNOON_MODE;
+    }
+
+    function setAfternoonMode(date, mode) {
+      if (!afternoonModes[mode]) return;
+      const entry = getCustomEntry(date);
+      entry.afternoonMode = mode;
+      setCustomEntry(date, entry);
+      ["下午2.5小时行测", ...afternoonSubtasks.map((task) => task.key)].forEach((label) => clearTaskStatus(date, label));
+    }
+
+    function canSetExamDay(date) {
+      return date >= EXAM_DAY_START_DATE;
+    }
+
+    function isExamDay(date) {
+      return canSetExamDay(date) && getCustomEntry(date).examDay;
+    }
+
+    function setExamDay(date, enabled) {
+      if (!canSetExamDay(date)) return;
+      const entry = getCustomEntry(date);
+      entry.examDay = !!enabled;
+      setCustomEntry(date, entry);
+      delete state.completed[date];
+      saveCompleted();
+    }
+
+    function getAfternoonSubtasks(date, item = getEffectiveItem(date)) {
+      if (usesWeeklyAfternoonRotation(item)) {
+        return getWeeklyAfternoonRotation(date, item).tasks;
+      }
+      if (usesAfternoonModeChoice(item)) {
+        return afternoonModes[getAfternoonMode(date)].tasks;
+      }
+      return legacyAfternoonSubtasks;
+    }
+
+    function isWorkSunday(date) {
+      return isWeeklyWorkSunday(date) || isCrossWeekWorkSunday(date);
+    }
+
+    function isRestTemplateOverride(label, text) {
+      return [SUNDAY_REST_TEMPLATE, SUNDAY_MOCK_TEMPLATE].some((template) =>
+        template.tasks[label] === text || (label === "复盘/当日重点" && template.review === text)
+      );
+    }
+
+    function getTaskText(item, label) {
+      const entry = getCustomEntry(item["日期"]);
+      if (Object.prototype.hasOwnProperty.call(entry.overrides, label)) {
+        if (isWorkSunday(item["日期"]) && isRestTemplateOverride(label, entry.overrides[label])) {
+          return getScheduledTaskInfo(item["日期"], label).text;
+        }
+        return entry.overrides[label];
+      }
+      return getScheduledTaskInfo(item["日期"], label).text;
+    }
+
+    function hasCustomTaskValue(date, label) {
+      const entry = getCustomEntry(date);
+      return Object.prototype.hasOwnProperty.call(entry.overrides, label) ||
+        Object.prototype.hasOwnProperty.call(entry.carryovers, label) ||
+        Object.prototype.hasOwnProperty.call(entry.taskDeferrals, label) ||
+        Object.prototype.hasOwnProperty.call(normalizeCompletion(date).tasks, label);
+    }
+
+    function getVisibleTaskLabels(item) {
+      if (item?.["主线模块"] === "考试") return [];
+      return [
+        "早上1小时",
+        "上午1.5小时行测",
+        "下午2.5小时行测",
+        "晚上1.5小时申论",
+      ];
+    }
+
+    function getCompletionTaskLabels(date) {
+      const item = getEffectiveItem(date);
+      if (!item) return coreTaskLabels;
+      if (item["主线模块"] === "考试") return [];
+      const labels = ["早上1小时", "上午1.5小时行测"];
+      if (shouldUseAfternoonChecklist(item, getTaskText(item, "下午2.5小时行测"))) {
+        labels.push(...getAfternoonSubtasks(date, item).map((task) => task.key));
+      } else {
+        labels.push("下午2.5小时行测");
+      }
+      if (getTaskText(item, "晚上1.5小时申论") || hasCustomTaskValue(date, "晚上1.5小时申论")) {
+        labels.push("晚上1.5小时申论");
+      }
+      if (shouldUseEveningGroup(item) && (getTaskText(item, "申论跟练打卡") || hasCustomTaskValue(date, "申论跟练打卡"))) {
+        labels.push("申论跟练打卡");
+      }
+      return labels;
+    }
+
+    function setTaskOverride(date, label, text, baseText = "") {
+      const base = baseText || getScheduledTaskInfo(date, label).text || byDate.get(date)?.[label] || "";
+      const entry = getCustomEntry(date);
+      const trimmed = text.trim();
+      if (!trimmed || trimmed === base) {
+        delete entry.overrides[label];
+        delete entry.carryovers[label];
+      } else {
+        entry.overrides[label] = trimmed;
+        delete entry.carryovers[label];
+      }
+      setCustomEntry(date, entry);
+    }
+
+    function clearTaskOverride(date, label) {
+      const entry = getCustomEntry(date);
+      delete entry.overrides[label];
+      delete entry.carryovers[label];
+      setCustomEntry(date, entry);
+    }
+
+    function clearTaskStatus(date, label) {
+      const entry = normalizeCompletion(date);
+      delete entry.tasks[label];
+      if (Object.keys(entry.tasks).length) state.completed[date] = entry;
+      else delete state.completed[date];
+      saveCompleted();
+    }
+
+    function getNextVisibleDate(date) {
+      return getVisibleDates().find((item) => item > date) || "";
+    }
+
+    function getStudyScheduleDates(deferred = state.deferred, weekRest = state.weekRest, crossWeekRest = state.crossWeekRest) {
+      return getVisibleDates(deferred, weekRest, crossWeekRest).filter((visibleDate) => isStudyScheduleDate(visibleDate, deferred, weekRest, crossWeekRest));
+    }
+
+    // —— 顺延递推核心 ——
+    // base = 只排除休息日的「计划学习日」；actual = 再排除整体顺延日 / 考试日后的「实际学习日」。
+    // 两者一一对应：actual 的第 i 项 ⇔ base 的第 i 项。
+    // 所以「实际日期在 actual 中的序号」直接就是它在计划表里的序号，
+    // 据此可以把实际日期反查回计划日期，整体顺延和考试日就自动变成「整体后移」。
+    let scheduleMapCache = null;
+
+    function clearScheduleCache() {
+      scheduleMapCache = null;
+    }
+
+    function getScheduleMap() {
+      if (scheduleMapCache) return scheduleMapCache;
+      const actual = getStudyScheduleDates();
+      const base = [];
+      let date = PLAN[0]["日期"];
+      let guard = 0;
+      while (base.length < actual.length + 1 && guard < 2000) {
+        if (!isCalendarRestDate(date)) base.push(date);
+        date = addDays(date, 1);
+        guard++;
+      }
+      const plannedByActual = new Map();
+      actual.forEach((actualDate, index) => {
+        plannedByActual.set(actualDate, base[index] || actualDate);
+      });
+      scheduleMapCache = { base, actual, plannedByActual };
+      return scheduleMapCache;
+    }
+
+    // 实际日期 → 计划日期。非学习日（休息日 / 顺延日 / 考试日）找不到就直接返回自己。
+    function getPlannedDateFor(date) {
+      return getScheduleMap().plannedByActual.get(date) || date;
+    }
+
+    function hasAnchoredShenlunEntry(date, label) {
+      const entry = ANCHORED_SHENLUN_PLAN[date];
+      return !!(entry && entry[label]);
+    }
+
+    // 单项任务顺延：在计划表上往前数 shift 个「当天确实排了这项任务」的日期
+    function getShiftedPlannedDate(plannedDate, label, shift) {
+      if (!shift || shift <= 0) return plannedDate;
+      let cursor = plannedDate;
+      let remaining = shift;
+      let guard = 0;
+      while (remaining > 0 && guard < 800) {
+        cursor = addDays(cursor, -1);
+        guard++;
+        if (cursor < PLAN[0]["日期"]) return "";
+        // 休息日不占学习日名额，递推时跳过
+        if (!isCalendarRestDate(cursor) && hasAnchoredShenlunEntry(cursor, label)) remaining--;
+      }
+      return remaining > 0 ? "" : cursor;
+    }
+
+    // 统一的申论安排取值入口：
+    // 整体顺延 / 考试日 → getPlannedDateFor 偏移；单项顺延 → 再往前推 shift 个有效日期。
+    function getAnchoredShenlunText(date, label) {
+      if (!taskLabels.includes(label)) return "";
+      if (!getScheduleMap().plannedByActual.has(date)) {
+        // 休息日不占学习日名额：晚课回放跟着直播日期走，不参与顺延递推
+        return ANCHORED_SHENLUN_PLAN[date]?.[label] || "";
+      }
+      const plannedDate = getPlannedDateFor(date);
+      const shift = getTaskDeferralDates(label).filter((item) => item < date).length;
+      const sourceDate = shift > 0 ? getShiftedPlannedDate(plannedDate, label, shift) : plannedDate;
+      if (!sourceDate) return "";
+      return ANCHORED_SHENLUN_PLAN[sourceDate]?.[label] || "";
+    }
+
+    function isTaskDeferralAnchor(date, label) {
+      return !!getCustomEntry(date).taskDeferrals[label] && !isCalendarRestDate(date) && !isDateDeferred(date);
+    }
+
+    function getTaskDeferralDates(label, deferred = state.deferred) {
+      return Object.keys(state.custom || {})
+        .filter((date) => getCustomEntry(date).taskDeferrals[label] && isVisibleDate(date, deferred) && !isCalendarRestDate(date) && !deferred[date])
+        .sort();
+    }
+
+    function getScheduledTaskInfo(date, label, deferred = state.deferred) {
+      const item = getEffectiveItem(date, deferred);
+      if (!item || !taskLabels.includes(label)) return { text: "", fromDate: "", originalText: "" };
+      if (item["主线模块"] === "顺延" || item["主线模块"] === "考试") {
+        return { text: item[label] || "", fromDate: "", originalText: item[label] || "" };
+      }
+      if (item["主线模块"] === "模考" || item["主线模块"] === "事业编套题") {
+        return { text: item[label] || "", fromDate: "", originalText: item[label] || "" };
+      }
+      if (label === "早上1小时" && date >= MORNING_REVISION_START_DATE && item["主线模块"] !== "单休") {
+        return { text: MORNING_REVISION_TEXT, fromDate: "", originalText: MORNING_REVISION_TEXT };
+      }
+      const anchoredText = item["主线模块"] === "单休" ? "" : getAnchoredShenlunText(date, label);
+      if (anchoredText) {
+        const plannedDate = getPlannedDateFor(date);
+        const shift = getTaskDeferralDates(label, deferred).filter((item) => item < date).length;
+        const sourceDate = shift > 0 ? getShiftedPlannedDate(plannedDate, label, shift) : plannedDate;
+        return {
+          text: anchoredText,
+          fromDate: sourceDate && sourceDate !== date ? sourceDate : "",
+          originalText: ANCHORED_SHENLUN_PLAN[plannedDate]?.[label] || anchoredText,
+        };
+      }
+      if (item["主线模块"] === "套题阶段") {
+        return { text: item[label] || "", fromDate: "", originalText: item[label] || "" };
+      }
+      if (item["主线模块"] === "单休" || item["主线模块"] === "顺延" || item["主线模块"] === "后续安排") {
+        return { text: item[label] || "", fromDate: "", originalText: item[label] || "" };
+      }
+
+      const dates = getStudyScheduleDates(deferred);
+      const targetIndex = dates.indexOf(date);
+      if (targetIndex < 0) return { text: item[label] || "", fromDate: "", originalText: item[label] || "" };
+
+      const shift = getTaskDeferralDates(label, deferred).filter((deferralDate) => deferralDate < date).length;
+      const sourceIndex = targetIndex - shift;
+      const source = studyItems[sourceIndex];
+      const sourceDate = dates[sourceIndex] || "";
+      const targetBase = studyItems[targetIndex]?.[label] || "";
+      return {
+        text: source?.[label] || item[label] || "",
+        fromDate: sourceDate && sourceDate !== date ? sourceDate : "",
+        originalText: targetBase,
+      };
+    }
+
+    function clearTaskStatusForLabelFrom(date, label) {
+      const labels = label === "下午2.5小时行测"
+        ? [label, ...afternoonSubtasks.map((task) => task.key)]
+        : [label];
+      getStudyScheduleDates()
+        .filter((visibleDate) => visibleDate >= date)
+        .forEach((visibleDate) => labels.forEach((targetLabel) => clearTaskStatus(visibleDate, targetLabel)));
+    }
+
+    function deferSingleTask(date, label) {
+      const item = getEffectiveItem(date);
+      const dates = getVisibleDates().filter((visibleDate) => visibleDate >= date && isStudyScheduleDate(visibleDate));
+      if (!item || dates.length < 2 || !taskLabels.includes(label) || item["主线模块"] === "顺延" || isCalendarRestDate(date)) {
+        window.alert("后面没有可顺延的日期了。");
+        return false;
+      }
+      const previousStatus = getTaskStatus(date, label);
+      const entry = getCustomEntry(date);
+      entry.taskDeferrals[label] = { previousStatus };
+      setCustomEntry(date, entry);
+      clearTaskStatusForLabelFrom(date, label);
+      setTaskStatus(date, label, "done");
+      return true;
+    }
+
+    function cancelSingleTaskDeferral(date, label) {
+      const entry = getCustomEntry(date);
+      if (!entry.taskDeferrals[label]) return false;
+      const marker = entry.taskDeferrals[label];
+      const previousStatus = typeof marker === "object" ? normalizeStatus(marker.previousStatus) : "";
+      delete entry.taskDeferrals[label];
+      setCustomEntry(date, entry);
+      clearTaskStatusForLabelFrom(date, label);
+      if (previousStatus) setTaskStatus(date, label, previousStatus);
+      return true;
+    }
+
+    function migrateLegacyTaskDeferralData() {
+      let changed = false;
+      Object.keys(state.custom || {}).forEach((date) => {
+        const entry = getCustomEntry(date);
+        let touched = false;
+        taskLabels.forEach((label) => {
+          if (entry.carryovers[label]) {
+            delete entry.carryovers[label];
+            delete entry.overrides[label];
+            touched = true;
+          }
+        });
+        const beforeExtras = entry.extras.length;
+        entry.extras = entry.extras.filter((task) => !String(task.text || "").includes("顺延保留："));
+        if (entry.extras.length !== beforeExtras) touched = true;
+        if (touched) {
+          setCustomEntry(date, entry);
+          changed = true;
+        }
+      });
+      if (changed) saveCustom();
+    }
+
+    function addExtraTask(date, text) {
+      const trimmed = text.trim();
+      if (!trimmed) return;
+      const entry = getCustomEntry(date);
+      entry.extras.push({
+        id: String(Date.now()) + "-" + Math.random().toString(16).slice(2),
+        text: trimmed,
+        status: "",
+      });
+      setCustomEntry(date, entry);
+    }
+
+    function setExtraTaskStatus(date, id, status) {
+      const entry = getCustomEntry(date);
+      entry.extras = entry.extras.map((task) => task.id === id ? { ...task, status } : task);
+      setCustomEntry(date, entry);
+    }
+
+    function deleteExtraTask(date, id) {
+      const entry = getCustomEntry(date);
+      entry.extras = entry.extras.filter((task) => task.id !== id);
+      setCustomEntry(date, entry);
+    }
+
+    function addDays(date, offset) {
+      const next = parseDate(date);
+      next.setDate(next.getDate() + offset);
+      const yyyy = next.getFullYear();
+      const mm = String(next.getMonth() + 1).padStart(2, "0");
+      const dd = String(next.getDate()).padStart(2, "0");
+      return yyyy + "-" + mm + "-" + dd;
+    }
+
+    function getWeekStart(date) {
+      const dayIndex = parseDate(date).getDay();
+      const mondayOffset = (dayIndex + 6) % 7;
+      return addDays(date, -mondayOffset);
+    }
+
+    function getWeekEnd(date) {
+      return addDays(getWeekStart(date), 6);
+    }
+
+    function getWeekDates(date) {
+      const start = getWeekStart(date);
+      return Array.from({ length: 7 }, (_, index) => addDays(start, index));
+    }
+
+    function getWeekday(date) {
+      const labels = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
+      return labels[parseDate(date).getDay()];
+    }
+
+    function isSunday(date) {
+      return getWeekday(date) === "周日";
+    }
+
+    function getWeekRestDate(date, weekRest = state.weekRest) {
+      const weekStart = getWeekStart(date);
+      const restDate = weekRest?.[weekStart] || "";
+      return restDate && getWeekStart(restDate) === weekStart ? restDate : "";
+    }
+
+    function isWeekSwapActive(date, weekRest = state.weekRest) {
+      const restDate = getWeekRestDate(date, weekRest);
+      return !!restDate && !isSunday(restDate);
+    }
+
+    function isWeeklyRestDate(date, weekRest = state.weekRest) {
+      return isWeekSwapActive(date, weekRest) && getWeekRestDate(date, weekRest) === date;
+    }
+
+    function isWeeklyWorkSunday(date, weekRest = state.weekRest) {
+      return isSunday(date) && isWeekSwapActive(date, weekRest) && getWeekEnd(date) === date;
+    }
+
+    function getCrossWeekSundayForDate(date, crossWeekRest = state.crossWeekRest) {
+      const sourceSunday = isSunday(date) ? date : addDays(getWeekStart(date), -1);
+      const restDate = crossWeekRest?.[sourceSunday] || "";
+      return restDate === addDays(sourceSunday, 1) ? sourceSunday : "";
+    }
+
+    function isCrossWeekWorkSunday(date, crossWeekRest = state.crossWeekRest) {
+      return isSunday(date) && getCrossWeekSundayForDate(date, crossWeekRest) === date;
+    }
+
+    function isCrossWeekRestDate(date, crossWeekRest = state.crossWeekRest) {
+      const sourceSunday = getCrossWeekSundayForDate(date, crossWeekRest);
+      return !!sourceSunday && date === addDays(sourceSunday, 1);
+    }
+
+    function isCalendarRestDate(date, weekRest = state.weekRest, crossWeekRest = state.crossWeekRest) {
+      return isWeeklyRestDate(date, weekRest) ||
+        isCrossWeekRestDate(date, crossWeekRest) ||
+        (isSunday(date) && !isWeeklyWorkSunday(date, weekRest) && !isCrossWeekWorkSunday(date, crossWeekRest));
+    }
+
+    function isStudyScheduleDate(date, deferred = state.deferred, weekRest = state.weekRest, crossWeekRest = state.crossWeekRest) {
+      return !isExamDay(date) && !isCalendarRestDate(date, weekRest, crossWeekRest) && !deferred[date];
+    }
+
+    function makeRestItem(date) {
+      const entry = getCustomEntry(date);
+      const shiftedRest = isWeeklyRestDate(date);
+      const crossWeekRest = isCrossWeekRestDate(date);
+      const template = !shiftedRest && entry.sundayMode === "mock" ? SUNDAY_MOCK_TEMPLATE : SUNDAY_REST_TEMPLATE;
+      const eveningTask = entry.overrides["晚上1.5小时申论"] ||
+        getAnchoredShenlunText(date, "晚上1.5小时申论") ||
+        template.tasks["晚上1.5小时申论"];
+      return {
+        "日期": date,
+        "星期": getWeekday(date),
+        "主线模块": template.module,
+        "早上1小时": template.tasks["早上1小时"],
+        "上午1.5小时行测": template.tasks["上午1.5小时行测"],
+        "下午2.5小时行测": template.tasks["下午2.5小时行测"],
+        "晚上1.5小时申论": eveningTask,
+        "复盘/当日重点": entry.overrides["复盘/当日重点"] || (shiftedRest ? "本周换休：当天休息，本周后续任务只在本周内顺延。" : (crossWeekRest ? "跨周换休：上一个周日已补学习，今天休息。" : template.review)),
+        "阶段": shiftedRest ? "本周换休" : (crossWeekRest ? "跨周换休" : template.stage),
+        "来源日期": "",
+      };
+    }
+
+    function makeExamItem(date) {
+      return {
+        "日期": date,
+        "星期": getWeekday(date),
+        "主线模块": "考试",
+        "早上1小时": "",
+        "上午1.5小时行测": "",
+        "下午2.5小时行测": "",
+        "粉笔专项积累": "",
+        "晚上1.5小时申论": "",
+        "申论跟练打卡": "",
+        "复盘/当日重点": "考试日：不安排学习任务，专心考试和休整。",
+        "阶段": "考试日",
+        "来源日期": "",
+      };
+    }
+
+    function getCalendarStudyPhase(date) {
+      if (date >= SUITE_PHASE_START_DATE && date <= CALENDAR_END_DATE) {
+        return {
+          module: "套题阶段",
+          stage: "套题阶段",
+          review: "按套题节奏训练，记录时间分配、模块失分和下一次复盘重点。",
+        };
+      }
+      if (date >= CHECK_PHASE_START_DATE && date < SUITE_PHASE_START_DATE) {
+        return {
+          module: "查漏补缺",
+          stage: "查漏补缺",
+          review: "回看薄弱模块和近期错题，完成当天最需要补齐的一项。",
+        };
+      }
+      if (date >= QUANTITY_REVISION_START_DATE && date <= QUANTITY_PHASE_BASE_END_DATE) {
+        return {
+          module: "数量关系",
+          stage: "数量关系听课+刷题",
+          review: "继续完成小p数量关系、配套作业和数量600题。",
+        };
+      }
+      return null;
+    }
+
+    function getCurrentModuleName(date) {
+      if (date >= SUITE_PHASE_START_DATE) return "套题阶段";
+      if (date >= CHECK_PHASE_START_DATE && getEffectiveItem(date)?.["主线模块"] === "数量关系") return "数量关系";
+      if (date >= CHECK_PHASE_START_DATE) return "查漏补缺";
+      if (date >= "2026-08-28") return "数量关系";
+      if (date >= "2026-08-10") return "言语理解";
+      if (date >= "2026-06-24") return "判断推理";
+      return "资料分析";
+    }
+
+    function applyCalendarStudyPhase(item, date) {
+      const phase = getCalendarStudyPhase(date);
+      if (!phase) return item;
+      if (phase.module === "查漏补缺" && item["主线模块"] === "数量关系") {
+        return item;
+      }
+      return {
+        ...item,
+        "主线模块": phase.module,
+        "阶段": phase.stage,
+      };
+    }
+
+    function makeMockExamItem(date) {
+      return {
+        "日期": date,
+        "星期": getWeekday(date),
+        "主线模块": "模考",
+        "早上1小时": MORNING_REVISION_TEXT,
+        "上午1.5小时行测": "上午：行测模考（严格计时整卷 + 涂卡，按正式考试节奏完成）",
+        "下午2.5小时行测": "下午3h：模考套卷订正复盘（错题归因、错题本登记、时间分配与做题策略回顾）",
+        "粉笔专项积累": "",
+        "晚上1.5小时申论": getAnchoredShenlunText(date, "晚上1.5小时申论"),
+        "申论跟练打卡": getAnchoredShenlunText(date, "申论跟练打卡"),
+        "复盘/当日重点": getCustomEntry(date).overrides["复盘/当日重点"] || "模考日：记录各模块用时、正确率与失分点；晚上申论照常进行。",
+        "阶段": "模考",
+        "来源日期": "",
+      };
+    }
+
+    function makeShiyebianItem(date) {
+      return {
+        "日期": date,
+        "星期": getWeekday(date),
+        "主线模块": "事业编套题",
+        "早上1小时": MORNING_REVISION_TEXT,
+        "上午1.5小时行测": "上午2h：事业编职测套卷（严格计时整卷）",
+        "下午2.5小时行测": "下午3h：套卷订正复盘（错题归因、薄弱模块登记、时间分配回顾）",
+        "粉笔专项积累": "",
+        "晚上1.5小时申论": getAnchoredShenlunText(date, "晚上1.5小时申论"),
+        "申论跟练打卡": getAnchoredShenlunText(date, "申论跟练打卡"),
+        "复盘/当日重点": getCustomEntry(date).overrides["复盘/当日重点"] || "事业编套题阶段：记录套卷得分、错题模块与下一套要改进的点。",
+        "阶段": "事业编套题",
+        "来源日期": "",
+      };
+    }
+
+    function makeBlankFollowupItem(date) {
+      const phase = getCalendarStudyPhase(date);
+      const isSuite = date >= SUITE_PHASE_START_DATE && phase?.module === "套题阶段";
+      const suite = SUITE_TASKS[getSuiteChoice(date)] || SUITE_TASKS.xingce;
+      return {
+        "日期": date,
+        "星期": getWeekday(date),
+        "主线模块": phase?.module || "后续安排",
+        "早上1小时": date >= MORNING_REVISION_START_DATE ? MORNING_REVISION_TEXT : "晨读",
+        "上午1.5小时行测": isSuite ? suite.morning : "",
+        "下午2.5小时行测": isSuite
+          ? suite.afternoon
+          : (date >= AFTERNOON_WEEKLY_ROTATION_START_DATE
+            ? "下午3小时：资料和数量每日固定；图推、判断、言语每周各2次；速算和千词隔天轮换"
+            : (date >= AFTERNOON_MODE_START_DATE ? "下午3小时行测：数判资 / 数言资二选一" : AFTERNOON_TASK_TEXT)),
+        "粉笔专项积累": "",
+        "晚上1.5小时申论": getAnchoredShenlunText(date, "晚上1.5小时申论"),
+        "申论跟练打卡": getAnchoredShenlunText(date, "申论跟练打卡"),
+        "复盘/当日重点": getCustomEntry(date).overrides["复盘/当日重点"] || phase?.review || "空白安排日：点击修改，写下当天要做的内容。",
+        "阶段": isSuite ? suite.stage : (phase?.stage || "空白可编辑"),
+        "来源日期": "",
+      };
+    }
+
+    function getSundayMode(date) {
+      return getCustomEntry(date).sundayMode === "mock" ? "mock" : "rest";
+    }
+
+    function setSundayMode(date, mode) {
+      if (!isSunday(date) || isWeeklyWorkSunday(date) || isCrossWeekWorkSunday(date)) return;
+      const nextMode = mode === "mock" ? "mock" : "";
+      const entry = getCustomEntry(date);
+      entry.sundayMode = nextMode;
+      const template = nextMode === "mock" ? SUNDAY_MOCK_TEMPLATE : SUNDAY_REST_TEMPLATE;
+      coreTaskLabels.forEach((label) => {
+        if (nextMode === "mock" || label !== "晚上1.5小时申论") {
+          entry.overrides[label] = template.tasks[label];
+        } else {
+          delete entry.overrides[label];
+        }
+        delete entry.carryovers[label];
+        delete entry.taskDeferrals[label];
+      });
+      entry.overrides["复盘/当日重点"] = template.review;
+      setCustomEntry(date, entry);
+      delete state.completed[date];
+      saveCompleted();
+    }
+
+    function getSuiteChoice(date) {
+      return getCustomEntry(date).suiteChoice === "shenlun" ? "shenlun" : "xingce";
+    }
+
+    function setSuiteChoice(date, choice) {
+      if (date < SUITE_PHASE_START_DATE || isExamDay(date) || isCalendarRestDate(date)) return;
+      const entry = getCustomEntry(date);
+      entry.suiteChoice = choice === "shenlun" ? "shenlun" : "xingce";
+      ["上午1.5小时行测", "下午2.5小时行测"].forEach((label) => {
+        delete entry.overrides[label];
+        delete entry.carryovers[label];
+        delete entry.taskDeferrals[label];
+      });
+      setCustomEntry(date, entry);
+      delete state.completed[date];
+      saveCompleted();
+    }
+
+    function clearWeekCompletion(date) {
+      getWeekDates(date).forEach((weekDate) => {
+        delete state.completed[weekDate];
+      });
+      saveCompleted();
+    }
+
+    function clearRestTemplateOverrides(date) {
+      const entry = getCustomEntry(date);
+      [...coreTaskLabels, ...plannedExtraLabels, "复盘/当日重点"].forEach((label) => {
+        delete entry.overrides[label];
+        delete entry.carryovers[label];
+        delete entry.taskDeferrals[label];
+      });
+      entry.sundayMode = "";
+      setCustomEntry(date, entry);
+    }
+
+    function setWeekRestDate(date) {
+      if (!isVisibleDate(date)) return;
+      const weekStart = getWeekStart(date);
+      delete state.crossWeekRest[addDays(weekStart, -1)];
+      if (isSunday(date)) {
+        delete state.weekRest[weekStart];
+      } else {
+        state.weekRest[weekStart] = date;
+        clearRestTemplateOverrides(getWeekEnd(date));
+      }
+      clearWeekCompletion(date);
+      saveWeekRest();
+      saveCrossWeekRest();
+    }
+
+    function clearWeekRestDate(date) {
+      delete state.weekRest[getWeekStart(date)];
+      clearWeekCompletion(date);
+      saveWeekRest();
+    }
+
+    function setCrossWeekRestToNextMonday(date) {
+      if (!isSunday(date) || isWeeklyWorkSunday(date)) return;
+      const nextMonday = addDays(date, 1);
+      delete state.weekRest[getWeekStart(nextMonday)];
+      state.crossWeekRest[date] = nextMonday;
+      clearRestTemplateOverrides(date);
+      clearWeekCompletion(date);
+      clearWeekCompletion(nextMonday);
+      saveWeekRest();
+      saveCrossWeekRest();
+    }
+
+    function clearCrossWeekRest(date) {
+      const sourceSunday = getCrossWeekSundayForDate(date);
+      if (!sourceSunday) return;
+      const nextMonday = addDays(sourceSunday, 1);
+      delete state.crossWeekRest[sourceSunday];
+      clearWeekCompletion(sourceSunday);
+      clearWeekCompletion(nextMonday);
+      saveCrossWeekRest();
+    }
+
+    function getDeferredDates(deferred = state.deferred) {
+      return Object.keys(deferred || {}).filter((date) => date >= PLAN[0]["日期"] && !isExamDay(date) && !isCalendarRestDate(date)).sort();
+    }
+
+    // 被整体顺延 / 考试日吃掉的学习日数量：这些天要在日历尾部补回来，否则末尾任务会被挤掉。
+    function getConsumedScheduleDays(deferred, weekRest, crossWeekRest) {
+      let count = 0;
+      let date = PLAN[0]["日期"];
+      let guard = 0;
+      while (date <= CALENDAR_END_DATE && guard < 900) {
+        if (!isCalendarRestDate(date, weekRest || {}, crossWeekRest || {}) && (deferred[date] || isExamDay(date))) count++;
+        date = addDays(date, 1);
+        guard++;
+      }
+      return count;
+    }
+
+    function getVisibleDates(deferred = state.deferred, weekRest = state.weekRest, crossWeekRest = state.crossWeekRest) {
+      const dates = [];
+      let assignedStudyDays = 0;
+      let date = PLAN[0]["日期"];
+      let guard = 0;
+      const tailDate = addDays(CALENDAR_END_DATE, getConsumedScheduleDays(deferred, weekRest, crossWeekRest));
+      while (guard < 900) {
+        dates.push(date);
+        if (isStudyScheduleDate(date, deferred, weekRest, crossWeekRest)) assignedStudyDays++;
+        if (assignedStudyDays >= studyItems.length && date >= tailDate) break;
+        date = addDays(date, 1);
+        guard++;
+      }
+      return dates;
+    }
+
+    function isDateDeferred(date) {
+      return !!state.deferred[date] && !isExamDay(date) && !isCalendarRestDate(date);
+    }
+
+    function isVisibleDate(date, deferred = state.deferred, weekRest = state.weekRest, crossWeekRest = state.crossWeekRest) {
+      const dates = getVisibleDates(deferred, weekRest, crossWeekRest);
+      return date >= dates[0] && date <= dates[dates.length - 1];
+    }
+
+    function getEffectiveItem(date, deferred = state.deferred, weekRest = state.weekRest, crossWeekRest = state.crossWeekRest) {
+      if (!isVisibleDate(date, deferred, weekRest, crossWeekRest)) return null;
+      if (isExamDay(date)) return makeExamItem(date);
+      if (isCalendarRestDate(date, weekRest, crossWeekRest)) return makeRestItem(date);
+      if (deferred[date]) {
+        return {
+          "日期": date,
+          "星期": getWeekday(date),
+          "主线模块": "顺延",
+          "早上1小时": "顺延缓冲日：当天任务未完成，后续计划已整体后移一天",
+          "上午1.5小时行测": "可休息调整，或补做前一日遗留任务",
+          "下午2.5小时行测": "可休息调整，或补做前一日遗留任务",
+          "晚上1.5小时申论": "可轻量复盘，不安排硬性新任务",
+          "复盘/当日重点": "如果这是误操作，可以点击取消本日顺延",
+          "阶段": "任务顺延",
+          "来源日期": "",
+        };
+      }
+      if (date === MOCK_EXAM_DATE) {
+        return makeMockExamItem(date);
+      }
+      if (date >= SHIYEBIAN_PHASE_START_DATE && date <= SHIYEBIAN_PHASE_END_DATE) {
+        return makeShiyebianItem(date);
+      }
+      if (date >= SUITE_PHASE_START_DATE) {
+        return makeBlankFollowupItem(date);
+      }
+      const sourceIndex = getStudyScheduleDates(deferred, weekRest, crossWeekRest)
+        .filter((item) => item <= date)
+        .length - 1;
+      const source = studyItems[sourceIndex];
+      if (!source) return makeBlankFollowupItem(date);
+      return applyCalendarStudyPhase({
+        ...source,
+        "日期": date,
+        "星期": getWeekday(date),
+        "来源日期": source["日期"],
+      }, date);
+    }
+
+    function deferDate(date) {
+      if (!isVisibleDate(date)) return;
+      if (isExamDay(date)) return;
+      if (isCalendarRestDate(date)) return;
+      state.deferred[date] = true;
+      delete state.completed[date];
+      saveDeferred();
+      saveCompleted();
+    }
+
+    function cancelDeferredDate(date) {
+      delete state.deferred[date];
+      const dates = getVisibleDates();
+      if (!dates.includes(state.selectedDate)) {
+        state.selectedDate = dates[dates.length - 1];
+        state.month = state.selectedDate.slice(0, 7);
+      }
+      saveDeferred();
+    }
+
+    function normalizeCompletion(date) {
+      const entry = state.completed[date];
+      if (entry === true) {
+        return { tasks: Object.fromEntries(taskLabels.map((label) => [label, "done"])) };
+      }
+      if (!entry || typeof entry !== "object") {
+        return { tasks: {} };
+      }
+      return { tasks: entry.tasks || {} };
+    }
+
+    function normalizeStatus(value) {
+      if (value === true || value === "done") return "done";
+      if (value === "unfinished") return "unfinished";
+      return "";
+    }
+
+    function getTaskStatus(date, label) {
+      if (isTaskDeferralAnchor(date, label)) return "done";
+      const tasks = normalizeCompletion(date).tasks;
+      const status = normalizeStatus(tasks[label]);
+      if (!status && afternoonStatusAliases[label]) {
+        const aliasStatus = afternoonStatusAliases[label]
+          .map((alias) => normalizeStatus(tasks[alias]))
+          .find(Boolean);
+        if (aliasStatus) return aliasStatus;
+      }
+      if (!status && isAfternoonSubtaskLabel(label) && date >= AFTERNOON_CHECKLIST_START_DATE) {
+        return normalizeStatus(tasks["下午2.5小时行测"]);
+      }
+      return status;
+    }
+
+    function isTaskDone(date, label) {
+      return getTaskStatus(date, label) === "done";
+    }
+
+    function isAfternoonSubtaskLabel(label) {
+      return afternoonSubtasks.some((task) => task.key === label);
+    }
+
+    function setTaskStatus(date, label, status) {
+      const entry = normalizeCompletion(date);
+      if (status === "done" || status === "unfinished") entry.tasks[label] = status;
+      else delete entry.tasks[label];
+      if (Object.keys(entry.tasks).length) state.completed[date] = entry;
+      else delete state.completed[date];
+      saveCompleted();
+    }
+
+    function setDayDone(date, done) {
+      if (done) {
+        state.completed[date] = { tasks: Object.fromEntries(getCompletionTaskLabels(date).map((label) => [label, "done"])) };
+      } else {
+        delete state.completed[date];
+      }
+      saveCompleted();
+    }
+
+    function isDayDone(date) {
+      const item = getEffectiveItem(date);
+      if (!item) return false;
+      if (item["主线模块"] === "考试") return true;
+      if (item["主线模块"] === "顺延") return false;
+      const extras = getCustomEntry(date).extras;
+      const completion = normalizeCompletion(date);
+      if (isCalendarRestDate(date) && item["主线模块"] === "单休" && extras.length === 0 && !Object.keys(completion.tasks).length) return true;
+      const usesAfternoonChecklist = shouldUseAfternoonChecklist(item, getTaskText(item, "下午2.5小时行测"));
+      const labels = getCompletionTaskLabels(date).filter((label) => !usesAfternoonChecklist || !isAfternoonSubtaskLabel(label));
+      const requiredDone = labels.every((label) => isTaskDone(date, label));
+      const afternoonDone = !usesAfternoonChecklist || getAfternoonSubtasks(date, item).some((task) => isTaskDone(date, task.key));
+      return requiredDone && afternoonDone && extras.every((task) => normalizeStatus(task.status ?? task.done) === "done");
+    }
+
+    function hasAnyDoneTask(date) {
+      const item = getEffectiveItem(date);
+      if (!item) return false;
+      if (item["主线模块"] === "考试") return false;
+      if (item["主线模块"] === "顺延") return false;
+      const extras = getCustomEntry(date).extras;
+      return getCompletionTaskLabels(date).some((label) => isTaskDone(date, label)) || extras.some((task) => normalizeStatus(task.status ?? task.done) === "done");
+    }
+
+    function getCalendarStatus(date) {
+      if (isExamDay(date)) return "exam";
+      if (isDateDeferred(date)) return "deferred-day";
+      if (isDayDone(date)) return "done";
+      if (hasAnyDoneTask(date)) return "partial";
+      return "no-progress";
+    }
+
+    function getLocalDateString() {
+      const now = new Date();
+      const local = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const yyyy = local.getFullYear();
+      const mm = String(local.getMonth() + 1).padStart(2, "0");
+      const dd = String(local.getDate()).padStart(2, "0");
+      return yyyy + "-" + mm + "-" + dd;
+    }
+
+    function hasDateArrived(date) {
+      return date <= getLocalDateString();
+    }
+
+    function getInitialDate(deferred = {}, weekRest = {}, crossWeekRest = {}) {
+      const today = getLocalDateString();
+      if (byDateHas(today, deferred, weekRest, crossWeekRest)) return today;
+      return "2026-06-03";
+    }
+
+    function byDateHas(date, deferred = state.deferred, weekRest = state.weekRest, crossWeekRest = state.crossWeekRest) {
+      return isVisibleDate(date, deferred, weekRest, crossWeekRest);
+    }
+
+    function parseDate(value) {
+      const [year, month, day] = value.split("-").map(Number);
+      return new Date(year, month - 1, day);
+    }
+
+    function formatShortDate(value) {
+      const [, month, day] = value.split("-");
+      return month + "." + day;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;");
+    }
+
+    function clamp(num, min, max) {
+      return Math.max(min, Math.min(max, num));
+    }
+
+    function getTodayPlan() {
+      return getEffectiveItem(state.selectedDate) || getEffectiveItem("2026-06-03");
+    }
+
+    function getCurrentPlanDate() {
+      const today = getInitialDate(state.deferred, state.weekRest, state.crossWeekRest);
+      return getEffectiveItem(today) ? today : state.selectedDate;
+    }
+
+    function selectedIndex() {
+      return getVisibleDates().findIndex((date) => date === state.selectedDate);
+    }
+
+    function shiftSelectedDate(delta) {
+      const dates = getVisibleDates();
+      const nextIndex = clamp(selectedIndex() + delta, 0, dates.length - 1);
+      state.selectedDate = dates[nextIndex];
+      state.month = state.selectedDate.slice(0, 7);
+      renderAll();
+    }
+
+    function getVisibleMonths() {
+      return [...new Set(getVisibleDates().map((date) => date.slice(0, 7)))];
+    }
+
+    function shiftMonth(delta) {
+      const months = getVisibleMonths();
+      const currentIndex = months.indexOf(state.month);
+      const nextIndex = clamp(currentIndex + delta, 0, months.length - 1);
+      if (nextIndex === currentIndex) return;
+      const nextMonth = months[nextIndex];
+      const datesInMonth = getVisibleDates().filter((date) => date.startsWith(nextMonth));
+      const selectedDay = state.selectedDate.slice(8);
+      state.month = nextMonth;
+      state.selectedDate = datesInMonth.find((date) => date.slice(8) === selectedDay) || datesInMonth[0];
+      renderAll();
+    }
+
+    function dayDiff(a, b) {
+      return Math.round((parseDate(a) - parseDate(b)) / 86400000);
+    }
+
+    function getStagePercent(stage) {
+      const selected = state.selectedDate;
+      if (dayDiff(selected, stage.start) < 0) return 0;
+      if (dayDiff(selected, stage.end) >= 0) return 100;
+      const range = Math.max(1, dayDiff(stage.end, stage.start) + 1);
+      return clamp(Math.round(((dayDiff(selected, stage.start) + 1) / range) * 100), 0, 100);
+    }
+
+    function getPlannedStudyDates() {
+      return getVisibleDates().filter((date) => {
+        if (date < PLAN[0]["日期"] || date > CALENDAR_END_DATE) return false;
+        const item = getEffectiveItem(date);
+        return item && !["单休", "顺延", "考试"].includes(item["主线模块"]);
+      });
+    }
+
+    function getScheduledPercent() {
+      const plannedDates = getPlannedStudyDates();
+      if (!plannedDates.length) return 0;
+      const current = getLocalDateString();
+      const passed = plannedDates.filter((date) => date <= current).length;
+      return clamp(Math.round((passed / plannedDates.length) * 100), 0, 100);
+    }
+
+    function renderMonthOptions() {
+      const months = getVisibleMonths();
+      const select = document.getElementById("monthSelect");
+      select.innerHTML = months.map((month) => '<option value="' + month + '">' + month + '</option>').join("");
+      select.value = state.month;
+      const monthIndex = months.indexOf(state.month);
+      document.getElementById("prevMonthButton").disabled = monthIndex <= 0;
+      document.getElementById("nextMonthButton").disabled = monthIndex >= months.length - 1;
+    }
+
+    function renderFilters() {
+      const wrap = document.getElementById("filters");
+      wrap.innerHTML = modules.map((module) => {
+        const active = state.filter === module ? " active" : "";
+        return '<button class="chip' + active + '" data-module="' + escapeHtml(module) + '">' + escapeHtml(module) + '</button>';
+      }).join("");
+    }
+
+    function jumpToModule(module) {
+      if (module === "全部") return;
+      const currentMonthMatch = getVisibleDates().find((date) => {
+        const item = getEffectiveItem(date);
+        return date.startsWith(state.month) && item && item["主线模块"] === module;
+      });
+      const firstMatch = currentMonthMatch || getVisibleDates().find((date) => {
+        const item = getEffectiveItem(date);
+        return item && item["主线模块"] === module;
+      });
+      if (firstMatch) {
+        state.selectedDate = firstMatch;
+        state.month = firstMatch.slice(0, 7);
+      }
+    }
+
+    function renderMetrics() {
+      const plannedDates = getPlannedStudyDates();
+      const completedCount = plannedDates.filter((date) => isDayDone(date)).length;
+      const currentDate = getCurrentPlanDate();
+      document.getElementById("metricStudyDays").textContent = String(plannedDates.length);
+      document.getElementById("metricScheduled").textContent = getScheduledPercent() + "%";
+      document.getElementById("metricCompleted").textContent = String(completedCount);
+      document.getElementById("metricModule").textContent = getCurrentModuleName(currentDate);
+      const rangeSummary = document.getElementById("planRangeSummary");
+      if (rangeSummary) {
+        const visibleDates = getVisibleDates();
+        const shifted = getConsumedScheduleDays(state.deferred, state.weekRest, state.crossWeekRest);
+        rangeSummary.textContent =
+          PLAN[0]["日期"] + " 至 " + visibleDates[visibleDates.length - 1] +
+          " · " + plannedDates.length + " 个计划学习日" +
+          (shifted ? " · 已整体后移 " + shifted + " 天（顺延/考试日）" : "") +
+          " · 后续空白可编辑";
+      }
+      document.getElementById("prevDayButton").disabled = selectedIndex() <= 0;
+      document.getElementById("nextDayButton").disabled = selectedIndex() >= getVisibleDates().length - 1;
+    }
+
+    function renderToday() {
+      const item = getTodayPlan();
+      const [year, month, day] = item["日期"].split("-");
+      document.getElementById("dateMonth").textContent = year + "-" + month;
+      document.getElementById("dateDay").textContent = day;
+      document.getElementById("dateWeek").textContent = item["星期"];
+      document.getElementById("todayBadge").textContent = item["主线模块"];
+      const extras = item["主线模块"] === "考试" ? [] : getCustomEntry(item["日期"]).extras;
+      const canCheck = item["主线模块"] !== "顺延" && item["主线模块"] !== "考试";
+      document.getElementById("todayTasks").innerHTML = item["主线模块"] === "考试"
+        ? '<div class="task-line"><span class="task-label"><span>考试日</span></span><div class="task-text">今天不安排学习任务，专心考试和休整。</div></div>'
+        : getVisibleTaskLabels(item).map((label) => taskLineHtml(label, getTaskText(item, label), item["日期"], canCheck, { editable: false, context: "today" })).join("") +
+          extras.map((task) => extraTaskLineHtml(item["日期"], task, "today")).join("");
+    }
+
+    function displayTaskLabel(label, item = null, text = "") {
+      if (label === "下午2.5小时行测") {
+        return shouldUseAfternoonChecklist(item, text) ? "下午3小时行测" : "下午2.5小时行测";
+      }
+      if (label === "晚上1.5小时申论") return shouldUseEveningGroup(item) ? "晚上申论" : "晚上1.5小时申论";
+      return label;
+    }
+
+    function shouldUseAfternoonChecklist(item, text) {
+      if (!item) return false;
+      if (item["主线模块"] === "单休" || item["主线模块"] === "顺延" || item["主线模块"] === "模考" || item["主线模块"] === "事业编套题" || item["主线模块"] === "套题阶段") return false;
+      if (item["日期"] < AFTERNOON_CHECKLIST_START_DATE) return false;
+      return !!text || item["主线模块"] === "后续安排";
+    }
+
+    function shouldUseEveningGroup(item) {
+      if (!item) return false;
+      if (item["主线模块"] === "单休" || item["主线模块"] === "顺延") return false;
+      return item["日期"] >= AFTERNOON_CHECKLIST_START_DATE;
+    }
+
+    function taskActionInfo(label, date, status, withCheck, options = {}, includeCheck = true) {
+      const context = options.context || "detail";
+      const customEntry = getCustomEntry(date);
+      const changed = Object.prototype.hasOwnProperty.call(customEntry.overrides, label);
+      const scheduledInfo = getScheduledTaskInfo(date, label);
+      const carryover = !changed && scheduledInfo.fromDate
+        ? { fromDate: scheduledInfo.fromDate, originalText: scheduledInfo.originalText }
+        : null;
+      const check = withCheck && includeCheck
+        ? statusControlsHtml({
+            name: "task-" + context + "-" + date + "-" + label,
+            doneChecked: status === "done",
+            unfinishedChecked: status === "unfinished",
+            attrs: 'data-task="' + escapeHtml(label) + '" data-task-date="' + escapeHtml(date) + '"',
+            className: "taskStatusRadio",
+          })
+        : '';
+      const isFollowup = getEffectiveItem(date)?.["主线模块"] === "后续安排";
+      const taskDeferred = isTaskDeferralAnchor(date, label);
+      const allowManage = options.editable && context !== "today";
+      const defer = allowManage && withCheck && taskLabels.includes(label) && !isCalendarRestDate(date) && !isFollowup && getNextVisibleDate(date)
+        ? (taskDeferred
+          ? '<button class="link-btn danger" data-cancel-defer-task="' + escapeHtml(label) + '" data-cancel-defer-task-date="' + escapeHtml(date) + '">取消顺延</button>'
+          : '<button class="link-btn" data-defer-task="' + escapeHtml(label) + '" data-defer-task-date="' + escapeHtml(date) + '">顺延</button>')
+        : '';
+      const actions = allowManage
+        ? '<span class="task-actions"><button class="link-btn" data-edit-task="' + escapeHtml(label) + '" data-edit-task-date="' + escapeHtml(date) + '">修改</button>' + defer + (changed ? '<button class="link-btn danger" data-reset-task="' + escapeHtml(label) + '" data-reset-task-date="' + escapeHtml(date) + '">恢复</button>' : '') + check + '</span>'
+        : check;
+      const carryoverNote = context !== "today" && carryover
+        ? '<div class="subline">顺延自 ' + escapeHtml(formatShortDate(carryover.fromDate)) + ' · 原计划：' + escapeHtml(carryover.originalText) + '</div>'
+        : '';
+      return { actions, carryoverNote };
+    }
+
+    function afternoonGroupHtml(label, text, date, withCheck, options = {}) {
+      const item = getEffectiveItem(date);
+      const parentStatus = getTaskStatus(date, label);
+      const parentInfo = taskActionInfo(label, date, parentStatus, withCheck, options, false);
+      const activeSubtasks = getAfternoonSubtasks(date, item);
+      const modeSwitch = usesAfternoonModeChoice(item)
+        ? '<div class="mode-switch" aria-label="选择下午行测模式">' + Object.entries(afternoonModes).map(([modeKey, mode]) =>
+            '<button class="mode-btn ' + (getAfternoonMode(date) === modeKey ? "active" : "") + '" type="button" data-afternoon-mode="' + escapeHtml(modeKey) + '" data-afternoon-mode-date="' + escapeHtml(date) + '">' + escapeHtml(mode.label) + '</button>'
+          ).join("") + '</div>'
+        : '';
+      const anyUnfinished = parentStatus === "unfinished" || activeSubtasks.some((task) => getTaskStatus(date, task.key) === "unfinished");
+      const subtasks = activeSubtasks.map((task) => {
+        const status = getTaskStatus(date, task.key);
+        const controls = withCheck
+          ? statusControlsHtml({
+              name: "task-" + (options.context || "detail") + "-" + date + "-" + task.key,
+              doneChecked: status === "done",
+              unfinishedChecked: status === "unfinished",
+              attrs: 'data-task="' + escapeHtml(task.key) + '" data-task-date="' + escapeHtml(date) + '"',
+              className: "taskStatusRadio",
+          })
+          : '';
+        return '<div class="subtask-row ' + (status === "unfinished" ? "unfinished" : "") + '">' +
+          '<div class="subtask-main">' + (task.time ? '<span class="subtask-time">' + escapeHtml(task.time) + '</span>' : '') + '<span>' + escapeHtml(task.title) + '</span></div>' +
+          '<span class="task-actions">' + controls + '</span>' +
+        '</div>';
+      }).join("");
+      const weeklyRotation = usesWeeklyAfternoonRotation(item) ? getWeeklyAfternoonRotation(date, item) : null;
+      const currentModeText = usesAfternoonModeChoice(item) ? afternoonModes[getAfternoonMode(date)].text : "";
+      const note = weeklyRotation
+        ? '<div class="subtask-text">' + escapeHtml(weeklyRotation.text) + '。数量单题最多思考4分钟，图推单题最多3分钟；到时标记并看解析。其余时间用于休息和卡题缓冲。</div>'
+        : usesAfternoonModeChoice(item)
+        ? '<div class="subtask-text">' + escapeHtml(currentModeText) + '</div>'
+        : (text && text !== LEGACY_AFTERNOON_TASK_TEXT
+        ? '<div class="subtask-text">备注：' + escapeHtml(text) + '</div>'
+        : '<div class="subtask-text">余 10min 用来错题标记 / 缓冲收尾。</div>');
+      return '<div class="task-line task-group afternoon ' + (anyUnfinished ? "unfinished" : "") + '">' +
+        '<span class="task-label"><span>' + escapeHtml(displayTaskLabel(label, item, text)) + '</span>' + parentInfo.actions + '</span>' +
+        modeSwitch +
+        '<div class="subtask-list">' + subtasks + '</div>' +
+        note +
+        parentInfo.carryoverNote +
+      '</div>';
+    }
+
+    function eveningGroupHtml(date, withCheck, options = {}) {
+      const item = getEffectiveItem(date);
+      const eveningParts = [
+        { label: "晚上1.5小时申论", title: "听课/申论" },
+        { label: "申论跟练打卡", title: "申论跟练打卡" },
+      ];
+      const anyUnfinished = eveningParts.some((part) => getTaskStatus(date, part.label) === "unfinished");
+      const rows = eveningParts.map((part) => {
+        const text = getTaskText(item, part.label);
+        const status = getTaskStatus(date, part.label);
+        const info = taskActionInfo(part.label, date, status, withCheck, options, true);
+        return '<div class="subtask-row evening-subtask ' + (status === "unfinished" ? "unfinished" : "") + '">' +
+          '<div class="subtask-head"><div class="subtask-main"><span>' + escapeHtml(part.title) + '</span></div>' +
+          info.actions + '</div>' +
+          '<div class="subtask-text">' + (text ? escapeHtml(text) : '<span class="empty-task-text">点击修改填写安排</span>') + info.carryoverNote + '</div>' +
+        '</div>';
+      }).join("");
+      return '<div class="task-line task-group evening ' + (anyUnfinished ? "unfinished" : "") + '">' +
+        '<span class="task-label"><span>晚上申论</span></span>' +
+        '<div class="subtask-list">' + rows + '</div>' +
+      '</div>';
+    }
+
+    function taskLineHtml(label, text, date, withCheck, options = {}) {
+      const item = getEffectiveItem(date);
+      if (label === "下午2.5小时行测" && shouldUseAfternoonChecklist(item, text)) {
+        return afternoonGroupHtml(label, text, date, withCheck, options);
+      }
+      if (label === "晚上1.5小时申论" && shouldUseEveningGroup(item)) {
+        return eveningGroupHtml(date, withCheck, options);
+      }
+      const status = getTaskStatus(date, label);
+      const info = taskActionInfo(label, date, status, withCheck, options, true);
+      const body = text ? escapeHtml(text) : '<span class="empty-task-text">点击修改填写安排</span>';
+      const lineClass = "task-line " + (plannedExtraLabels.includes(label) ? "followup-task " : "") + (status === "unfinished" ? "unfinished" : "");
+      return '<div class="' + lineClass.trim() + '"><span class="task-label"><span>' + escapeHtml(displayTaskLabel(label, item, text)) + '</span>' + info.actions + '</span><div class="task-text">' + body + info.carryoverNote + '</div></div>';
+    }
+
+    function statusControlsHtml({ name, doneChecked, unfinishedChecked, attrs, className }) {
+      return '<label class="task-check done"><input class="' + className + '" type="radio" name="' + escapeHtml(name) + '" value="done" ' + attrs + ' ' + (doneChecked ? "checked" : "") + '><span>完成</span></label>' +
+        '<label class="task-check unfinished"><input class="' + className + '" type="radio" name="' + escapeHtml(name) + '" value="unfinished" ' + attrs + ' ' + (unfinishedChecked ? "checked" : "") + '><span>未完成</span></label>';
+    }
+
+    function extraTaskLineHtml(date, task, context = "detail") {
+      const status = normalizeStatus(task.status ?? task.done);
+      const controls = statusControlsHtml({
+        name: "extra-" + context + "-" + date + "-" + task.id,
+        doneChecked: status === "done",
+        unfinishedChecked: status === "unfinished",
+        attrs: 'data-extra-id="' + escapeHtml(task.id) + '" data-extra-date="' + escapeHtml(date) + '"',
+        className: "extraStatusRadio",
+      });
+      const deleteButton = context === "today" ? "" : '<button class="link-btn danger" data-delete-extra="' + escapeHtml(task.id) + '" data-delete-extra-date="' + escapeHtml(date) + '">删除</button>';
+      return '<div class="task-line extra ' + (status === "unfinished" ? "unfinished" : "") + '"><span class="task-label"><span>补充任务</span><span class="task-actions">' + controls + deleteButton + '</span></span><div class="task-text">' + escapeHtml(task.text) + '</div></div>';
+    }
+
+    function renderCalendar() {
+      const [year, month] = state.month.split("-").map(Number);
+      const first = new Date(year, month - 1, 1);
+      const daysInMonth = new Date(year, month, 0).getDate();
+      const mondayOffset = (first.getDay() + 6) % 7;
+      const cells = [];
+
+      weekdayLabels.forEach((label) => cells.push('<div class="weekday">' + label + '</div>'));
+      for (let i = 0; i < mondayOffset; i++) cells.push('<div class="day blank"></div>');
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const date = year + "-" + String(month).padStart(2, "0") + "-" + String(day).padStart(2, "0");
+        const item = getEffectiveItem(date);
+        if (!item) {
+          cells.push('<div class="day blank"></div>');
+          continue;
+        }
+        const module = item["主线模块"];
+        const suiteChoice = module === "套题阶段" ? getSuiteChoice(date) : "";
+        const dotModule = suiteChoice ? (suiteChoice === "shenlun" ? "申论套题" : "行测套题") : module;
+        const hidden = state.filter !== "全部" && state.filter !== module;
+        const classes = [
+          "day",
+          date === state.selectedDate ? "selected" : "",
+          date === getCurrentPlanDate() ? "today" : "",
+          isDateDeferred(date) ? "deferred-day" : (hasDateArrived(date) ? getCalendarStatus(date) : ""),
+          module === "单休" ? "rest" : "",
+          module === "考试" ? "exam" : "",
+          isWeeklyRestDate(date) ? "week-rest" : "",
+          (isWeeklyWorkSunday(date) || isCrossWeekWorkSunday(date)) ? "week-work-sunday" : "",
+          module === "后续安排" ? "followup" : "",
+        ].filter(Boolean).join(" ");
+        cells.push(
+          '<button class="' + classes + '" data-date="' + date + '" style="' + (hidden ? "opacity:.24" : "") + '">' +
+            '<span class="day-number"><span>' + day + '</span><span class="status-dot dot-' + escapeHtml(dotModule) + '"></span></span>' +
+            '<span class="day-subject">' + escapeHtml(module) + '</span>' +
+            '<span class="day-subject' + (suiteChoice ? " suite-tag-" + suiteChoice : "") + '">' + escapeHtml(item["阶段"]) + '</span>' +
+          '</button>'
+        );
+      }
+      document.getElementById("calendar").innerHTML = cells.join("");
+    }
+
+    function renderDetail() {
+      const item = getTodayPlan();
+      const examActive = isExamDay(item["日期"]);
+      const extras = examActive ? [] : getCustomEntry(item["日期"]).extras;
+      const canCheck = item["主线模块"] !== "顺延" && item["主线模块"] !== "考试";
+      const crossSwapActive = isCrossWeekWorkSunday(item["日期"]) || isCrossWeekRestDate(item["日期"]);
+      const weekSwapText = isWeeklyRestDate(item["日期"])
+        ? " · 本周换休"
+        : (isWeeklyWorkSunday(item["日期"])
+          ? " · 本周补学习日"
+          : (isCrossWeekWorkSunday(item["日期"]) ? " · 休息挪到下周一" : (isCrossWeekRestDate(item["日期"]) ? " · 跨周换休" : "")));
+      const sourceText = item["来源日期"] && item["来源日期"] !== item["日期"] ? " · 原计划 " + formatShortDate(item["来源日期"]) : "";
+      const examDayControl = canSetExamDay(item["日期"])
+        ? '<button class="btn ' + (examActive ? "primary" : "") + '" data-exam-day="' + (examActive ? "off" : "on") + '">' + (examActive ? "取消考试日" : "设为考试日") + '</button>'
+        : "";
+      const deferButton = examActive || isCalendarRestDate(item["日期"]) || item["主线模块"] === "后续安排"
+        ? ""
+        : (isDateDeferred(item["日期"])
+          ? '<button class="btn" data-cancel-defer-date="' + escapeHtml(item["日期"]) + '">取消本日顺延</button>'
+          : '<button class="btn" data-defer-date="' + escapeHtml(item["日期"]) + '">从本日顺延一天</button>');
+      const doneControl = canCheck ? '<label class="check-row"><input id="doneCheck" type="checkbox" ' + (isDayDone(item["日期"]) ? "checked" : "") + '><span>全部完成</span></label>' : "";
+      const sundayMode = getSundayMode(item["日期"]);
+      const sundayModeControl = !examActive && isSunday(item["日期"]) && !isWeeklyWorkSunday(item["日期"]) && !isCrossWeekWorkSunday(item["日期"])
+        ? '<div class="mode-switch" aria-label="周日安排">' +
+            '<button class="mode-option ' + (sundayMode === "rest" ? "active" : "") + '" data-sunday-mode="rest">休息</button>' +
+            '<button class="mode-option ' + (sundayMode === "mock" ? "active" : "") + '" data-sunday-mode="mock">模考</button>' +
+          '</div>'
+        : "";
+      const suiteChoice = getSuiteChoice(item["日期"]);
+      const suiteChoiceControl = !examActive && item["主线模块"] === "套题阶段" && !isCalendarRestDate(item["日期"])
+        ? '<div class="mode-switch" aria-label="套题类型">' +
+            '<button class="mode-option ' + (suiteChoice === "xingce" ? "active" : "") + '" data-suite-choice="xingce">行测套题</button>' +
+            '<button class="mode-option ' + (suiteChoice === "shenlun" ? "active" : "") + '" data-suite-choice="shenlun">申论套题</button>' +
+          '</div>'
+        : "";
+      const weekSwapActive = isWeekSwapActive(item["日期"]);
+      const weekRestControl = !examActive && (!isSunday(item["日期"]) || weekSwapActive)
+        ? '<div class="week-rest-control">' +
+            (!isSunday(item["日期"])
+              ? '<button class="btn ' + (isWeeklyRestDate(item["日期"]) ? "primary" : "") + '" data-set-week-rest="' + escapeHtml(item["日期"]) + '">' + (weekSwapActive ? "改为这天休息" : "本周换休到这天") + '</button>'
+              : '') +
+            (weekSwapActive ? '<button class="btn" data-clear-week-rest="' + escapeHtml(item["日期"]) + '">恢复本周默认</button>' : '') +
+          '</div>'
+        : "";
+      const crossWeekControl = !examActive && (isSunday(item["日期"]) || crossSwapActive)
+        ? '<div class="week-rest-control">' +
+            (isSunday(item["日期"]) && !isWeeklyWorkSunday(item["日期"]) && !isCrossWeekWorkSunday(item["日期"])
+              ? '<button class="btn" data-set-cross-week-rest="' + escapeHtml(item["日期"]) + '">休息挪到下周一</button>'
+              : '') +
+            (crossSwapActive ? '<button class="btn" data-clear-cross-week-rest="' + escapeHtml(item["日期"]) + '">恢复周日休息</button>' : '') +
+          '</div>'
+        : "";
+      const taskStackHtml = examActive
+        ? '<div class="task-stack"><div class="task-line"><span class="task-label"><span>考试日</span></span><div class="task-text">今天不安排学习任务，专心考试和休整。取消考试日后，原来的排期和你手动编辑过的内容会恢复显示。</div></div></div>'
+        : '<div class="task-stack">' +
+            getVisibleTaskLabels(item).map((label) => taskLineHtml(label, getTaskText(item, label), item["日期"], canCheck, { editable: canCheck, context: "detail" })).join("") +
+            extras.map((task) => extraTaskLineHtml(item["日期"], task, "detail")).join("") +
+            '<div class="task-line"><span class="task-label"><span>复盘/当日重点</span></span><div class="task-text">' + escapeHtml(item["复盘/当日重点"]) + '</div></div>' +
+          '</div>';
+      const extraFormHtml = examActive ? "" : '<div class="extra-form"><textarea id="extraTaskText" class="textarea" placeholder="写下临时补充任务，比如：补做资料错题10道"></textarea><button id="addExtraTaskButton" class="btn primary">添加</button></div>';
+      document.getElementById("selectedBadge").textContent = item["主线模块"];
+      document.getElementById("detail").innerHTML =
+        '<div class="detail-top">' +
+          '<div><strong>' + escapeHtml(formatShortDate(item["日期"]) + " " + item["星期"]) + '</strong><div class="subline">' + escapeHtml(item["阶段"] + sourceText + weekSwapText) + '</div></div>' +
+          '<div class="detail-actions">' + examDayControl + sundayModeControl + suiteChoiceControl + weekRestControl + crossWeekControl + deferButton + doneControl + '</div>' +
+        '</div>' +
+        taskStackHtml +
+        extraFormHtml;
+    }
+
+    function renderMacroTimeline() {
+      const cells = [
+        '<div class="timeline-head">时间</div>',
+        ...MACRO_TIMELINE.months.map((month) => '<div class="timeline-head">' + escapeHtml(month.label) + '</div>'),
+      ];
+
+      MACRO_TIMELINE.rows.forEach((row) => {
+        cells.push('<div class="timeline-row-label ' + escapeHtml(row.id) + '">' + escapeHtml(row.label) + '</div>');
+        MACRO_TIMELINE.months.forEach((month) => {
+          const changed = isTimelineChanged(row.id, month.key);
+          cells.push(
+            '<div class="timeline-cell ' + escapeHtml(row.id) + (changed ? " changed" : "") + '">' +
+              '<textarea class="timeline-input" data-timeline-row="' + escapeHtml(row.id) + '" data-timeline-month="' + escapeHtml(month.key) + '">' + escapeHtml(getTimelineText(row.id, month.key)) + '</textarea>' +
+              '<button class="link-btn danger timeline-reset" data-reset-timeline-row="' + escapeHtml(row.id) + '" data-reset-timeline-month="' + escapeHtml(month.key) + '">恢复</button>' +
+            '</div>'
+          );
+        });
+      });
+
+      document.getElementById("macroTimeline").innerHTML = cells.join("");
+    }
+
+    function renderLearnedContent() {
+      const cells = [
+        '<div class="learned-head">模块</div>',
+        ...LEARNED_COLUMNS.map((column) => '<div class="learned-head">' + escapeHtml(column.label) + '</div>'),
+      ];
+
+      LEARNED_ROWS.forEach((row) => {
+        cells.push('<div class="learned-row-label">' + escapeHtml(row) + '</div>');
+        LEARNED_COLUMNS.forEach((column) => {
+          cells.push(
+            '<div class="learned-cell">' +
+              '<textarea class="learned-input" data-learned-row="' + escapeHtml(row) + '" data-learned-column="' + escapeHtml(column.id) + '" placeholder="可填写笔记、错题、资料位置…">' + escapeHtml(getLearnedCell(row, column.id)) + '</textarea>' +
+            '</div>'
+          );
+        });
+      });
+
+      document.getElementById("learnedContentGrid").innerHTML = cells.join("");
+    }
+
+    function renderBrownNoise() {
+      document.getElementById("brownNoiseButton").textContent = audioState.playing ? "Ⅱ" : "▶";
+      document.getElementById("brownNoiseBadge").textContent = audioState.playing ? "播放中" : "待机";
+      document.getElementById("noiseOrb").classList.toggle("playing", audioState.playing);
+      if (audioState.element) audioState.element.volume = 0.72;
+    }
+
+    function getBrownNoiseAudio() {
+      if (!audioState.element) {
+        const audio = new Audio(BROWN_NOISE_SRC);
+        audio.loop = true;
+        audio.preload = "auto";
+        audio.volume = 0.72;
+        audio.addEventListener("pause", () => {
+          audioState.playing = false;
+          renderBrownNoise();
+        });
+        audio.addEventListener("play", () => {
+          audioState.playing = true;
+          renderBrownNoise();
+        });
+        audioState.element = audio;
+      }
+      return audioState.element;
+    }
+
+    async function toggleBrownNoise() {
+      const hint = document.getElementById("brownNoiseHint");
+      const audio = getBrownNoiseAudio();
+      if (!audio.paused) {
+        audio.pause();
+        hint.textContent = "棕色噪音";
+        return;
+      }
+      try {
+        audio.currentTime = audio.currentTime || 0;
+        await audio.play();
+        hint.textContent = "正在播放";
+      } catch {
+        hint.textContent = "再点一次播放";
+        audioState.playing = false;
+        renderBrownNoise();
+      }
+    }
+
+    function positiveModulo(value, modulo) {
+      return ((value % modulo) + modulo) % modulo;
+    }
+
+    function getCyclePhase(cycleDay, cycleLength, periodLength) {
+      const ovulationDay = Math.max(periodLength + 2, cycleLength - 14);
+      if (cycleDay <= periodLength) return "period";
+      if (cycleDay >= cycleLength - 4) return "premenstrual";
+      if (Math.abs(cycleDay - ovulationDay) <= 1) return "ovulation";
+      if (cycleDay < ovulationDay) return "follicular";
+      return "luteal";
+    }
+
+    function getCycleInfo(date = state.selectedDate) {
+      const profile = getCycleProfile();
+      const cycleLength = Math.min(40, Math.max(21, Number(profile.cycleLength) || 28));
+      const periodLength = Math.min(10, Math.max(2, Number(profile.periodLength) || 5));
+      if (!profile.startDate) {
+        return {
+          phaseKey: "unknown",
+          cycleDay: null,
+          cycleLength,
+          periodLength,
+          profile: cyclePhaseProfiles.unknown,
+        };
+      }
+      const diff = dayDiff(date, profile.startDate);
+      const cycleDay = positiveModulo(diff, cycleLength) + 1;
+      const phaseKey = getCyclePhase(cycleDay, cycleLength, periodLength);
+      return {
+        phaseKey,
+        cycleDay,
+        cycleLength,
+        periodLength,
+        profile: cyclePhaseProfiles[phaseKey],
+      };
+    }
+
+    function renderCycleSettings() {
+      const profile = getCycleProfile();
+      const startInput = document.getElementById("cycleStartInput");
+      const cycleLengthInput = document.getElementById("cycleLengthInput");
+      const periodLengthInput = document.getElementById("periodLengthInput");
+      const dateBadge = document.getElementById("radarDateBadge");
+      if (startInput) startInput.value = profile.startDate || "";
+      if (cycleLengthInput) cycleLengthInput.value = profile.cycleLength || 28;
+      if (periodLengthInput) periodLengthInput.value = profile.periodLength || 5;
+      if (dateBadge) dateBadge.textContent = formatShortDate(state.selectedDate);
+    }
+
+    function buildCycleGauge(value) {
+      const safe = clamp(Number(value) || 0, 0, 100);
+      const dash = 2 * Math.PI * 26;
+      const offset = dash * (1 - safe / 100);
+      return '<svg class="cycle-gauge" viewBox="0 0 70 70" aria-label="状态仪表">' +
+        '<circle cx="35" cy="35" r="26" fill="none" stroke="#edf2f7" stroke-width="8"></circle>' +
+        '<circle cx="35" cy="35" r="26" fill="none" stroke="url(#cycleGradient)" stroke-width="8" stroke-linecap="round" stroke-dasharray="' + dash + '" stroke-dashoffset="' + offset + '" transform="rotate(-90 35 35)"></circle>' +
+        '<defs><linearGradient id="cycleGradient" x1="0" x2="1"><stop offset="0%" stop-color="#818cf8"></stop><stop offset="55%" stop-color="#fb7185"></stop><stop offset="100%" stop-color="#34d399"></stop></linearGradient></defs>' +
+        '<line x1="35" y1="35" x2="56" y2="35" stroke="#1f2937" stroke-width="3" stroke-linecap="round"></line>' +
+        '<circle cx="35" cy="35" r="4" fill="#1f2937"></circle>' +
+      '</svg>';
+    }
+
+    function buildCycleBar(label, value) {
+      const safe = clamp(Number(value) || 0, 0, 100);
+      return '<div>' +
+        '<div class="cycle-bar-label"><span>' + escapeHtml(label) + '</span><span>' + safe + '%</span></div>' +
+        '<div class="cycle-bar-track"><div class="cycle-bar-fill" style="width:' + safe + '%"></div></div>' +
+      '</div>';
+    }
+
+    function renderHormoneRadar() {
+      renderCycleSettings();
+      const info = getCycleInfo();
+      const dayLabel = info.cycleDay ? "DAY " + info.cycleDay : "SETUP";
+      const metrics = info.profile.metrics;
+      document.getElementById("cycleHero").innerHTML =
+        '<div class="cycle-icon">' + escapeHtml(info.profile.icon) + '</div>' +
+        '<div class="cycle-copy"><div class="cycle-day">' + escapeHtml(dayLabel) + ' · ' + escapeHtml(info.profile.label) + '</div>' +
+        '<div class="cycle-name">' + escapeHtml(info.profile.moodName) + '</div></div>' +
+        buildCycleGauge(metrics.baseline);
+      const note = document.getElementById("cycleNote");
+      const bars = document.getElementById("cycleBars");
+      const tips = document.getElementById("cycleTips");
+      if (note) note.textContent = info.profile.note;
+      if (bars) {
+        bars.innerHTML =
+          buildCycleBar("生活底盘", metrics.baseline) +
+          buildCycleBar("执行功能", metrics.executive);
+      }
+      if (tips) {
+        tips.innerHTML =
+          '<div class="cycle-tip"><small>练什么</small>' + escapeHtml(info.profile.train) + '</div>' +
+          '<div class="cycle-tip"><small>吃什么</small>' + escapeHtml(info.profile.food) + '</div>';
+      }
+    }
+
+    function renderBrainDump() {
+      const count = document.getElementById("brainDumpCount");
+      const list = document.getElementById("brainDumpList");
+      if (!count || !list) return;
+      const tools = getToolsForDate();
+      const items = tools.brainDump || [];
+      count.textContent = items.length + " 条";
+      list.innerHTML = items.length
+        ? items.map((item) => '<div class="brain-item"><span>' + escapeHtml(item.text) + '</span><button class="link-btn danger" data-delete-brain="' + escapeHtml(item.id) + '">删除</button></div>').join("")
+        : '<div class="brain-item"><span>这里先空着</span></div><div class="brain-item"><span>想到什么就扔进来</span></div>';
+    }
+
+    function addBrainDumpFromInput() {
+      const input = document.getElementById("brainDumpText");
+      if (!input) return;
+      const text = input.value.trim();
+      if (!text) return;
+      const tools = getToolsForDate();
+      tools.brainDump.unshift({ id: String(Date.now()), text });
+      input.value = "";
+      saveTools();
+      renderBrainDump();
+    }
+
+    function extractBvid(input) {
+      const text = (input || "").trim();
+      const match = text.match(/BV[0-9A-Za-z]{10}/);
+      return match ? match[0] : "";
+    }
+
+    function renderFocusVideo() {
+      const video = getFocusVideo();
+      const frame = document.getElementById("focusVideoFrame");
+      const caption = document.getElementById("focusVideoCaption");
+      const input = document.getElementById("focusVideoUrl");
+      frame.src = "https://player.bilibili.com/player.html?isOutside=true&bvid=" + encodeURIComponent(video.bvid) + "&page=1&autoplay=0";
+      caption.textContent = video.caption || "当前 B 站背景音";
+      input.value = video.url || "";
+    }
+
+    function updateFocusVideoFromInput() {
+      const input = document.getElementById("focusVideoUrl");
+      const raw = input.value.trim();
+      const bvid = extractBvid(raw);
+      const caption = document.getElementById("focusVideoCaption");
+      if (!bvid) {
+        caption.textContent = "没识别到 BV 号，请粘贴完整 B 站视频链接";
+        return;
+      }
+      state.tools.focusVideo = {
+        bvid,
+        url: raw,
+        caption: "自定义 B 站背景音：" + bvid,
+      };
+      saveTools();
+      renderFocusVideo();
+    }
+
+    function renderAdhdTools() {
+      renderBrownNoise();
+      renderHormoneRadar();
+      renderFocusVideo();
+    }
+
+    function syncDashboardHeights() {
+      const todayPanel = document.getElementById("todayPanel");
+      const todaySideStack = document.getElementById("todaySideStack");
+      const calendarPanel = document.getElementById("calendarPanel");
+      const detailPanel = document.getElementById("selectedDatePanel");
+      if (window.innerWidth <= 980) {
+        if (todaySideStack) todaySideStack.style.height = "";
+        if (detailPanel) detailPanel.style.height = "";
+        return;
+      }
+      if (todayPanel && todaySideStack) {
+        todaySideStack.style.height = "";
+        todaySideStack.style.height = todayPanel.offsetHeight + "px";
+      }
+      if (calendarPanel && detailPanel) {
+        detailPanel.style.height = "";
+        detailPanel.style.height = calendarPanel.offsetHeight + "px";
+      }
+    }
+
+    function scheduleDashboardHeightSync() {
+      requestAnimationFrame(() => {
+        syncDashboardHeights();
+        requestAnimationFrame(syncDashboardHeights);
+      });
+    }
+
+    function renderAll() {
+      clearScheduleCache();
+      renderMonthOptions();
+      renderFilters();
+      renderMetrics();
+      renderToday();
+      renderCalendar();
+      renderDetail();
+      renderLearnedContent();
+      renderMacroTimeline();
+      renderAdhdTools();
+      renderSyncPanel();
+      scheduleDashboardHeightSync();
+    }
+
+    document.addEventListener("click", (event) => {
+      const day = event.target.closest("[data-date]");
+      if (day && day.dataset.date) {
+        state.selectedDate = day.dataset.date;
+        state.month = state.selectedDate.slice(0, 7);
+        renderAll();
+      }
+
+      const chip = event.target.closest("[data-module]");
+      if (chip) {
+        state.filter = chip.dataset.module;
+        jumpToModule(state.filter);
+        renderAll();
+      }
+
+      const editTask = event.target.closest("[data-edit-task]");
+      if (editTask) {
+        const date = editTask.dataset.editTaskDate || state.selectedDate;
+        const item = getEffectiveItem(date) || getTodayPlan();
+        const label = editTask.dataset.editTask;
+        const next = window.prompt("修改任务", getTaskText(item, label));
+        if (next !== null) {
+          setTaskOverride(date, label, next, getScheduledTaskInfo(date, label).text);
+          renderAll();
+        }
+      }
+
+      const resetTask = event.target.closest("[data-reset-task]");
+      if (resetTask) {
+        clearTaskOverride(resetTask.dataset.resetTaskDate || state.selectedDate, resetTask.dataset.resetTask);
+        renderAll();
+      }
+
+      const deferTask = event.target.closest("[data-defer-task]");
+      if (deferTask) {
+        const date = deferTask.dataset.deferTaskDate || state.selectedDate;
+        const ok = deferSingleTask(date, deferTask.dataset.deferTask);
+        if (ok) renderAll();
+      }
+
+      const cancelDeferTask = event.target.closest("[data-cancel-defer-task]");
+      if (cancelDeferTask) {
+        const date = cancelDeferTask.dataset.cancelDeferTaskDate || state.selectedDate;
+        const ok = cancelSingleTaskDeferral(date, cancelDeferTask.dataset.cancelDeferTask);
+        if (ok) renderAll();
+      }
+
+      const afternoonModeButton = event.target.closest("[data-afternoon-mode]");
+      if (afternoonModeButton) {
+        setAfternoonMode(afternoonModeButton.dataset.afternoonModeDate || state.selectedDate, afternoonModeButton.dataset.afternoonMode);
+        renderAll();
+      }
+
+      const deleteExtra = event.target.closest("[data-delete-extra]");
+      if (deleteExtra) {
+        deleteExtraTask(deleteExtra.dataset.deleteExtraDate || state.selectedDate, deleteExtra.dataset.deleteExtra);
+        renderAll();
+      }
+
+      const resetTimeline = event.target.closest("[data-reset-timeline-row]");
+      if (resetTimeline) {
+        resetTimelineText(resetTimeline.dataset.resetTimelineRow, resetTimeline.dataset.resetTimelineMonth);
+        renderAll();
+      }
+
+      const deferButton = event.target.closest("[data-defer-date]");
+      if (deferButton) {
+        deferDate(deferButton.dataset.deferDate);
+        renderAll();
+      }
+
+      const cancelDeferButton = event.target.closest("[data-cancel-defer-date]");
+      if (cancelDeferButton) {
+        cancelDeferredDate(cancelDeferButton.dataset.cancelDeferDate);
+        renderAll();
+      }
+
+      const sundayModeButton = event.target.closest("[data-sunday-mode]");
+      if (sundayModeButton) {
+        setSundayMode(state.selectedDate, sundayModeButton.dataset.sundayMode);
+        renderAll();
+      }
+
+      const suiteChoiceButton = event.target.closest("[data-suite-choice]");
+      if (suiteChoiceButton) {
+        setSuiteChoice(state.selectedDate, suiteChoiceButton.dataset.suiteChoice);
+        renderAll();
+      }
+
+      const examDayButton = event.target.closest("[data-exam-day]");
+      if (examDayButton) {
+        setExamDay(state.selectedDate, examDayButton.dataset.examDay === "on");
+        renderAll();
+      }
+
+      const setWeekRestButton = event.target.closest("[data-set-week-rest]");
+      if (setWeekRestButton) {
+        setWeekRestDate(setWeekRestButton.dataset.setWeekRest);
+        renderAll();
+      }
+
+      const clearWeekRestButton = event.target.closest("[data-clear-week-rest]");
+      if (clearWeekRestButton) {
+        clearWeekRestDate(clearWeekRestButton.dataset.clearWeekRest);
+        renderAll();
+      }
+
+      const setCrossWeekRestButton = event.target.closest("[data-set-cross-week-rest]");
+      if (setCrossWeekRestButton) {
+        setCrossWeekRestToNextMonday(setCrossWeekRestButton.dataset.setCrossWeekRest);
+        renderAll();
+      }
+
+      const clearCrossWeekRestButton = event.target.closest("[data-clear-cross-week-rest]");
+      if (clearCrossWeekRestButton) {
+        clearCrossWeekRest(clearCrossWeekRestButton.dataset.clearCrossWeekRest);
+        renderAll();
+      }
+
+      if (event.target.id === "addExtraTaskButton") {
+        const input = document.getElementById("extraTaskText");
+        addExtraTask(state.selectedDate, input.value);
+        renderAll();
+      }
+
+      if (event.target.id === "brownNoiseButton") {
+        toggleBrownNoise();
+      }
+
+      if (event.target.id === "addBrainDumpButton") {
+        addBrainDumpFromInput();
+      }
+
+      if (event.target.id === "updateFocusVideoButton") {
+        updateFocusVideoFromInput();
+      }
+
+      if (event.target.id === "syncToggle") {
+        const popover = document.getElementById("syncPopover");
+        popover.hidden = !popover.hidden;
+        if (!popover.hidden) {
+          renderSyncPanel();
+          setSyncStatus(state.sync.lastSyncedAt ? "上次同步：" + formatSyncTime(state.sync.lastSyncedAt) : "还没有同步过", state.sync.lastSyncedAt ? "ok" : "");
+        }
+      }
+
+      if (event.target.id === "syncClose") {
+        document.getElementById("syncPopover").hidden = true;
+      }
+
+      if (event.target.id === "saveSyncConfigButton") {
+        collectSyncConfigFromForm();
+        setSyncStatus("配置已保存在这个浏览器里", "ok");
+      }
+
+      if (event.target.id === "uploadSyncButton") {
+        uploadToWebdav().catch((error) => setSyncStatus(describeSyncError(error), "error"));
+      }
+
+      if (event.target.id === "downloadSyncButton") {
+        downloadFromWebdav().catch((error) => setSyncStatus(describeSyncError(error), "error"));
+      }
+
+      const deleteBrain = event.target.closest("[data-delete-brain]");
+      if (deleteBrain) {
+        const tools = getToolsForDate();
+        tools.brainDump = tools.brainDump.filter((item) => item.id !== deleteBrain.dataset.deleteBrain);
+        saveTools();
+        renderBrainDump();
+      }
+    });
+
+    document.addEventListener("change", (event) => {
+      if (event.target.id === "monthSelect") {
+        state.month = event.target.value;
+        const firstInMonth = getVisibleDates().find((date) => date.startsWith(state.month));
+        if (firstInMonth) state.selectedDate = firstInMonth;
+        renderAll();
+      }
+
+      if (event.target.id === "doneCheck") {
+        const date = state.selectedDate;
+        setDayDone(date, event.target.checked);
+        renderAll();
+      }
+
+      if (event.target.classList.contains("taskStatusRadio")) {
+        setTaskStatus(event.target.dataset.taskDate || state.selectedDate, event.target.dataset.task, event.target.value);
+        renderAll();
+      }
+
+      if (event.target.classList.contains("extraStatusRadio")) {
+        setExtraTaskStatus(event.target.dataset.extraDate || state.selectedDate, event.target.dataset.extraId, event.target.value);
+        renderAll();
+      }
+
+      if (event.target.classList.contains("timeline-input")) {
+        setTimelineText(event.target.dataset.timelineRow, event.target.dataset.timelineMonth, event.target.value);
+        renderMacroTimeline();
+      }
+
+      if (event.target.id === "cycleStartInput" || event.target.id === "cycleLengthInput" || event.target.id === "periodLengthInput") {
+        const profile = getCycleProfile();
+        const startInput = document.getElementById("cycleStartInput");
+        const cycleLengthInput = document.getElementById("cycleLengthInput");
+        const periodLengthInput = document.getElementById("periodLengthInput");
+        profile.startDate = startInput ? startInput.value : profile.startDate;
+        profile.cycleLength = Math.min(40, Math.max(21, Number(cycleLengthInput ? cycleLengthInput.value : profile.cycleLength) || 28));
+        profile.periodLength = Math.min(10, Math.max(2, Number(periodLengthInput ? periodLengthInput.value : profile.periodLength) || 5));
+        saveTools();
+        renderHormoneRadar();
+      }
+    });
+
+    document.addEventListener("input", (event) => {
+      if (event.target.classList.contains("learned-input")) {
+        setLearnedCell(event.target.dataset.learnedRow, event.target.dataset.learnedColumn, event.target.value);
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.target.id === "brainDumpText" && event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        addBrainDumpFromInput();
+      }
+
+      if (event.target.id === "focusVideoUrl" && event.key === "Enter") {
+        event.preventDefault();
+        updateFocusVideoFromInput();
+      }
+    });
+
+    document.getElementById("todayButton").addEventListener("click", () => {
+      state.selectedDate = getCurrentPlanDate();
+      state.month = state.selectedDate.slice(0, 7);
+      renderAll();
+    });
+
+    document.getElementById("prevDayButton").addEventListener("click", () => {
+      shiftSelectedDate(-1);
+    });
+
+    document.getElementById("nextDayButton").addEventListener("click", () => {
+      shiftSelectedDate(1);
+    });
+
+    document.getElementById("prevMonthButton").addEventListener("click", () => {
+      shiftMonth(-1);
+    });
+
+    document.getElementById("nextMonthButton").addEventListener("click", () => {
+      shiftMonth(1);
+    });
+
+    window.addEventListener("resize", scheduleDashboardHeightSync);
+    window.addEventListener("load", scheduleDashboardHeightSync);
+
+    document.getElementById("resetButton").addEventListener("click", () => {
+      state.completed = {};
+      saveCompleted();
+      renderAll();
+    });
+
+    migrateLegacyTaskDeferralData();
+    renderAll();
+  </script>
+</body>
+</html>
