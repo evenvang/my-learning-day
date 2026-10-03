@@ -2377,6 +2377,7 @@
     const QUANTITY_PHASE_BASE_END_DATE = "2026-10-01";
     const CHECK_PHASE_START_DATE = "2026-10-02";
     const SUITE_PHASE_START_DATE = "2026-10-19";
+    const SHENLUN_60_START_DATE = "2026-10-01";
     const MOCK_EXAM_DATE = "2026-10-12";
     // 10.13–10.14 查漏补缺：上午行测留空、下午照常、晚上申论照计划；10.15–10.16 事业编套卷，一天一套。
     const SHIYEBIAN_PHASE_START_DATE = "2026-10-15";
@@ -2568,12 +2569,14 @@
     // 以前每调用一次都要重算一遍，一次 renderAll 里要跑上千次，整页渲染要 5 秒左右。
     // 这里做几层缓存，并在原始数据变动或每次 renderAll 开头统一作废。
     let scheduleMapCache = null;
+    let shenlunScheduleMapCache = null;
     let visibleDatesCache = null;
     let studyScheduleDatesCache = null;
     let effectiveItemCache = null;
 
     function invalidateScheduleCaches() {
       scheduleMapCache = null;
+      shenlunScheduleMapCache = null;
       visibleDatesCache = null;
       studyScheduleDatesCache = null;
       effectiveItemCache = null;
@@ -3174,6 +3177,29 @@
       return getScheduleMap().plannedByActual.get(date) || date;
     }
 
+    // 申论60天计划从10月1日独立起算。之前累积的顺延保留在旧阶段，
+    // 不再把8、9月的申论任务挤进10月的作文/对策/公文计划。
+    function getShenlunPlannedDateFor(date) {
+      if (date < SHENLUN_60_START_DATE) return getPlannedDateFor(date);
+      if (!shenlunScheduleMapCache) {
+        const actual = getStudyScheduleDates().filter((studyDate) => studyDate >= SHENLUN_60_START_DATE);
+        const plannedByActual = new Map();
+        let cursor = SHENLUN_60_START_DATE;
+        let index = 0;
+        let guard = 0;
+        while (index < actual.length && guard < 900) {
+          if (!isCalendarRestDate(cursor)) {
+            plannedByActual.set(actual[index], cursor);
+            index++;
+          }
+          cursor = addDays(cursor, 1);
+          guard++;
+        }
+        shenlunScheduleMapCache = plannedByActual;
+      }
+      return shenlunScheduleMapCache.get(date) || date;
+    }
+
     function hasAnchoredShenlunEntry(date, label) {
       const entry = ANCHORED_SHENLUN_PLAN[date];
       return !!(entry && entry[label]);
@@ -3181,7 +3207,7 @@
 
     // 单项顺延占用一个完整学习日的槽位，包括原计划为空的日期。
     // 只按有任务的日期回退会把同一项任务重复显示，并挤掉后面的任务。
-    function getShiftedPlannedDate(plannedDate, label, shift) {
+    function getShiftedPlannedDate(plannedDate, label, shift, startDate = PLAN[0]["日期"]) {
       if (!shift || shift <= 0) return plannedDate;
       let cursor = plannedDate;
       let remaining = shift;
@@ -3189,11 +3215,21 @@
       while (remaining > 0 && guard < 800) {
         cursor = addDays(cursor, -1);
         guard++;
-        if (cursor < PLAN[0]["日期"]) return "";
+        if (cursor < startDate) return "";
         // 休息日不占学习日名额，递推时跳过
         if (!isCalendarRestDate(cursor)) remaining--;
       }
       return remaining > 0 ? "" : cursor;
+    }
+
+    function getShenlunSourceInfo(date, label) {
+      const plannedDate = getShenlunPlannedDateFor(date);
+      const startDate = date >= SHENLUN_60_START_DATE ? SHENLUN_60_START_DATE : PLAN[0]["日期"];
+      const shift = getTaskDeferralDates(label).filter((anchorDate) => anchorDate >= startDate && anchorDate < date).length;
+      return {
+        plannedDate,
+        sourceDate: shift > 0 ? getShiftedPlannedDate(plannedDate, label, shift, startDate) : plannedDate,
+      };
     }
 
     // 统一的申论安排取值入口：
@@ -3205,9 +3241,7 @@
         // 休息日不占学习日名额：晚课回放跟着直播日期走，不参与顺延递推
         return ANCHORED_SHENLUN_PLAN[date]?.[label] || "";
       }
-      const plannedDate = getPlannedDateFor(date);
-      const shift = getTaskDeferralDates(label).filter((item) => item < date).length;
-      const sourceDate = shift > 0 ? getShiftedPlannedDate(plannedDate, label, shift) : plannedDate;
+      const { sourceDate } = getShenlunSourceInfo(date, label);
       if (!sourceDate) return "";
       const carriedEdit = getTaskDeferralDates(label)
         .filter((anchorDate) => anchorDate < date)
@@ -3219,12 +3253,24 @@
     }
 
     function isTaskDeferralAnchor(date, label) {
-      return !!getCustomEntry(date).taskDeferrals[label] && !isCalendarRestDate(date) && !isDateDeferred(date);
+      const marker = getCustomEntry(date).taskDeferrals[label];
+      return !!marker && !isLegacyShenlunDeferral(date, label, marker) &&
+        !isCalendarRestDate(date) && !isDateDeferred(date);
+    }
+
+    function isLegacyShenlunDeferral(date, label, marker) {
+      return date >= SHENLUN_60_START_DATE &&
+        (label === "晚上1.5小时申论" || label === "申论跟练打卡") &&
+        (!marker.sourceDate || marker.sourceDate < SHENLUN_60_START_DATE);
     }
 
     function getTaskDeferralDates(label, deferred = state.deferred) {
       return Object.keys(state.custom || {})
-        .filter((date) => getCustomEntry(date).taskDeferrals[label] && isVisibleDate(date, deferred) && !isCalendarRestDate(date) && !deferred[date])
+        .filter((date) => {
+          const marker = getCustomEntry(date).taskDeferrals[label];
+          return marker && !isLegacyShenlunDeferral(date, label, marker) &&
+            isVisibleDate(date, deferred) && !isCalendarRestDate(date) && !deferred[date];
+        })
         .sort();
     }
 
@@ -3247,9 +3293,7 @@
       // 不能退回 item 里的原任务，否则任务会重复或看似被吞掉。
       if (date >= "2026-09-14" && (label === "晚上1.5小时申论" || label === "申论跟练打卡") && item["主线模块"] !== "单休") {
         const anchoredText = getAnchoredShenlunText(date, label);
-        const plannedDate = getPlannedDateFor(date);
-        const shift = getTaskDeferralDates(label, deferred).filter((item) => item < date).length;
-        const sourceDate = shift > 0 ? getShiftedPlannedDate(plannedDate, label, shift) : plannedDate;
+        const { plannedDate, sourceDate } = getShenlunSourceInfo(date, label);
         return {
           text: anchoredText,
           fromDate: anchoredText && sourceDate && sourceDate !== date ? sourceDate : "",
@@ -3306,9 +3350,13 @@
       }
       const previousStatus = getTaskStatus(date, label);
       const taskText = getTaskText(item, label);
-      const plannedDate = getPlannedDateFor(date);
-      const previousShift = getTaskDeferralDates(label).filter((anchorDate) => anchorDate < date).length;
-      const sourceDate = previousShift > 0 ? getShiftedPlannedDate(plannedDate, label, previousShift) : plannedDate;
+      const sourceDate = date >= "2026-09-14" && (label === "晚上1.5小时申论" || label === "申论跟练打卡")
+        ? getShenlunSourceInfo(date, label).sourceDate
+        : (() => {
+            const plannedDate = getPlannedDateFor(date);
+            const previousShift = getTaskDeferralDates(label).filter((anchorDate) => anchorDate < date).length;
+            return previousShift > 0 ? getShiftedPlannedDate(plannedDate, label, previousShift) : plannedDate;
+          })();
       const entry = getCustomEntry(date);
       entry.taskDeferrals[label] = { previousStatus, text: taskText, sourceDate };
       setCustomEntry(date, entry);
@@ -4061,8 +4109,8 @@
         rangeSummary.textContent =
           PLAN[0]["日期"] + " 至 " + visibleDates[visibleDates.length - 1] +
           " · " + plannedDates.length + " 个计划学习日" +
-          (shifted ? " · 已整体后移 " + shifted + " 天（顺延/考试日）" : "") +
-          " · 后续空白可编辑";
+          (shifted ? " · 累计顺延/考试日 " + shifted + " 天" : "") +
+          " · 10月申论按10.1重新起算 · 后续空白可编辑";
       }
       document.getElementById("prevDayButton").disabled = selectedIndex() <= 0;
       document.getElementById("nextDayButton").disabled = selectedIndex() >= getVisibleDates().length - 1;
