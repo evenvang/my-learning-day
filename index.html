@@ -10,6 +10,7 @@
       --bg: #f5f7fb;
       --panel: #ffffff;
       --ink: #17212b;
+      --text: #17212b;
       --muted: #637083;
       --line: #d9e1ec;
       --blue: #2b5b9e;
@@ -2162,8 +2163,8 @@
     </main>
   </div>
 
-  <button id="syncToggle" class="sync-fab" type="button" aria-label="打开坚果云同步">☁️</button>
-  <aside id="syncPopover" class="sync-popover" hidden aria-label="坚果云同步设置">
+  <button id="syncToggle" class="sync-fab" type="button" aria-label="打开云同步设置">☁️</button>
+  <aside id="syncPopover" class="sync-popover" hidden aria-label="云同步设置">
     <div class="sync-head">
       <div>
         <div class="sync-title">Cloudflare 云同步</div>
@@ -2377,7 +2378,8 @@
     const CHECK_PHASE_START_DATE = "2026-10-02";
     const SUITE_PHASE_START_DATE = "2026-10-19";
     const MOCK_EXAM_DATE = "2026-10-12";
-    const SHIYEBIAN_PHASE_START_DATE = "2026-10-13";
+    // 10.13–10.14 查漏补缺：上午行测留空、下午照常、晚上申论照计划；10.15–10.16 事业编套卷，一天一套。
+    const SHIYEBIAN_PHASE_START_DATE = "2026-10-15";
     const SHIYEBIAN_PHASE_END_DATE = "2026-10-16";
     const MORNING_REVISION_START_DATE = "2026-10-01";
     const MORNING_REVISION_TEXT = "1h：政治理论打卡20m + 现有所学理论复习15m + 言语理解成语记忆5m + 申论积累20m";
@@ -2515,6 +2517,28 @@
     };
     const byDate = new Map(PLAN.map((item) => [item["日期"], item]));
     const studyItems = PLAN.filter((item) => item["主线模块"] !== "单休");
+    const studyItemDateSet = new Set(studyItems.map((item) => item["日期"]));
+
+    // 9/14 之后的申论安排不再来自 studyItems（那里只排到 09-12），而是按日期锚定的
+    // FOLLOWUP_SHENLUN_TASKS + SHENLUN_60_PLAN。这里合并成一张表，
+    // 让整体顺延 / 考试日 / 单项顺延都能共用同一套递推。
+    const ANCHORED_SHENLUN_PLAN = (() => {
+      const map = {};
+      Object.keys(FOLLOWUP_SHENLUN_TASKS)
+        .filter((date) => !studyItemDateSet.has(date))
+        .sort()
+        .forEach((date) => {
+          map[date] = { "申论跟练打卡": FOLLOWUP_SHENLUN_TASKS[date] };
+        });
+      Object.keys(SHENLUN_60_PLAN)
+        .filter((date) => !studyItemDateSet.has(date))
+        .sort()
+        .forEach((date) => {
+          map[date] = { ...(map[date] || {}), ...SHENLUN_60_PLAN[date] };
+        });
+      return map;
+    })();
+    const ANCHORED_SHENLUN_DATES = Object.keys(ANCHORED_SHENLUN_PLAN).sort();
     const bootDeferred = loadDeferred();
     const bootWeekRest = loadWeekRest();
     const bootCrossWeekRest = loadCrossWeekRest();
@@ -2539,6 +2563,30 @@
       playing: false,
     };
 
+    // —— 排期派生数据缓存 ——
+    // 「可见日期 / 计划日期映射 / 每日任务」都是从 PLAN + deferred + weekRest + custom 派生出来的。
+    // 以前每调用一次都要重算一遍，一次 renderAll 里要跑上千次，整页渲染要 5 秒左右。
+    // 这里做几层缓存，并在原始数据变动或每次 renderAll 开头统一作废。
+    let scheduleMapCache = null;
+    let visibleDatesCache = null;
+    let studyScheduleDatesCache = null;
+    let effectiveItemCache = null;
+
+    function invalidateScheduleCaches() {
+      scheduleMapCache = null;
+      visibleDatesCache = null;
+      studyScheduleDatesCache = null;
+      effectiveItemCache = null;
+    }
+
+    // 只有「当前 state 这份入参」才进缓存；其它快照（例如启动早期传入的 boot 数据）一律现算，避免脏读。
+    function isCurrentScheduleArgs(deferred, weekRest, crossWeekRest) {
+      return !!state &&
+        deferred === state.deferred &&
+        weekRest === state.weekRest &&
+        crossWeekRest === state.crossWeekRest;
+    }
+
     function loadCompleted() {
       try {
         return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
@@ -2561,6 +2609,8 @@
 
     function saveCustom() {
       localStorage.setItem(CUSTOM_KEY, JSON.stringify(state.custom));
+      // 自定义项里含考试日/任务改写，会改变可见日期和每日任务
+      invalidateScheduleCaches();
     }
 
     function loadTimeline() {
@@ -2585,6 +2635,7 @@
 
     function saveDeferred() {
       localStorage.setItem(DEFER_KEY, JSON.stringify(state.deferred));
+      invalidateScheduleCaches();
     }
 
     function loadWeekRest() {
@@ -2597,6 +2648,7 @@
 
     function saveWeekRest() {
       localStorage.setItem(WEEK_REST_KEY, JSON.stringify(state.weekRest));
+      invalidateScheduleCaches();
     }
 
     function loadCrossWeekRest() {
@@ -2609,6 +2661,7 @@
 
     function saveCrossWeekRest() {
       localStorage.setItem(CROSS_WEEK_REST_KEY, JSON.stringify(state.crossWeekRest));
+      invalidateScheduleCaches();
     }
 
     function loadTools() {
@@ -2754,7 +2807,7 @@
       }
       state.sync.lastSyncedAt = new Date().toISOString();
       saveSyncConfig();
-      setSyncStatus("已上传到坚果云：" + formatSyncTime(state.sync.lastSyncedAt), "ok");
+      setSyncStatus("已上传到云端：" + formatSyncTime(state.sync.lastSyncedAt), "ok");
     }
 
     async function downloadFromWebdav() {
@@ -2771,7 +2824,7 @@
       state.sync.lastSyncedAt = new Date().toISOString();
       saveSyncConfig();
       renderAll();
-      setSyncStatus("已从坚果云恢复：" + formatSyncTime(state.sync.lastSyncedAt), "ok");
+      setSyncStatus("已从云端恢复：" + formatSyncTime(state.sync.lastSyncedAt), "ok");
     }
 
     function formatSyncTime(value) {
@@ -2994,6 +3047,9 @@
 
     function getTaskText(item, label) {
       const entry = getCustomEntry(item["日期"]);
+      if (isTaskDeferralAnchor(item["日期"], label)) {
+        return getScheduledTaskInfo(item["日期"], label).text;
+      }
       if (Object.prototype.hasOwnProperty.call(entry.overrides, label)) {
         if (isWorkSunday(item["日期"]) && isRestTemplateOverride(label, entry.overrides[label])) {
           return getScheduledTaskInfo(item["日期"], label).text;
@@ -3025,7 +3081,10 @@
       const item = getEffectiveItem(date);
       if (!item) return coreTaskLabels;
       if (item["主线模块"] === "考试") return [];
-      const labels = ["早上1小时", "上午1.5小时行测"];
+      const labels = [];
+      ["早上1小时", "上午1.5小时行测"].forEach((label) => {
+        if (getTaskText(item, label) || hasCustomTaskValue(date, label)) labels.push(label);
+      });
       if (shouldUseAfternoonChecklist(item, getTaskText(item, "下午2.5小时行测"))) {
         labels.push(...getAfternoonSubtasks(date, item).map((task) => task.key));
       } else {
@@ -3074,7 +3133,89 @@
     }
 
     function getStudyScheduleDates(deferred = state.deferred, weekRest = state.weekRest, crossWeekRest = state.crossWeekRest) {
-      return getVisibleDates(deferred, weekRest, crossWeekRest).filter((visibleDate) => isStudyScheduleDate(visibleDate, deferred, weekRest, crossWeekRest));
+      const cacheable = isCurrentScheduleArgs(deferred, weekRest, crossWeekRest);
+      if (cacheable && studyScheduleDatesCache) return studyScheduleDatesCache;
+      const dates = getVisibleDates(deferred, weekRest, crossWeekRest)
+        .filter((visibleDate) => isStudyScheduleDate(visibleDate, deferred, weekRest, crossWeekRest));
+      if (cacheable) studyScheduleDatesCache = dates;
+      return dates;
+    }
+
+    // —— 顺延递推核心 ——
+    // base = 只排除休息日的「计划学习日」；actual = 再排除整体顺延日 / 考试日后的「实际学习日」。
+    // 两者一一对应：actual 的第 i 项 ⇔ base 的第 i 项。
+    // 所以「实际日期在 actual 中的序号」直接就是它在计划表里的序号，
+    // 据此可以把实际日期反查回计划日期，整体顺延和考试日就自动变成「整体后移」。
+    function clearScheduleCache() {
+      invalidateScheduleCaches();
+    }
+
+    function getScheduleMap() {
+      if (scheduleMapCache) return scheduleMapCache;
+      const actual = getStudyScheduleDates();
+      const base = [];
+      let date = PLAN[0]["日期"];
+      let guard = 0;
+      while (base.length < actual.length + 1 && guard < 2000) {
+        if (!isCalendarRestDate(date)) base.push(date);
+        date = addDays(date, 1);
+        guard++;
+      }
+      const plannedByActual = new Map();
+      actual.forEach((actualDate, index) => {
+        plannedByActual.set(actualDate, base[index] || actualDate);
+      });
+      scheduleMapCache = { base, actual, plannedByActual };
+      return scheduleMapCache;
+    }
+
+    // 实际日期 → 计划日期。非学习日（休息日 / 顺延日 / 考试日）找不到就直接返回自己。
+    function getPlannedDateFor(date) {
+      return getScheduleMap().plannedByActual.get(date) || date;
+    }
+
+    function hasAnchoredShenlunEntry(date, label) {
+      const entry = ANCHORED_SHENLUN_PLAN[date];
+      return !!(entry && entry[label]);
+    }
+
+    // 单项顺延占用一个完整学习日的槽位，包括原计划为空的日期。
+    // 只按有任务的日期回退会把同一项任务重复显示，并挤掉后面的任务。
+    function getShiftedPlannedDate(plannedDate, label, shift) {
+      if (!shift || shift <= 0) return plannedDate;
+      let cursor = plannedDate;
+      let remaining = shift;
+      let guard = 0;
+      while (remaining > 0 && guard < 800) {
+        cursor = addDays(cursor, -1);
+        guard++;
+        if (cursor < PLAN[0]["日期"]) return "";
+        // 休息日不占学习日名额，递推时跳过
+        if (!isCalendarRestDate(cursor)) remaining--;
+      }
+      return remaining > 0 ? "" : cursor;
+    }
+
+    // 统一的申论安排取值入口：
+    // 整体顺延 / 考试日 → getPlannedDateFor 偏移；单项顺延 → 再往前推 shift 个有效日期。
+    function getAnchoredShenlunText(date, label) {
+      if (!taskLabels.includes(label)) return "";
+      if (isTaskDeferralAnchor(date, label)) return "";
+      if (!getScheduleMap().plannedByActual.has(date)) {
+        // 休息日不占学习日名额：晚课回放跟着直播日期走，不参与顺延递推
+        return ANCHORED_SHENLUN_PLAN[date]?.[label] || "";
+      }
+      const plannedDate = getPlannedDateFor(date);
+      const shift = getTaskDeferralDates(label).filter((item) => item < date).length;
+      const sourceDate = shift > 0 ? getShiftedPlannedDate(plannedDate, label, shift) : plannedDate;
+      if (!sourceDate) return "";
+      const carriedEdit = getTaskDeferralDates(label)
+        .filter((anchorDate) => anchorDate < date)
+        .map((anchorDate) => getCustomEntry(anchorDate).taskDeferrals[label])
+        .filter((marker) => marker && marker.sourceDate === sourceDate && typeof marker.text === "string")
+        .at(-1);
+      if (carriedEdit) return carriedEdit.text;
+      return ANCHORED_SHENLUN_PLAN[sourceDate]?.[label] || byDate.get(sourceDate)?.[label] || "";
     }
 
     function isTaskDeferralAnchor(date, label) {
@@ -3093,14 +3234,27 @@
       if (item["主线模块"] === "顺延" || item["主线模块"] === "考试") {
         return { text: item[label] || "", fromDate: "", originalText: item[label] || "" };
       }
+      if (isTaskDeferralAnchor(date, label)) {
+        return { text: "", fromDate: "", originalText: item[label] || "" };
+      }
       if (item["主线模块"] === "模考" || item["主线模块"] === "事业编套题") {
         return { text: item[label] || "", fromDate: "", originalText: item[label] || "" };
       }
       if (label === "早上1小时" && date >= MORNING_REVISION_START_DATE && item["主线模块"] !== "单休") {
         return { text: MORNING_REVISION_TEXT, fromDate: "", originalText: MORNING_REVISION_TEXT };
       }
-      if (SHENLUN_60_PLAN[date]?.[label]) {
-        return { text: SHENLUN_60_PLAN[date][label], fromDate: "", originalText: SHENLUN_60_PLAN[date][label] };
+      // 锚定日期之后的申论以顺延后的结果为准；空槽也必须保持为空，
+      // 不能退回 item 里的原任务，否则任务会重复或看似被吞掉。
+      if (date >= "2026-09-14" && (label === "晚上1.5小时申论" || label === "申论跟练打卡") && item["主线模块"] !== "单休") {
+        const anchoredText = getAnchoredShenlunText(date, label);
+        const plannedDate = getPlannedDateFor(date);
+        const shift = getTaskDeferralDates(label, deferred).filter((item) => item < date).length;
+        const sourceDate = shift > 0 ? getShiftedPlannedDate(plannedDate, label, shift) : plannedDate;
+        return {
+          text: anchoredText,
+          fromDate: anchoredText && sourceDate && sourceDate !== date ? sourceDate : "",
+          originalText: ANCHORED_SHENLUN_PLAN[plannedDate]?.[label] || "",
+        };
       }
       if (item["主线模块"] === "套题阶段") {
         return { text: item[label] || "", fromDate: "", originalText: item[label] || "" };
@@ -3116,10 +3270,10 @@
       const shift = getTaskDeferralDates(label, deferred).filter((deferralDate) => deferralDate < date).length;
       const sourceIndex = targetIndex - shift;
       const source = studyItems[sourceIndex];
-      const sourceDate = dates[sourceIndex] || "";
+      const sourceDate = source?.["日期"] || "";
       const targetBase = studyItems[targetIndex]?.[label] || "";
       return {
-        text: source?.[label] || item[label] || "",
+        text: sourceIndex >= 0 && source ? (source[label] || "") : (item[label] || ""),
         fromDate: sourceDate && sourceDate !== date ? sourceDate : "",
         originalText: targetBase,
       };
@@ -3134,16 +3288,29 @@
         .forEach((visibleDate) => labels.forEach((targetLabel) => clearTaskStatus(visibleDate, targetLabel)));
     }
 
+    function canDeferSingleTask(date, label, item = getEffectiveItem(date)) {
+      if (!item || !taskLabels.includes(label) || item["主线模块"] === "顺延" ||
+          item["主线模块"] === "考试" || isCalendarRestDate(date)) return false;
+      if (date >= "2026-09-14") {
+        return label === "晚上1.5小时申论" || label === "申论跟练打卡";
+      }
+      return date <= studyItems[studyItems.length - 1]["日期"];
+    }
+
     function deferSingleTask(date, label) {
       const item = getEffectiveItem(date);
       const dates = getVisibleDates().filter((visibleDate) => visibleDate >= date && isStudyScheduleDate(visibleDate));
-      if (!item || dates.length < 2 || !taskLabels.includes(label) || item["主线模块"] === "顺延" || isCalendarRestDate(date)) {
+      if (!canDeferSingleTask(date, label, item) || dates.length < 2 || !getTaskText(item, label).trim()) {
         window.alert("后面没有可顺延的日期了。");
         return false;
       }
       const previousStatus = getTaskStatus(date, label);
+      const taskText = getTaskText(item, label);
+      const plannedDate = getPlannedDateFor(date);
+      const previousShift = getTaskDeferralDates(label).filter((anchorDate) => anchorDate < date).length;
+      const sourceDate = previousShift > 0 ? getShiftedPlannedDate(plannedDate, label, previousShift) : plannedDate;
       const entry = getCustomEntry(date);
-      entry.taskDeferrals[label] = { previousStatus };
+      entry.taskDeferrals[label] = { previousStatus, text: taskText, sourceDate };
       setCustomEntry(date, entry);
       clearTaskStatusForLabelFrom(date, label);
       setTaskStatus(date, label, "done");
@@ -3160,29 +3327,6 @@
       clearTaskStatusForLabelFrom(date, label);
       if (previousStatus) setTaskStatus(date, label, previousStatus);
       return true;
-    }
-
-    function migrateLegacyTaskDeferralData() {
-      let changed = false;
-      Object.keys(state.custom || {}).forEach((date) => {
-        const entry = getCustomEntry(date);
-        let touched = false;
-        taskLabels.forEach((label) => {
-          if (entry.carryovers[label]) {
-            delete entry.carryovers[label];
-            delete entry.overrides[label];
-            touched = true;
-          }
-        });
-        const beforeExtras = entry.extras.length;
-        entry.extras = entry.extras.filter((task) => !String(task.text || "").includes("顺延保留："));
-        if (entry.extras.length !== beforeExtras) touched = true;
-        if (touched) {
-          setCustomEntry(date, entry);
-          changed = true;
-        }
-      });
-      if (changed) saveCustom();
     }
 
     function addExtraTask(date, text) {
@@ -3292,7 +3436,7 @@
       const crossWeekRest = isCrossWeekRestDate(date);
       const template = !shiftedRest && entry.sundayMode === "mock" ? SUNDAY_MOCK_TEMPLATE : SUNDAY_REST_TEMPLATE;
       const eveningTask = entry.overrides["晚上1.5小时申论"] ||
-        SHENLUN_60_PLAN[date]?.["晚上1.5小时申论"] ||
+        getAnchoredShenlunText(date, "晚上1.5小时申论") ||
         template.tasks["晚上1.5小时申论"];
       return {
         "日期": date,
@@ -3382,27 +3526,37 @@
         "上午1.5小时行测": "上午：行测模考（严格计时整卷 + 涂卡，按正式考试节奏完成）",
         "下午2.5小时行测": "下午3h：模考套卷订正复盘（错题归因、错题本登记、时间分配与做题策略回顾）",
         "粉笔专项积累": "",
-        "晚上1.5小时申论": SHENLUN_60_PLAN[date]?.["晚上1.5小时申论"] || "",
-        "申论跟练打卡": SHENLUN_60_PLAN[date]?.["申论跟练打卡"] || FOLLOWUP_SHENLUN_TASKS[date] || "",
+        "晚上1.5小时申论": getAnchoredShenlunText(date, "晚上1.5小时申论"),
+        "申论跟练打卡": getAnchoredShenlunText(date, "申论跟练打卡"),
         "复盘/当日重点": getCustomEntry(date).overrides["复盘/当日重点"] || "模考日：记录各模块用时、正确率与失分点；晚上申论照常进行。",
         "阶段": "模考",
         "来源日期": "",
       };
     }
 
+    // 事业编套卷：按阶段内的天数编号，一天一套（当前共 2 套）。
+    function getShiyebianSetInfo(date) {
+      const total = Math.max(1, dayDiff(SHIYEBIAN_PHASE_END_DATE, SHIYEBIAN_PHASE_START_DATE) + 1);
+      const index = clamp(dayDiff(date, SHIYEBIAN_PHASE_START_DATE) + 1, 1, total);
+      return { index, total, isLast: index === total };
+    }
+
     function makeShiyebianItem(date) {
+      const set = getShiyebianSetInfo(date);
       return {
         "日期": date,
         "星期": getWeekday(date),
         "主线模块": "事业编套题",
         "早上1小时": MORNING_REVISION_TEXT,
-        "上午1.5小时行测": "上午2h：事业编职测套卷（严格计时整卷）",
-        "下午2.5小时行测": "下午3h：套卷订正复盘（错题归因、薄弱模块登记、时间分配回顾）",
+        "上午1.5小时行测": "上午2h：事业编职测模拟卷 第" + set.index + "套（共" + set.total + "套），严格计时整卷完成并涂卡",
+        "下午2.5小时行测": "下午3h：第" + set.index + "套订正复盘（错题归因、薄弱模块登记、时间分配与做题顺序回顾）",
         "粉笔专项积累": "",
-        "晚上1.5小时申论": SHENLUN_60_PLAN[date]?.["晚上1.5小时申论"] || "",
-        "申论跟练打卡": SHENLUN_60_PLAN[date]?.["申论跟练打卡"] || "",
-        "复盘/当日重点": getCustomEntry(date).overrides["复盘/当日重点"] || "事业编套题阶段：记录套卷得分、错题模块与下一套要改进的点。",
-        "阶段": "事业编套题",
+        "晚上1.5小时申论": getAnchoredShenlunText(date, "晚上1.5小时申论"),
+        "申论跟练打卡": getAnchoredShenlunText(date, "申论跟练打卡"),
+        "复盘/当日重点": getCustomEntry(date).overrides["复盘/当日重点"] ||
+          "事业编套题：完成第" + set.index + "套（共" + set.total + "套），记录套卷得分、错题模块与" +
+          (set.isLast ? "考后要回炉的重点" : "下一套要改进的点") + "。",
+        "阶段": "事业编第" + set.index + "套",
         "来源日期": "",
       };
     }
@@ -3423,8 +3577,8 @@
             ? "下午3小时：资料和数量每日固定；图推、判断、言语每周各2次；速算和千词隔天轮换"
             : (date >= AFTERNOON_MODE_START_DATE ? "下午3小时行测：数判资 / 数言资二选一" : AFTERNOON_TASK_TEXT)),
         "粉笔专项积累": "",
-        "晚上1.5小时申论": SHENLUN_60_PLAN[date]?.["晚上1.5小时申论"] || "",
-        "申论跟练打卡": SHENLUN_60_PLAN[date]?.["申论跟练打卡"] || FOLLOWUP_SHENLUN_TASKS[date] || "",
+        "晚上1.5小时申论": getAnchoredShenlunText(date, "晚上1.5小时申论"),
+        "申论跟练打卡": getAnchoredShenlunText(date, "申论跟练打卡"),
         "复盘/当日重点": getCustomEntry(date).overrides["复盘/当日重点"] || phase?.review || "空白安排日：点击修改，写下当天要做的内容。",
         "阶段": isSuite ? suite.stage : (phase?.stage || "空白可编辑"),
         "来源日期": "",
@@ -3539,15 +3693,37 @@
       return Object.keys(deferred || {}).filter((date) => date >= PLAN[0]["日期"] && !isExamDay(date) && !isCalendarRestDate(date)).sort();
     }
 
+    // 被整体顺延 / 考试日吃掉的学习日数量：这些天要在日历尾部补回来，否则末尾任务会被挤掉。
+    function getConsumedScheduleDays(deferred, weekRest, crossWeekRest) {
+      let count = 0;
+      let date = PLAN[0]["日期"];
+      let guard = 0;
+      while (date <= CALENDAR_END_DATE && guard < 900) {
+        if (!isCalendarRestDate(date, weekRest || {}, crossWeekRest || {}) && (deferred[date] || isExamDay(date))) count++;
+        date = addDays(date, 1);
+        guard++;
+      }
+      return count;
+    }
+
     function getVisibleDates(deferred = state.deferred, weekRest = state.weekRest, crossWeekRest = state.crossWeekRest) {
+      const cacheable = isCurrentScheduleArgs(deferred, weekRest, crossWeekRest);
+      if (cacheable && visibleDatesCache) return visibleDatesCache;
+      const dates = computeVisibleDates(deferred, weekRest, crossWeekRest);
+      if (cacheable) visibleDatesCache = dates;
+      return dates;
+    }
+
+    function computeVisibleDates(deferred, weekRest, crossWeekRest) {
       const dates = [];
       let assignedStudyDays = 0;
       let date = PLAN[0]["日期"];
       let guard = 0;
-      while (guard < 520) {
+      const tailDate = addDays(CALENDAR_END_DATE, getConsumedScheduleDays(deferred, weekRest, crossWeekRest));
+      while (guard < 900) {
         dates.push(date);
         if (isStudyScheduleDate(date, deferred, weekRest, crossWeekRest)) assignedStudyDays++;
-        if (assignedStudyDays >= studyItems.length && date >= CALENDAR_END_DATE) break;
+        if (assignedStudyDays >= studyItems.length && date >= tailDate) break;
         date = addDays(date, 1);
         guard++;
       }
@@ -3564,6 +3740,17 @@
     }
 
     function getEffectiveItem(date, deferred = state.deferred, weekRest = state.weekRest, crossWeekRest = state.crossWeekRest) {
+      const cacheable = isCurrentScheduleArgs(deferred, weekRest, crossWeekRest);
+      if (cacheable) {
+        if (!effectiveItemCache) effectiveItemCache = new Map();
+        if (effectiveItemCache.has(date)) return effectiveItemCache.get(date);
+      }
+      const item = buildEffectiveItem(date, deferred, weekRest, crossWeekRest);
+      if (cacheable) effectiveItemCache.set(date, item);
+      return item;
+    }
+
+    function buildEffectiveItem(date, deferred, weekRest, crossWeekRest) {
       if (!isVisibleDate(date, deferred, weekRest, crossWeekRest)) return null;
       if (isExamDay(date)) return makeExamItem(date);
       if (isCalendarRestDate(date, weekRest, crossWeekRest)) return makeRestItem(date);
@@ -3868,7 +4055,15 @@
       document.getElementById("metricCompleted").textContent = String(completedCount);
       document.getElementById("metricModule").textContent = getCurrentModuleName(currentDate);
       const rangeSummary = document.getElementById("planRangeSummary");
-      if (rangeSummary) rangeSummary.textContent = "2026-06-03 至 2026-12-31 · " + plannedDates.length + " 个计划学习日 · 后续空白可编辑";
+      if (rangeSummary) {
+        const visibleDates = getVisibleDates();
+        const shifted = getConsumedScheduleDays(state.deferred, state.weekRest, state.crossWeekRest);
+        rangeSummary.textContent =
+          PLAN[0]["日期"] + " 至 " + visibleDates[visibleDates.length - 1] +
+          " · " + plannedDates.length + " 个计划学习日" +
+          (shifted ? " · 已整体后移 " + shifted + " 天（顺延/考试日）" : "") +
+          " · 后续空白可编辑";
+      }
       document.getElementById("prevDayButton").disabled = selectedIndex() <= 0;
       document.getElementById("nextDayButton").disabled = selectedIndex() >= getVisibleDates().length - 1;
     }
@@ -3926,10 +4121,10 @@
             className: "taskStatusRadio",
           })
         : '';
-      const isFollowup = getEffectiveItem(date)?.["主线模块"] === "后续安排";
       const taskDeferred = isTaskDeferralAnchor(date, label);
       const allowManage = options.editable && context !== "today";
-      const defer = allowManage && withCheck && taskLabels.includes(label) && !isCalendarRestDate(date) && !isFollowup && getNextVisibleDate(date)
+      const defer = allowManage && withCheck && (taskDeferred || canDeferSingleTask(date, label)) &&
+        (taskDeferred || !!getTaskText(getEffectiveItem(date), label)) && getNextVisibleDate(date)
         ? (taskDeferred
           ? '<button class="link-btn danger" data-cancel-defer-task="' + escapeHtml(label) + '" data-cancel-defer-task-date="' + escapeHtml(date) + '">取消顺延</button>'
           : '<button class="link-btn" data-defer-task="' + escapeHtml(label) + '" data-defer-task-date="' + escapeHtml(date) + '">顺延</button>')
@@ -4433,6 +4628,7 @@
     }
 
     function renderAll() {
+      clearScheduleCache();
       renderMonthOptions();
       renderFilters();
       renderMetrics();
@@ -4709,7 +4905,7 @@
       renderAll();
     });
 
-    migrateLegacyTaskDeferralData();
+    // 保留旧版用户数据中的顺延任务和手工修改；自动清理会误删尚未完成的内容。
     renderAll();
   </script>
 </body>
