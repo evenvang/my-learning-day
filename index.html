@@ -2239,6 +2239,8 @@
         <button id="uploadSyncButton" class="btn primary" type="button">上传</button>
         <button id="downloadSyncButton" class="btn" type="button">恢复</button>
       </div>
+      <button id="exportStudyButton" class="btn" type="button">导出学习记录</button>
+      <div class="sync-note">下载学习任务、打卡、顺延和考试日记录，不含同步密钥；不会上传或修改记录。</div>
       <div class="sync-note">同步密钥只保存在这个浏览器里，不会进入 GitHub。换设备时填同一个密钥即可恢复。</div>
       <div id="syncStatus" class="sync-status" role="status"></div>
     </div>
@@ -2857,6 +2859,32 @@
           tools: state.tools,
         },
       };
+    }
+
+    function exportStudyRecords() {
+      const payload = {
+        app: "my-learning-day",
+        version: 1,
+        kind: "study-records-export",
+        exportedAt: new Date().toISOString(),
+        data: {
+          completed: state.completed,
+          custom: state.custom,
+          deferred: state.deferred,
+          weekRest: state.weekRest,
+          crossWeekRest: state.crossWeekRest,
+        },
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "学习记录-" + new Date().toISOString().replace(/[:.]/g, "-") + ".json";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+      setSyncStatus("已发起下载。请在浏览器下载列表或‘文件’App中找到学习记录文件；也可将打开的文件分享保存。", "ok");
     }
 
     function applySyncPayload(payload) {
@@ -5092,6 +5120,11 @@
 
       if (event.target.id === "downloadSyncButton") {
         downloadFromWebdav().catch((error) => setSyncStatus(describeSyncError(error), "error"));
+      }
+
+      if (event.target.id === "exportStudyButton") {
+        try { exportStudyRecords(); }
+        catch (error) { setSyncStatus("导出未成功，请截图此提示：" + error.message, "error"); }
       }
 
       const deleteBrain = event.target.closest("[data-delete-brain]");
