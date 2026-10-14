@@ -3163,6 +3163,10 @@
     }
 
     function getTaskText(item, label) {
+      // 用户明确确认完成的历史题目固定在原记录日期，不随新排期或旧覆盖项移动。
+      if (label === "申论跟练打卡" && DECLARED_COMPLETED_SHENLUN_DATES.includes(item["日期"])) {
+        return SHENLUN_60_PLAN[item["日期"]][label];
+      }
       const entry = getCustomEntry(item["日期"]);
       if (Object.prototype.hasOwnProperty.call(entry.overrides, label)) {
         if (isWorkSunday(item["日期"]) && isRestTemplateOverride(label, entry.overrides[label])) {
@@ -3387,6 +3391,9 @@
     // 整体顺延 / 考试日 → getPlannedDateFor 偏移；单项顺延 → 再往前推 shift 个有效日期。
     function getAnchoredShenlunText(date, label) {
       if (!taskLabels.includes(label)) return "";
+      if (label === "申论跟练打卡" && DECLARED_COMPLETED_SHENLUN_DATES.includes(date)) {
+        return SHENLUN_60_PLAN[date][label];
+      }
       if (!getScheduleMap().plannedByActual.has(date)) {
         // 休息日不占学习日名额：晚课回放跟着直播日期走，不参与顺延递推
         return ANCHORED_SHENLUN_PLAN[date]?.[label] || "";
@@ -3410,6 +3417,10 @@
 
     function getScheduledTaskInfo(date, label, deferred = state.deferred) {
       const item = getEffectiveItem(date, deferred);
+      if (label === "申论跟练打卡" && DECLARED_COMPLETED_SHENLUN_DATES.includes(date)) {
+        const text = SHENLUN_60_PLAN[date][label];
+        return { text, fromDate: "", originalText: text };
+      }
       if (label === "政治理论磨耳朵") {
         const text = hasPoliticsMorningTask(item) ? "政治理论早自习" : "";
         return { text, fromDate: "", originalText: text };
@@ -4314,6 +4325,7 @@
 
     function shouldUseEveningGroup(item) {
       if (!item) return false;
+      if (DECLARED_COMPLETED_SHENLUN_DATES.includes(item["日期"])) return true;
       if (item["日期"] >= SHENLUN_UNIFIED_START_DATE) {
         return item["主线模块"] !== "顺延" && item["主线模块"] !== "考试";
       }
