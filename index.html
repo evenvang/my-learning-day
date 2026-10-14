@@ -396,6 +396,59 @@
       align-items: start;
     }
 
+    .shenlun-task-form {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 6px;
+      padding-top: 6px;
+      border-top: 1px dashed rgba(217, 225, 236, .72);
+      opacity: .68;
+      transition: opacity .15s ease;
+    }
+
+    .shenlun-task-form:focus-within,
+    .shenlun-task-form:hover {
+      opacity: 1;
+    }
+
+    .shenlun-task-input {
+      width: min(260px, 100%);
+      height: 26px;
+      border: 0;
+      border-bottom: 1px solid transparent;
+      background: transparent;
+      color: var(--ink);
+      padding: 0 3px;
+      font-size: 12px;
+      outline: none;
+    }
+
+    .shenlun-task-input:focus {
+      border-bottom-color: rgba(43, 91, 158, .38);
+    }
+
+    .shenlun-add-button {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      padding: 3px 5px;
+      font-size: 12px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .shenlun-add-button:hover {
+      color: var(--blue);
+    }
+
+    .shenlun-task-count {
+      margin-left: 4px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 520;
+    }
+
     .textarea {
       min-height: 74px;
       resize: vertical;
@@ -1998,7 +2051,7 @@
       <div class="topbar-inner">
         <div>
           <h1>考公学习计划看板</h1>
-          <div class="subline" id="planRangeSummary">2026-06-03 至 2026-12-31 · 10.1–11.29 已排入申论60天计划（申论50题+内蒙50题，对策/公文先听回放再写，周日休整）· 其余空白可编辑</div>
+          <div class="subline" id="planRangeSummary">2026-06-03 至 2026-12-31 · 申论保留内蒙分析题1–10，10月15日起按新课表整理为晚间大任务和可打卡小任务 · 其余空白可编辑</div>
         </div>
         <div class="toolbar">
           <select id="monthSelect" class="select" aria-label="月份"></select>
@@ -2264,8 +2317,8 @@
 
     const STAGES = [{"name":"资料分析","start":"2026-06-03","end":"2026-06-23","days":18,"material":"牟立志粉笔980 / 高照 / 夸夸刷+超大杯"},{"name":"判断推理","start":"2026-06-24","end":"2026-08-08","days":40,"material":"花生十三 / 超格程意 / 刘义恒 / 龙飞真题"},{"name":"言语理解","start":"2026-08-10","end":"2026-08-27","days":16,"material":"花生十三 / 大懒猫 / 红领巾可选"},{"name":"数量关系","start":"2026-08-28","end":"2026-10-02","days":19,"material":"小p数量关系+作业+数量600题"},{"name":"查漏补缺","start":"2026-10-03","end":"2026-10-18","days":13,"material":"模块弱项回炉 / 错题整理"},{"name":"套题阶段","start":"2026-10-19","end":"2026-12-31","days":64,"material":"行测套题 / 申论整卷 / 模考复盘"},{"name":"申论","start":"2026-06-03","end":"2026-12-31","days":182,"material":"申论跟练打卡 / 套题训练 / 复盘"}];
     const FOLLOWUP_SHENLUN_TASKS = {"2026-09-14":"申论跟练打卡：2022国考行政执法第四题（海关执法服务经验交流材料提纲）","2026-09-15":"申论跟练打卡：2022国考行政执法第五题（反食品浪费执法公开信）","2026-09-16":"申论跟练打卡：2023国考副省级第一题（玉陵湖大桥“巧”在何处）","2026-09-17":"申论跟练打卡：2023国考副省级第二题（窑洞修复：从旁观者到传承者）","2026-09-18":"申论跟练打卡：2023国考副省级第三题（凤凰河流域文化建设建议）","2026-09-19":"申论跟练打卡：2023国考副省级第四题（乐原市产业发展汇报内容）","2026-09-21":"申论跟练打卡：2023国考副省级第五题（大作文：流动与新生）","2026-09-22":"申论跟练打卡：2023国考地市级第一题（GEP核算实现生态产品价值）","2026-09-23":"申论跟练打卡：2023国考地市级第二题（知识产权服务案例摘要）","2026-09-24":"申论跟练打卡：2023国考地市级第三题（整县屋顶分布式光伏问题与建议）","2026-09-25":"申论跟练打卡：2023国考地市级第四题（F银行“金融向善”短评）","2026-09-26":"申论跟练打卡：2023国考地市级第五题（大作文：追寻长期价值）","2026-09-28":"申论跟练打卡：2024国考副省级第一题（“耀然灯饰”成功经验）","2026-09-29":"申论跟练打卡：2024国考副省级第二题（新民乐走红引发的网络议论）","2026-09-30":"申论跟练打卡：2024国考副省级第三题（青年就业“两难”的原因与对策）"};
-    // 申论60天备考计划（10.1–11.29）：白天写题→「申论跟练打卡」，晚上直播课→「晚上1.5小时申论」。
-    // 规则：周日休整（有晚课的周日只听回放）；对策/公文一律先听回放再写；作文白天先写、晚上听讲评。
+    // 申论备考计划：内蒙分析题只做到内蒙10；不追直播，统一先做题、再听对应录播。
+    // 晚间申论使用一个任务承载顺序刷题、录播复盘和用户自定义小任务。
     const SHENLUN_60_PLAN = {
       "2026-10-01": { "申论跟练打卡": "白天限时写：作文1；内蒙1" },
       "2026-10-02": { "申论跟练打卡": "白天限时写：作文2；内蒙2" },
@@ -2274,47 +2327,109 @@
       "2026-10-05": { "申论跟练打卡": "白天限时写：作文4；内蒙4", "晚上1.5小时申论": "直播：作文3讲评" },
       "2026-10-06": { "申论跟练打卡": "白天限时写：作文5；内蒙5", "晚上1.5小时申论": "直播：作文4讲评" },
       "2026-10-07": { "申论跟练打卡": "白天限时写：内蒙6、内蒙7、内蒙8", "晚上1.5小时申论": "直播：作文5讲评" },
-      "2026-10-08": { "申论跟练打卡": "白天限时写：内蒙9、内蒙10、内蒙11", "晚上1.5小时申论": "19:00直播：对策1–2" },
-      "2026-10-09": { "申论跟练打卡": "先听回放再写：对策1、2；内蒙12", "晚上1.5小时申论": "直播：对策3–4" },
-      "2026-10-10": { "申论跟练打卡": "先听回放再写：对策3、4；内蒙13", "晚上1.5小时申论": "直播：对策5–6" },
+      "2026-10-08": { "申论跟练打卡": "白天限时写：内蒙9、内蒙10", "晚上1.5小时申论": "19:00直播：对策1–2" },
+      "2026-10-09": { "申论跟练打卡": "先听回放再写：对策1、2", "晚上1.5小时申论": "直播：对策3–4" },
+      "2026-10-10": { "申论跟练打卡": "先听回放再写：对策3、4", "晚上1.5小时申论": "直播：对策5–6" },
       "2026-10-11": { "晚上1.5小时申论": "周日休整·听回放：对策7–8" },
-      "2026-10-12": { "申论跟练打卡": "先听回放再写：对策5、6；内蒙14", "晚上1.5小时申论": "19:00直播：对策9–10；22:30直播：公文1" },
-      "2026-10-13": { "申论跟练打卡": "先听回放再写：对策7、8、9", "晚上1.5小时申论": "直播：公文2" },
-      "2026-10-14": { "申论跟练打卡": "先听回放再写：对策10、公文1；内蒙15", "晚上1.5小时申论": "直播：公文3" },
-      "2026-10-15": { "申论跟练打卡": "先听回放再写：公文2；内蒙16、内蒙17", "晚上1.5小时申论": "直播：公文4" },
-      "2026-10-16": { "申论跟练打卡": "先听回放再写：公文3；内蒙18、内蒙19", "晚上1.5小时申论": "直播：公文5" },
-      "2026-10-17": { "申论跟练打卡": "先听回放再写：公文4；内蒙20、内蒙21" },
-      "2026-10-19": { "申论跟练打卡": "先听回放再写：公文5；内蒙22、内蒙23", "晚上1.5小时申论": "直播：公文6" },
-      "2026-10-20": { "申论跟练打卡": "先听回放再写：公文6；内蒙24、内蒙25", "晚上1.5小时申论": "直播：公文7" },
-      "2026-10-21": { "申论跟练打卡": "先听回放再写：公文7；内蒙26、内蒙27", "晚上1.5小时申论": "直播：公文8" },
-      "2026-10-22": { "申论跟练打卡": "先听回放再写：公文8；内蒙28、内蒙29", "晚上1.5小时申论": "直播：公文9" },
-      "2026-10-23": { "申论跟练打卡": "先听回放再写：公文9；内蒙30、内蒙31", "晚上1.5小时申论": "直播：公文10" },
-      "2026-10-24": { "申论跟练打卡": "先听回放再写：公文10；内蒙32、内蒙33" },
-      "2026-10-26": { "申论跟练打卡": "白天限时写：内蒙34、内蒙35、内蒙36" },
-      "2026-10-27": { "申论跟练打卡": "白天限时写：内蒙37、内蒙38、内蒙39" },
-      "2026-10-28": { "申论跟练打卡": "白天限时写：内蒙40、内蒙41、内蒙42" },
-      "2026-10-29": { "申论跟练打卡": "白天限时写：内蒙43、内蒙44、内蒙45" },
-      "2026-10-30": { "申论跟练打卡": "白天限时写：内蒙46、内蒙47、内蒙48", "晚上1.5小时申论": "直播：对策11–12" },
-      "2026-10-31": { "申论跟练打卡": "先听回放再写：对策11、12；内蒙49", "晚上1.5小时申论": "直播：对策13–14" },
-      "2026-11-01": { "晚上1.5小时申论": "周日休整·听回放：对策15–16" },
-      "2026-11-02": { "申论跟练打卡": "先听回放再写：对策13、14、15", "晚上1.5小时申论": "直播：对策17–18；公文11" },
-      "2026-11-03": { "申论跟练打卡": "先听回放再写：对策16、17、18", "晚上1.5小时申论": "直播：对策19–20；公文12" },
-      "2026-11-04": { "申论跟练打卡": "先听回放再写：对策19、20、公文11", "晚上1.5小时申论": "直播：公文13" },
-      "2026-11-05": { "申论跟练打卡": "先听回放再写：公文12；内蒙50（申论50题收官）", "晚上1.5小时申论": "直播：公文14" },
-      "2026-11-06": { "申论跟练打卡": "先听回放再写：公文13、14", "晚上1.5小时申论": "直播：公文15" },
-      "2026-11-07": { "申论跟练打卡": "先听回放再写：公文15" },
-      "2026-11-09": { "申论跟练打卡": "自由安排：建议补欠账、复盘错题", "晚上1.5小时申论": "直播：公文16" },
-      "2026-11-10": { "申论跟练打卡": "先听回放再写：公文16", "晚上1.5小时申论": "直播：公文17" },
-      "2026-11-11": { "申论跟练打卡": "先听回放再写：公文17", "晚上1.5小时申论": "直播：公文18" },
-      "2026-11-12": { "申论跟练打卡": "先听回放再写：公文18", "晚上1.5小时申论": "直播：公文19" },
-      "2026-11-13": { "申论跟练打卡": "先听回放再写：公文19；白天限时写作文6", "晚上1.5小时申论": "直播：公文20" },
-      "2026-11-14": { "申论跟练打卡": "先听回放再写：公文20；白天限时写作文7", "晚上1.5小时申论": "直播：作文6讲评" },
-      "2026-11-15": { "晚上1.5小时申论": "周日休整·听回放：作文7讲评" },
-      "2026-11-16": { "申论跟练打卡": "白天限时写：作文8", "晚上1.5小时申论": "直播：作文8讲评" },
-      "2026-11-17": { "申论跟练打卡": "白天限时写：作文9", "晚上1.5小时申论": "直播：作文9讲评" },
-      "2026-11-18": { "申论跟练打卡": "白天限时写：作文10", "晚上1.5小时申论": "直播：作文10讲评" }
+      "2026-10-12": { "申论跟练打卡": "先听回放再写：对策5、6", "晚上1.5小时申论": "19:00直播：对策9–10；22:30直播：公文1" },
+      "2026-10-13": { "申论跟练打卡": "先听回放再写：对策7、8、9、10；公文1", "晚上1.5小时申论": "直播：公文2" },
+      "2026-10-14": { "申论跟练打卡": "先听回放再写：公文2", "晚上1.5小时申论": "直播：公文3" },
+      "2026-10-15": { "晚上1.5小时申论": "22:30–23:30 申论·公文4" },
+      "2026-10-16": { "晚上1.5小时申论": "22:30–23:30 申论·公文5" },
+      "2026-10-19": { "晚上1.5小时申论": "22:30–23:30 申论·公文6" },
+      "2026-10-20": { "晚上1.5小时申论": "22:30–23:30 申论·公文7" },
+      "2026-10-21": { "晚上1.5小时申论": "22:30–23:30 申论·公文8" },
+      "2026-10-22": { "晚上1.5小时申论": "22:30–23:30 申论·公文9" },
+      "2026-10-23": { "晚上1.5小时申论": "22:30–23:30 申论·公文10" },
+      "2026-10-30": { "晚上1.5小时申论": "19:00–20:00 申论·对策11；20:00–21:00 申论·对策12" },
+      "2026-10-31": { "晚上1.5小时申论": "19:00–20:00 申论·对策13；20:00–21:00 申论·对策14" },
+      "2026-11-01": { "晚上1.5小时申论": "19:00–20:00 申论·对策15；20:00–21:00 申论·对策16" },
+      "2026-11-02": { "晚上1.5小时申论": "19:00–20:00 申论·对策17；20:00–21:00 申论·对策18；22:30–23:30 申论·公文11" },
+      "2026-11-03": { "晚上1.5小时申论": "19:00–20:00 申论·对策19；20:00–21:00 申论·对策20；22:30–23:30 申论·公文12" },
+      "2026-11-04": { "晚上1.5小时申论": "22:30–23:30 申论·公文13" },
+      "2026-11-05": { "晚上1.5小时申论": "22:30–23:30 申论·公文14" },
+      "2026-11-06": { "晚上1.5小时申论": "22:30–23:30 申论·公文15" },
+      "2026-11-09": { "晚上1.5小时申论": "22:30–23:30 申论·公文16" },
+      "2026-11-10": { "晚上1.5小时申论": "22:30–23:30 申论·公文17" },
+      "2026-11-11": { "晚上1.5小时申论": "22:30–23:30 申论·公文18" },
+      "2026-11-12": { "晚上1.5小时申论": "22:30–23:30 申论·公文19" },
+      "2026-11-13": { "晚上1.5小时申论": "22:30–23:30 申论·公文20" },
+      "2026-11-14": { "晚上1.5小时申论": "22:00–23:00 申论·作文3" },
+      "2026-11-15": { "晚上1.5小时申论": "22:00–23:00 申论·作文4" },
+      "2026-11-16": { "晚上1.5小时申论": "22:00–23:00 申论·作文5" },
+      "2026-11-17": { "晚上1.5小时申论": "22:00–23:00 申论·作文6" },
+      "2026-11-18": { "晚上1.5小时申论": "22:00–23:00 申论·作文7" },
+      "2026-11-19": { "晚上1.5小时申论": "22:00–23:00 申论·作文8" },
+      "2026-11-20": { "晚上1.5小时申论": "22:00–23:00 申论·作文9" },
+      "2026-11-21": { "晚上1.5小时申论": "22:00–23:00 申论·作文10" }
     };
-    const SUITE_STAGES = [{"stage":"套卷启动","time":"2026-10-19 至 2026-11-08","rhythm":"每周2套行测+1套申论","focus":"从模块思维切到整卷节奏"},{"stage":"套卷强化","time":"2026-11-09 至 2026-11-30","rhythm":"每周3套行测+1-2套申论","focus":"错题按模块回填"},{"stage":"套题阶段","time":"2026-12-01 至 2026-12-31","rhythm":"按考试时间滚动安排套题","focus":"稳定做题顺序和书写节奏"}];
+    const SHENLUN_UNIFIED_START_DATE = "2026-10-14";
+    const SHENLUN_REBUILT_END_DATE = "2026-11-19";
+    const SHENLUN_COURSE_SCHEDULE = {
+      "2026-10-15": [{ id: "gongwen4", time: "22:30–23:30", topic: "公文4" }],
+      "2026-10-16": [{ id: "gongwen5", time: "22:30–23:30", topic: "公文5" }],
+      "2026-10-19": [{ id: "gongwen6", time: "22:30–23:30", topic: "公文6" }],
+      "2026-10-20": [{ id: "gongwen7", time: "22:30–23:30", topic: "公文7" }],
+      "2026-10-21": [{ id: "gongwen8", time: "22:30–23:30", topic: "公文8" }],
+      "2026-10-22": [{ id: "gongwen9", time: "22:30–23:30", topic: "公文9" }],
+      "2026-10-23": [{ id: "gongwen10", time: "22:30–23:30", topic: "公文10" }],
+      "2026-10-30": [{ id: "duice11", time: "19:00–20:00", topic: "对策11" }, { id: "duice12", time: "20:00–21:00", topic: "对策12" }],
+      "2026-10-31": [{ id: "duice13", time: "19:00–20:00", topic: "对策13" }, { id: "duice14", time: "20:00–21:00", topic: "对策14" }],
+      "2026-11-01": [{ id: "duice15", time: "19:00–20:00", topic: "对策15" }, { id: "duice16", time: "20:00–21:00", topic: "对策16" }],
+      "2026-11-02": [{ id: "duice17", time: "19:00–20:00", topic: "对策17" }, { id: "duice18", time: "20:00–21:00", topic: "对策18" }, { id: "gongwen11", time: "22:30–23:30", topic: "公文11" }],
+      "2026-11-03": [{ id: "duice19", time: "19:00–20:00", topic: "对策19" }, { id: "duice20", time: "20:00–21:00", topic: "对策20" }, { id: "gongwen12", time: "22:30–23:30", topic: "公文12" }],
+      "2026-11-04": [{ id: "gongwen13", time: "22:30–23:30", topic: "公文13" }],
+      "2026-11-05": [{ id: "gongwen14", time: "22:30–23:30", topic: "公文14" }],
+      "2026-11-06": [{ id: "gongwen15", time: "22:30–23:30", topic: "公文15" }],
+      "2026-11-09": [{ id: "gongwen16", time: "22:30–23:30", topic: "公文16" }],
+      "2026-11-10": [{ id: "gongwen17", time: "22:30–23:30", topic: "公文17" }],
+      "2026-11-11": [{ id: "gongwen18", time: "22:30–23:30", topic: "公文18" }],
+      "2026-11-12": [{ id: "gongwen19", time: "22:30–23:30", topic: "公文19" }],
+      "2026-11-13": [{ id: "gongwen20", time: "22:30–23:30", topic: "公文20" }],
+      "2026-11-14": [{ id: "zuowen3", time: "22:00–23:00", topic: "作文3" }],
+      "2026-11-15": [{ id: "zuowen4", time: "22:00–23:00", topic: "作文4" }],
+      "2026-11-16": [{ id: "zuowen5", time: "22:00–23:00", topic: "作文5" }],
+      "2026-11-17": [{ id: "zuowen6", time: "22:00–23:00", topic: "作文6" }],
+      "2026-11-18": [{ id: "zuowen7", time: "22:00–23:00", topic: "作文7" }],
+      "2026-11-19": [{ id: "zuowen8", time: "22:00–23:00", topic: "作文8" }],
+      "2026-11-20": [{ id: "zuowen9", time: "22:00–23:00", topic: "作文9" }],
+      "2026-11-21": [{ id: "zuowen10", time: "22:00–23:00", topic: "作文10" }],
+    };
+    const SHENLUN_PRACTICE_SCHEDULE = {
+      // 10月14日开始执行新安排；套题阶段开始前，本周三正常训练。
+      "2026-10-14": ["内蒙6", "内蒙7"],
+      "2026-10-15": ["内蒙8", "内蒙9"],
+      "2026-10-16": ["内蒙10", "对策1"],
+      // 对策1—10按顺序推进，随后衔接公文1—10；作文穿插且不连续。
+      "2026-10-17": ["对策2", "对策3"],
+      "2026-10-19": ["对策4", "对策5"],
+      "2026-10-20": ["对策6", "对策7"],
+      "2026-10-22": ["对策8", "对策9"],
+      "2026-10-23": ["对策10", "公文1"],
+      "2026-10-24": ["公文2", "公文3"],
+      "2026-10-26": ["作文6"],
+      "2026-10-27": ["公文4", "公文5"],
+      "2026-10-29": ["公文6", "公文7"],
+      "2026-10-30": ["作文7"],
+      "2026-10-31": ["公文8", "公文9"],
+      "2026-11-02": ["公文10", "对策11"],
+      // 对策11—20对应录播生成后继续按顺序推进。
+      "2026-11-03": ["作文8"],
+      "2026-11-05": ["对策12", "对策13"],
+      "2026-11-06": ["对策14", "对策15"],
+      "2026-11-07": ["作文9"],
+      "2026-11-09": ["对策16", "对策17"],
+      "2026-11-10": ["对策18", "对策19"],
+      "2026-11-12": ["对策20", "公文11"],
+      "2026-11-13": ["作文10"],
+      // 最后按公文11—20顺序收尾；仅最后一天三道，避免虚构占位题。
+      "2026-11-14": ["公文12", "公文13"],
+      "2026-11-16": ["公文14", "公文15"],
+      "2026-11-17": ["公文16", "公文17"],
+      "2026-11-19": ["公文18", "公文19", "公文20"],
+    };
+    const DECLARED_COMPLETED_SHENLUN_DATES = ["2026-10-01", "2026-10-02", "2026-10-03", "2026-10-05", "2026-10-06"];
+    const SUITE_STAGES = [{"stage":"套卷启动","time":"2026-10-19 至 2026-11-08","rhythm":"周一、二、四、五、六行测；周三申论","focus":"从模块思维切到整卷节奏"},{"stage":"套卷强化","time":"2026-11-09 至 2026-11-30","rhythm":"周一、二、四、五、六行测；周三申论","focus":"错题按模块回填"},{"stage":"套题阶段","time":"2026-12-01 至 2026-12-31","rhythm":"周一、二、四、五、六行测；周三申论","focus":"稳定做题顺序和书写节奏"}];
     const MACRO_TIMELINE = {"months":[{"key":"2026-06","label":"26年6月"},{"key":"2026-07","label":"7月"},{"key":"2026-08","label":"8月"},{"key":"2026-09","label":"9月"},{"key":"2026-10","label":"10月"},{"key":"2026-11","label":"11月"},{"key":"2026-12","label":"12月"},{"key":"2027-01","label":"27年1月"},{"key":"2027-02","label":"2月"},{"key":"2027-03","label":"3月"},{"key":"2027-04","label":"4月"},{"key":"2027-05","label":"5月"}],"rows":[{"id":"thesis","label":"毕业","cells":{"2026-06":"中期答辩准备\n6月底中期答辩","2026-07":"论文方向复盘\n整理修改清单","2026-08":"补文献\n调整论文框架","2026-09":"补案例和材料\n沉淀章节素材","2026-10":"明确写作提纲\n搭建章节结构","2026-11":"文献和案例归档\n准备正式写作","2026-12":"初稿启动\n推进主体章节","2027-01":"寒假写作\n完善章节草稿","2027-02":"初稿收尾\n准备3月提交","2027-03":"毕业论文初稿\n初稿修改稿","2027-04":"论文修改稿\n4月底定稿","2027-05":"盲审\n预答辩\n衔接6月答辩"}},{"id":"exam","label":"考公","cells":{"2026-06":"资料分析\n判断推理启动","2026-07":"判断推理\n资料带练","2026-08":"判断推理收尾\n言语理解启动","2026-09":"数量关系","2026-10":"查漏补缺\n10.19套题启动","2026-11":"套卷强化\n央选/辽宁/贵州准备","2026-12":"央选\n辽宁选调\n贵州选调","2027-01":"广东省考准备\n常识政治巩固","2027-02":"广东省考\n内蒙古选调准备","2027-03":"内蒙古选调\n广东选调","2027-04":"海南选调\n内蒙古省考强化","2027-05":"内蒙古省考冲刺\n错题回炉"}}]};
     const STORAGE_KEY = "gongkao-study-dashboard-v1";
     const CUSTOM_KEY = "gongkao-study-dashboard-custom-v1";
@@ -2377,9 +2492,8 @@
     const QUANTITY_PHASE_BASE_END_DATE = "2026-10-01";
     const CHECK_PHASE_START_DATE = "2026-10-02";
     const SUITE_PHASE_START_DATE = "2026-10-19";
-    const SHENLUN_60_START_DATE = "2026-10-01";
     const MOCK_EXAM_DATE = "2026-10-12";
-    // 10.13–10.14 查漏补缺：上午行测留空、下午照常、晚上申论照计划；10.15–10.16 事业编套卷，一天一套。
+    // 10.13–10.14 回到查漏补缺（沿用该阶段的行测/申论安排），10.15–10.16 做事业编套卷，共两套、一天一套。
     const SHIYEBIAN_PHASE_START_DATE = "2026-10-15";
     const SHIYEBIAN_PHASE_END_DATE = "2026-10-16";
     const MORNING_REVISION_START_DATE = "2026-10-01";
@@ -2520,7 +2634,7 @@
     const studyItems = PLAN.filter((item) => item["主线模块"] !== "单休");
     const studyItemDateSet = new Set(studyItems.map((item) => item["日期"]));
 
-    // 9/14 之后的申论安排不再来自 studyItems（那里只排到 09-12），而是按日期锚定的
+    // 9/19 之后的申论安排不再来自 studyItems（那里只排到 09-18），而是按日期锚定的
     // FOLLOWUP_SHENLUN_TASKS + SHENLUN_60_PLAN。这里合并成一张表，
     // 让整体顺延 / 考试日 / 单项顺延都能共用同一套递推。
     const ANCHORED_SHENLUN_PLAN = (() => {
@@ -2569,14 +2683,12 @@
     // 以前每调用一次都要重算一遍，一次 renderAll 里要跑上千次，整页渲染要 5 秒左右。
     // 这里做几层缓存，并在原始数据变动或每次 renderAll 开头统一作废。
     let scheduleMapCache = null;
-    let shenlunScheduleMapCache = null;
     let visibleDatesCache = null;
     let studyScheduleDatesCache = null;
     let effectiveItemCache = null;
 
     function invalidateScheduleCaches() {
       scheduleMapCache = null;
-      shenlunScheduleMapCache = null;
       visibleDatesCache = null;
       studyScheduleDatesCache = null;
       effectiveItemCache = null;
@@ -2929,6 +3041,7 @@
         carryovers: entry.carryovers || {},
         taskDeferrals: entry.taskDeferrals || {},
         extras: Array.isArray(entry.extras) ? entry.extras : [],
+        shenlunTasks: Array.isArray(entry.shenlunTasks) ? entry.shenlunTasks : [],
         sundayMode: entry.sundayMode || "",
         afternoonMode: entry.afternoonMode || "",
         suiteChoice: entry.suiteChoice === "shenlun" ? "shenlun" : "xingce",
@@ -2942,12 +3055,13 @@
         carryovers: entry.carryovers || {},
         taskDeferrals: entry.taskDeferrals || {},
         extras: Array.isArray(entry.extras) ? entry.extras : [],
+        shenlunTasks: Array.isArray(entry.shenlunTasks) ? entry.shenlunTasks : [],
         sundayMode: entry.sundayMode || "",
         afternoonMode: afternoonModes[entry.afternoonMode] ? entry.afternoonMode : "",
         suiteChoice: entry.suiteChoice === "shenlun" ? "shenlun" : "xingce",
         examDay: !!entry.examDay,
       };
-      if (Object.keys(cleaned.overrides).length || Object.keys(cleaned.carryovers).length || Object.keys(cleaned.taskDeferrals).length || cleaned.extras.length || cleaned.sundayMode || cleaned.afternoonMode || cleaned.suiteChoice === "shenlun" || cleaned.examDay) {
+      if (Object.keys(cleaned.overrides).length || Object.keys(cleaned.carryovers).length || Object.keys(cleaned.taskDeferrals).length || cleaned.extras.length || cleaned.shenlunTasks.length || cleaned.sundayMode || cleaned.afternoonMode || cleaned.suiteChoice === "shenlun" || cleaned.examDay) {
         state.custom[date] = cleaned;
       } else {
         delete state.custom[date];
@@ -3050,9 +3164,6 @@
 
     function getTaskText(item, label) {
       const entry = getCustomEntry(item["日期"]);
-      if (isTaskDeferralAnchor(item["日期"], label)) {
-        return getScheduledTaskInfo(item["日期"], label).text;
-      }
       if (Object.prototype.hasOwnProperty.call(entry.overrides, label)) {
         if (isWorkSunday(item["日期"]) && isRestTemplateOverride(label, entry.overrides[label])) {
           return getScheduledTaskInfo(item["日期"], label).text;
@@ -3070,9 +3181,14 @@
         Object.prototype.hasOwnProperty.call(normalizeCompletion(date).tasks, label);
     }
 
+    function hasPoliticsMorningTask(item) {
+      return !!item && item["日期"] >= "2026-10-06" && !["考试", "顺延"].includes(item["主线模块"]);
+    }
+
     function getVisibleTaskLabels(item) {
       if (item?.["主线模块"] === "考试") return [];
       return [
+        ...(hasPoliticsMorningTask(item) ? ["政治理论磨耳朵"] : []),
         "早上1小时",
         "上午1.5小时行测",
         "下午2.5小时行测",
@@ -3080,24 +3196,93 @@
       ];
     }
 
+    function shenlunCustomTaskKey(id) {
+      return "申论自定义:" + id;
+    }
+
+    function getUnifiedShenlunSubtasks(date, item = getEffectiveItem(date)) {
+      if (!item || date < SHENLUN_UNIFIED_START_DATE) return [];
+      const tasks = [];
+      // 用户只听录播：直播课表仅用于判断录播何时已经生成，不再生成直播任务。
+      (SHENLUN_PRACTICE_SCHEDULE[date] || []).forEach((topic) => {
+        tasks.push({
+          key: "申论写题:" + topic,
+          kind: topic.startsWith("作文") ? "作文" : "刷题＋录播",
+          title: topic,
+          time: "",
+          text: topic.startsWith("作文")
+            ? "先限时完成一篇完整作文；对应录播上线后再听，并重列中心论点、分论点"
+            : (topic.startsWith("内蒙")
+              ? "先限时完成对应分析题，再听对应录播并按采分点复盘"
+              : "先限时完成该题，再听对应录播并整理采分点"),
+        });
+      });
+      if (date > SHENLUN_REBUILT_END_DATE) {
+        const fallback = getTaskText(item, "申论跟练打卡");
+        if (fallback) {
+          tasks.push({
+            key: "申论写题:日常专项",
+            kind: "专项",
+            title: "日常申论专项",
+            time: "",
+            text: fallback,
+          });
+        }
+      }
+      getCustomEntry(date).shenlunTasks.forEach((task) => {
+        tasks.push({
+          key: shenlunCustomTaskKey(task.id),
+          kind: "自定义",
+          title: task.text,
+          time: "",
+          text: "",
+          customId: task.id,
+        });
+      });
+      return tasks;
+    }
+
+    function addShenlunTask(date, text) {
+      const trimmed = text.trim();
+      if (!trimmed) return;
+      const entry = getCustomEntry(date);
+      entry.shenlunTasks.push({
+        id: String(Date.now()) + "-" + Math.random().toString(16).slice(2),
+        text: trimmed,
+      });
+      setCustomEntry(date, entry);
+    }
+
+    function deleteShenlunTask(date, id) {
+      const entry = getCustomEntry(date);
+      entry.shenlunTasks = entry.shenlunTasks.filter((task) => task.id !== id);
+      setCustomEntry(date, entry);
+      clearTaskStatus(date, shenlunCustomTaskKey(id));
+    }
+
     function getCompletionTaskLabels(date) {
       const item = getEffectiveItem(date);
       if (!item) return coreTaskLabels;
       if (item["主线模块"] === "考试") return [];
-      const labels = [];
-      ["早上1小时", "上午1.5小时行测"].forEach((label) => {
-        if (getTaskText(item, label) || hasCustomTaskValue(date, label)) labels.push(label);
-      });
+      const politicsLabels = hasPoliticsMorningTask(item) ? ["政治理论磨耳朵"] : [];
+      if (item["主线模块"] === "单休" && (date >= SHENLUN_UNIFIED_START_DATE || politicsLabels.length)) {
+        return [...politicsLabels, ...getUnifiedShenlunSubtasks(date, item).map((task) => task.key)];
+      }
+      const labels = [...politicsLabels, "早上1小时", "上午1.5小时行测"];
       if (shouldUseAfternoonChecklist(item, getTaskText(item, "下午2.5小时行测"))) {
         labels.push(...getAfternoonSubtasks(date, item).map((task) => task.key));
       } else {
         labels.push("下午2.5小时行测");
       }
-      if (getTaskText(item, "晚上1.5小时申论") || hasCustomTaskValue(date, "晚上1.5小时申论")) {
-        labels.push("晚上1.5小时申论");
-      }
-      if (shouldUseEveningGroup(item) && (getTaskText(item, "申论跟练打卡") || hasCustomTaskValue(date, "申论跟练打卡"))) {
-        labels.push("申论跟练打卡");
+      if (date >= SHENLUN_UNIFIED_START_DATE) {
+        labels.push(...getUnifiedShenlunSubtasks(date, item).map((task) => task.key));
+      } else {
+        if (getTaskText(item, "晚上1.5小时申论") || hasCustomTaskValue(date, "晚上1.5小时申论")) {
+          labels.push("晚上1.5小时申论");
+        }
+        if (shouldUseEveningGroup(item) && (getTaskText(item, "申论跟练打卡") || hasCustomTaskValue(date, "申论跟练打卡"))) {
+          labels.push("申论跟练打卡");
+        }
       }
       return labels;
     }
@@ -3177,37 +3362,13 @@
       return getScheduleMap().plannedByActual.get(date) || date;
     }
 
-    // 申论60天计划从10月1日独立起算。之前累积的顺延保留在旧阶段，
-    // 不再把8、9月的申论任务挤进10月的作文/对策/公文计划。
-    function getShenlunPlannedDateFor(date) {
-      if (date < SHENLUN_60_START_DATE) return getPlannedDateFor(date);
-      if (!shenlunScheduleMapCache) {
-        const actual = getStudyScheduleDates().filter((studyDate) => studyDate >= SHENLUN_60_START_DATE);
-        const plannedByActual = new Map();
-        let cursor = SHENLUN_60_START_DATE;
-        let index = 0;
-        let guard = 0;
-        while (index < actual.length && guard < 900) {
-          if (!isCalendarRestDate(cursor)) {
-            plannedByActual.set(actual[index], cursor);
-            index++;
-          }
-          cursor = addDays(cursor, 1);
-          guard++;
-        }
-        shenlunScheduleMapCache = plannedByActual;
-      }
-      return shenlunScheduleMapCache.get(date) || date;
-    }
-
     function hasAnchoredShenlunEntry(date, label) {
       const entry = ANCHORED_SHENLUN_PLAN[date];
       return !!(entry && entry[label]);
     }
 
-    // 单项顺延占用一个完整学习日的槽位，包括原计划为空的日期。
-    // 只按有任务的日期回退会把同一项任务重复显示，并挤掉后面的任务。
-    function getShiftedPlannedDate(plannedDate, label, shift, startDate = PLAN[0]["日期"]) {
+    // 单项任务顺延：在计划表上往前数 shift 个「当天确实排了这项任务」的日期
+    function getShiftedPlannedDate(plannedDate, label, shift) {
       if (!shift || shift <= 0) return plannedDate;
       let cursor = plannedDate;
       let remaining = shift;
@@ -3215,73 +3376,47 @@
       while (remaining > 0 && guard < 800) {
         cursor = addDays(cursor, -1);
         guard++;
-        if (cursor < startDate) return "";
+        if (cursor < PLAN[0]["日期"]) return "";
         // 休息日不占学习日名额，递推时跳过
-        if (!isCalendarRestDate(cursor)) remaining--;
+        if (!isCalendarRestDate(cursor) && hasAnchoredShenlunEntry(cursor, label)) remaining--;
       }
       return remaining > 0 ? "" : cursor;
-    }
-
-    function getShenlunSourceInfo(date, label) {
-      const plannedDate = getShenlunPlannedDateFor(date);
-      const startDate = date >= SHENLUN_60_START_DATE ? SHENLUN_60_START_DATE : PLAN[0]["日期"];
-      const shift = getTaskDeferralDates(label).filter((anchorDate) => anchorDate >= startDate && anchorDate < date).length;
-      return {
-        plannedDate,
-        sourceDate: shift > 0 ? getShiftedPlannedDate(plannedDate, label, shift, startDate) : plannedDate,
-      };
     }
 
     // 统一的申论安排取值入口：
     // 整体顺延 / 考试日 → getPlannedDateFor 偏移；单项顺延 → 再往前推 shift 个有效日期。
     function getAnchoredShenlunText(date, label) {
       if (!taskLabels.includes(label)) return "";
-      if (isTaskDeferralAnchor(date, label)) return "";
       if (!getScheduleMap().plannedByActual.has(date)) {
         // 休息日不占学习日名额：晚课回放跟着直播日期走，不参与顺延递推
         return ANCHORED_SHENLUN_PLAN[date]?.[label] || "";
       }
-      const { sourceDate } = getShenlunSourceInfo(date, label);
+      const plannedDate = getPlannedDateFor(date);
+      const shift = getTaskDeferralDates(label).filter((item) => item < date).length;
+      const sourceDate = shift > 0 ? getShiftedPlannedDate(plannedDate, label, shift) : plannedDate;
       if (!sourceDate) return "";
-      const carriedEdit = getTaskDeferralDates(label)
-        .filter((anchorDate) => anchorDate < date)
-        .map((anchorDate) => getCustomEntry(anchorDate).taskDeferrals[label])
-        .filter((marker) => marker && marker.sourceDate === sourceDate && typeof marker.text === "string")
-        .at(-1);
-      if (carriedEdit) return carriedEdit.text;
-      return ANCHORED_SHENLUN_PLAN[sourceDate]?.[label] || byDate.get(sourceDate)?.[label] || "";
+      return ANCHORED_SHENLUN_PLAN[sourceDate]?.[label] || "";
     }
 
     function isTaskDeferralAnchor(date, label) {
-      const marker = getCustomEntry(date).taskDeferrals[label];
-      return !!marker && !isLegacyShenlunDeferral(date, label, marker) &&
-        !isCalendarRestDate(date) && !isDateDeferred(date);
-    }
-
-    function isLegacyShenlunDeferral(date, label, marker) {
-      return date >= SHENLUN_60_START_DATE &&
-        (label === "晚上1.5小时申论" || label === "申论跟练打卡") &&
-        (!marker.sourceDate || marker.sourceDate < SHENLUN_60_START_DATE);
+      return !!getCustomEntry(date).taskDeferrals[label] && !isCalendarRestDate(date) && !isDateDeferred(date);
     }
 
     function getTaskDeferralDates(label, deferred = state.deferred) {
       return Object.keys(state.custom || {})
-        .filter((date) => {
-          const marker = getCustomEntry(date).taskDeferrals[label];
-          return marker && !isLegacyShenlunDeferral(date, label, marker) &&
-            isVisibleDate(date, deferred) && !isCalendarRestDate(date) && !deferred[date];
-        })
+        .filter((date) => getCustomEntry(date).taskDeferrals[label] && isVisibleDate(date, deferred) && !isCalendarRestDate(date) && !deferred[date])
         .sort();
     }
 
     function getScheduledTaskInfo(date, label, deferred = state.deferred) {
       const item = getEffectiveItem(date, deferred);
+      if (label === "政治理论磨耳朵") {
+        const text = hasPoliticsMorningTask(item) ? "政治理论早自习" : "";
+        return { text, fromDate: "", originalText: text };
+      }
       if (!item || !taskLabels.includes(label)) return { text: "", fromDate: "", originalText: "" };
       if (item["主线模块"] === "顺延" || item["主线模块"] === "考试") {
         return { text: item[label] || "", fromDate: "", originalText: item[label] || "" };
-      }
-      if (isTaskDeferralAnchor(date, label)) {
-        return { text: "", fromDate: "", originalText: item[label] || "" };
       }
       if (item["主线模块"] === "模考" || item["主线模块"] === "事业编套题") {
         return { text: item[label] || "", fromDate: "", originalText: item[label] || "" };
@@ -3289,15 +3424,15 @@
       if (label === "早上1小时" && date >= MORNING_REVISION_START_DATE && item["主线模块"] !== "单休") {
         return { text: MORNING_REVISION_TEXT, fromDate: "", originalText: MORNING_REVISION_TEXT };
       }
-      // 锚定日期之后的申论以顺延后的结果为准；空槽也必须保持为空，
-      // 不能退回 item 里的原任务，否则任务会重复或看似被吞掉。
-      if (date >= "2026-09-14" && (label === "晚上1.5小时申论" || label === "申论跟练打卡") && item["主线模块"] !== "单休") {
-        const anchoredText = getAnchoredShenlunText(date, label);
-        const { plannedDate, sourceDate } = getShenlunSourceInfo(date, label);
+      const anchoredText = item["主线模块"] === "单休" ? "" : getAnchoredShenlunText(date, label);
+      if (anchoredText) {
+        const plannedDate = getPlannedDateFor(date);
+        const shift = getTaskDeferralDates(label, deferred).filter((item) => item < date).length;
+        const sourceDate = shift > 0 ? getShiftedPlannedDate(plannedDate, label, shift) : plannedDate;
         return {
           text: anchoredText,
-          fromDate: anchoredText && sourceDate && sourceDate !== date ? sourceDate : "",
-          originalText: ANCHORED_SHENLUN_PLAN[plannedDate]?.[label] || "",
+          fromDate: sourceDate && sourceDate !== date ? sourceDate : "",
+          originalText: ANCHORED_SHENLUN_PLAN[plannedDate]?.[label] || anchoredText,
         };
       }
       if (item["主线模块"] === "套题阶段") {
@@ -3314,10 +3449,10 @@
       const shift = getTaskDeferralDates(label, deferred).filter((deferralDate) => deferralDate < date).length;
       const sourceIndex = targetIndex - shift;
       const source = studyItems[sourceIndex];
-      const sourceDate = source?.["日期"] || "";
+      const sourceDate = dates[sourceIndex] || "";
       const targetBase = studyItems[targetIndex]?.[label] || "";
       return {
-        text: sourceIndex >= 0 && source ? (source[label] || "") : (item[label] || ""),
+        text: source?.[label] || item[label] || "",
         fromDate: sourceDate && sourceDate !== date ? sourceDate : "",
         originalText: targetBase,
       };
@@ -3332,33 +3467,16 @@
         .forEach((visibleDate) => labels.forEach((targetLabel) => clearTaskStatus(visibleDate, targetLabel)));
     }
 
-    function canDeferSingleTask(date, label, item = getEffectiveItem(date)) {
-      if (!item || !taskLabels.includes(label) || item["主线模块"] === "顺延" ||
-          item["主线模块"] === "考试" || isCalendarRestDate(date)) return false;
-      if (date >= "2026-09-14") {
-        return label === "晚上1.5小时申论" || label === "申论跟练打卡";
-      }
-      return date <= studyItems[studyItems.length - 1]["日期"];
-    }
-
     function deferSingleTask(date, label) {
       const item = getEffectiveItem(date);
       const dates = getVisibleDates().filter((visibleDate) => visibleDate >= date && isStudyScheduleDate(visibleDate));
-      if (!canDeferSingleTask(date, label, item) || dates.length < 2 || !getTaskText(item, label).trim()) {
+      if (!item || dates.length < 2 || !taskLabels.includes(label) || item["主线模块"] === "顺延" || isCalendarRestDate(date)) {
         window.alert("后面没有可顺延的日期了。");
         return false;
       }
       const previousStatus = getTaskStatus(date, label);
-      const taskText = getTaskText(item, label);
-      const sourceDate = date >= "2026-09-14" && (label === "晚上1.5小时申论" || label === "申论跟练打卡")
-        ? getShenlunSourceInfo(date, label).sourceDate
-        : (() => {
-            const plannedDate = getPlannedDateFor(date);
-            const previousShift = getTaskDeferralDates(label).filter((anchorDate) => anchorDate < date).length;
-            return previousShift > 0 ? getShiftedPlannedDate(plannedDate, label, previousShift) : plannedDate;
-          })();
       const entry = getCustomEntry(date);
-      entry.taskDeferrals[label] = { previousStatus, text: taskText, sourceDate };
+      entry.taskDeferrals[label] = { previousStatus };
       setCustomEntry(date, entry);
       clearTaskStatusForLabelFrom(date, label);
       setTaskStatus(date, label, "done");
@@ -3375,6 +3493,42 @@
       clearTaskStatusForLabelFrom(date, label);
       if (previousStatus) setTaskStatus(date, label, previousStatus);
       return true;
+    }
+
+    function migrateLegacyTaskDeferralData() {
+      let changed = false;
+      Object.keys(state.custom || {}).forEach((date) => {
+        const entry = getCustomEntry(date);
+        let touched = false;
+        taskLabels.forEach((label) => {
+          if (entry.carryovers[label]) {
+            delete entry.carryovers[label];
+            delete entry.overrides[label];
+            touched = true;
+          }
+        });
+        const beforeExtras = entry.extras.length;
+        entry.extras = entry.extras.filter((task) => !String(task.text || "").includes("顺延保留："));
+        if (entry.extras.length !== beforeExtras) touched = true;
+        if (touched) {
+          setCustomEntry(date, entry);
+          changed = true;
+        }
+      });
+      if (changed) saveCustom();
+    }
+
+    function applyDeclaredShenlunCompletions() {
+      let changed = false;
+      DECLARED_COMPLETED_SHENLUN_DATES.forEach((date) => {
+        const entry = normalizeCompletion(date);
+        if (entry.tasks["申论跟练打卡"] !== "done") {
+          entry.tasks["申论跟练打卡"] = "done";
+          state.completed[date] = entry;
+          changed = true;
+        }
+      });
+      if (changed) saveCompleted();
     }
 
     function addExtraTask(date, text) {
@@ -3612,7 +3766,15 @@
     function makeBlankFollowupItem(date) {
       const phase = getCalendarStudyPhase(date);
       const isSuite = date >= SUITE_PHASE_START_DATE && phase?.module === "套题阶段";
-      const suite = SUITE_TASKS[getSuiteChoice(date)] || SUITE_TASKS.xingce;
+      const suiteChoice = getSuiteChoice(date);
+      const suite = SUITE_TASKS[suiteChoice] || SUITE_TASKS.xingce;
+      const eveningShenlun = getAnchoredShenlunText(date, "晚上1.5小时申论");
+      const anchoredFollowup = getAnchoredShenlunText(date, "申论跟练打卡");
+      const followupShenlun = isSuite && suiteChoice === "shenlun"
+        ? ""
+        : (anchoredFollowup || (isSuite && suiteChoice === "xingce" && !eveningShenlun
+          ? "晚上申论专项：完成1道小题并对照采分点复盘"
+          : ""));
       return {
         "日期": date,
         "星期": getWeekday(date),
@@ -3625,8 +3787,8 @@
             ? "下午3小时：资料和数量每日固定；图推、判断、言语每周各2次；速算和千词隔天轮换"
             : (date >= AFTERNOON_MODE_START_DATE ? "下午3小时行测：数判资 / 数言资二选一" : AFTERNOON_TASK_TEXT)),
         "粉笔专项积累": "",
-        "晚上1.5小时申论": getAnchoredShenlunText(date, "晚上1.5小时申论"),
-        "申论跟练打卡": getAnchoredShenlunText(date, "申论跟练打卡"),
+        "晚上1.5小时申论": eveningShenlun,
+        "申论跟练打卡": followupShenlun,
         "复盘/当日重点": getCustomEntry(date).overrides["复盘/当日重点"] || phase?.review || "空白安排日：点击修改，写下当天要做的内容。",
         "阶段": isSuite ? suite.stage : (phase?.stage || "空白可编辑"),
         "来源日期": "",
@@ -3659,7 +3821,7 @@
     }
 
     function getSuiteChoice(date) {
-      return getCustomEntry(date).suiteChoice === "shenlun" ? "shenlun" : "xingce";
+      return getWeekday(date) === "周三" ? "shenlun" : "xingce";
     }
 
     function setSuiteChoice(date, choice) {
@@ -3924,7 +4086,8 @@
       if (item["主线模块"] === "顺延") return false;
       const extras = getCustomEntry(date).extras;
       const completion = normalizeCompletion(date);
-      if (isCalendarRestDate(date) && item["主线模块"] === "单休" && extras.length === 0 && !Object.keys(completion.tasks).length) return true;
+      const unifiedShenlunTasks = date >= SHENLUN_UNIFIED_START_DATE ? getUnifiedShenlunSubtasks(date, item) : [];
+      if (isCalendarRestDate(date) && item["主线模块"] === "单休" && !hasPoliticsMorningTask(item) && extras.length === 0 && unifiedShenlunTasks.length === 0 && !Object.keys(completion.tasks).length) return true;
       const usesAfternoonChecklist = shouldUseAfternoonChecklist(item, getTaskText(item, "下午2.5小时行测"));
       const labels = getCompletionTaskLabels(date).filter((label) => !usesAfternoonChecklist || !isAfternoonSubtaskLabel(label));
       const requiredDone = labels.every((label) => isTaskDone(date, label));
@@ -3964,8 +4127,11 @@
 
     function getInitialDate(deferred = {}, weekRest = {}, crossWeekRest = {}) {
       const today = getLocalDateString();
-      if (byDateHas(today, deferred, weekRest, crossWeekRest)) return today;
-      return "2026-06-03";
+      const dates = getVisibleDates(deferred, weekRest, crossWeekRest);
+      if (!dates.length) return PLAN[0]["日期"];
+      if (today < dates[0]) return dates[0];
+      if (today > dates[dates.length - 1]) return dates[dates.length - 1];
+      return today;
     }
 
     function byDateHas(date, deferred = state.deferred, weekRest = state.weekRest, crossWeekRest = state.crossWeekRest) {
@@ -4109,8 +4275,8 @@
         rangeSummary.textContent =
           PLAN[0]["日期"] + " 至 " + visibleDates[visibleDates.length - 1] +
           " · " + plannedDates.length + " 个计划学习日" +
-          (shifted ? " · 累计顺延/考试日 " + shifted + " 天" : "") +
-          " · 10月申论按10.1重新起算 · 后续空白可编辑";
+          (shifted ? " · 已整体后移 " + shifted + " 天（顺延/考试日）" : "") +
+          " · 后续空白可编辑";
       }
       document.getElementById("prevDayButton").disabled = selectedIndex() <= 0;
       document.getElementById("nextDayButton").disabled = selectedIndex() >= getVisibleDates().length - 1;
@@ -4148,6 +4314,9 @@
 
     function shouldUseEveningGroup(item) {
       if (!item) return false;
+      if (item["日期"] >= SHENLUN_UNIFIED_START_DATE) {
+        return item["主线模块"] !== "顺延" && item["主线模块"] !== "考试";
+      }
       if (item["主线模块"] === "单休" || item["主线模块"] === "顺延") return false;
       return item["日期"] >= AFTERNOON_CHECKLIST_START_DATE;
     }
@@ -4169,10 +4338,10 @@
             className: "taskStatusRadio",
           })
         : '';
+      const isFollowup = getEffectiveItem(date)?.["主线模块"] === "后续安排";
       const taskDeferred = isTaskDeferralAnchor(date, label);
       const allowManage = options.editable && context !== "today";
-      const defer = allowManage && withCheck && (taskDeferred || canDeferSingleTask(date, label)) &&
-        (taskDeferred || !!getTaskText(getEffectiveItem(date), label)) && getNextVisibleDate(date)
+      const defer = allowManage && withCheck && taskLabels.includes(label) && !isCalendarRestDate(date) && !isFollowup && getNextVisibleDate(date)
         ? (taskDeferred
           ? '<button class="link-btn danger" data-cancel-defer-task="' + escapeHtml(label) + '" data-cancel-defer-task-date="' + escapeHtml(date) + '">取消顺延</button>'
           : '<button class="link-btn" data-defer-task="' + escapeHtml(label) + '" data-defer-task-date="' + escapeHtml(date) + '">顺延</button>')
@@ -4233,6 +4402,40 @@
 
     function eveningGroupHtml(date, withCheck, options = {}) {
       const item = getEffectiveItem(date);
+      if (date >= SHENLUN_UNIFIED_START_DATE) {
+        const subtasks = getUnifiedShenlunSubtasks(date, item);
+        if (!subtasks.length) return "";
+        const anyUnfinished = subtasks.some((task) => getTaskStatus(date, task.key) === "unfinished");
+        const rows = subtasks.map((task) => {
+          const status = getTaskStatus(date, task.key);
+          const controls = withCheck
+            ? statusControlsHtml({
+                name: "shenlun-" + (options.context || "detail") + "-" + date + "-" + task.key,
+                doneChecked: status === "done",
+                unfinishedChecked: status === "unfinished",
+                attrs: 'data-task="' + escapeHtml(task.key) + '" data-task-date="' + escapeHtml(date) + '"',
+                className: "taskStatusRadio",
+              })
+            : "";
+          const deleteButton = options.editable && task.customId
+            ? '<button class="link-btn danger" data-delete-shenlun-task="' + escapeHtml(task.customId) + '" data-shenlun-task-date="' + escapeHtml(date) + '">删除</button>'
+            : "";
+          const description = [task.time, task.text].filter(Boolean).join(" · ");
+          return '<div class="subtask-row evening-subtask ' + (status === "unfinished" ? "unfinished" : "") + '">' +
+            '<div class="subtask-head"><div class="subtask-main"><span class="subtask-time">' + escapeHtml(task.kind) + '</span><span>' + escapeHtml(task.title) + '</span></div>' +
+            '<span class="task-actions">' + deleteButton + controls + '</span></div>' +
+            (description ? '<div class="subtask-text">' + escapeHtml(description) + '</div>' : '') +
+          '</div>';
+        }).join("");
+        const addForm = options.editable
+          ? '<div class="shenlun-task-form"><input id="shenlunTaskText" class="shenlun-task-input" type="text" placeholder="＋ 添加小任务"><button id="addShenlunTaskButton" class="shenlun-add-button" type="button">添加</button></div>'
+          : "";
+        return '<div class="task-line task-group evening ' + (anyUnfinished ? "unfinished" : "") + '">' +
+          '<span class="task-label"><span>晚上申论学习</span><span class="shenlun-task-count">' + subtasks.length + '项</span></span>' +
+          '<div class="subtask-list">' + rows + '</div>' +
+          addForm +
+        '</div>';
+      }
       const eveningParts = [
         { label: "晚上1.5小时申论", title: "听课/申论" },
         { label: "申论跟练打卡", title: "申论跟练打卡" },
@@ -4360,10 +4563,7 @@
         : "";
       const suiteChoice = getSuiteChoice(item["日期"]);
       const suiteChoiceControl = !examActive && item["主线模块"] === "套题阶段" && !isCalendarRestDate(item["日期"])
-        ? '<div class="mode-switch" aria-label="套题类型">' +
-            '<button class="mode-option ' + (suiteChoice === "xingce" ? "active" : "") + '" data-suite-choice="xingce">行测套题</button>' +
-            '<button class="mode-option ' + (suiteChoice === "shenlun" ? "active" : "") + '" data-suite-choice="shenlun">申论套题</button>' +
-          '</div>'
+        ? '<span class="badge">固定安排：' + (suiteChoice === "shenlun" ? "申论套题" : "行测套题") + '</span>'
         : "";
       const weekSwapActive = isWeekSwapActive(item["日期"]);
       const weekRestControl = !examActive && (!isSunday(item["日期"]) || weekSwapActive)
@@ -4815,6 +5015,21 @@
         renderAll();
       }
 
+      if (event.target.id === "addShenlunTaskButton") {
+        const input = document.getElementById("shenlunTaskText");
+        addShenlunTask(state.selectedDate, input?.value || "");
+        renderAll();
+      }
+
+      const deleteShenlunTaskButton = event.target.closest("[data-delete-shenlun-task]");
+      if (deleteShenlunTaskButton) {
+        deleteShenlunTask(
+          deleteShenlunTaskButton.dataset.shenlunTaskDate || state.selectedDate,
+          deleteShenlunTaskButton.dataset.deleteShenlunTask
+        );
+        renderAll();
+      }
+
       if (event.target.id === "brownNoiseButton") {
         toggleBrownNoise();
       }
@@ -4916,6 +5131,12 @@
         addBrainDumpFromInput();
       }
 
+      if (event.target.id === "shenlunTaskText" && event.key === "Enter") {
+        event.preventDefault();
+        addShenlunTask(state.selectedDate, event.target.value);
+        renderAll();
+      }
+
       if (event.target.id === "focusVideoUrl" && event.key === "Enter") {
         event.preventDefault();
         updateFocusVideoFromInput();
@@ -4953,7 +5174,8 @@
       renderAll();
     });
 
-    // 保留旧版用户数据中的顺延任务和手工修改；自动清理会误删尚未完成的内容。
+    migrateLegacyTaskDeferralData();
+    applyDeclaredShenlunCompletions();
     renderAll();
   </script>
 </body>
