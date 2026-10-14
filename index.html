@@ -2492,14 +2492,14 @@
     const QUANTITY_REVISION_START_DATE = "2026-08-28";
     const QUANTITY_REVISION_DAYS = 19;
     const QUANTITY_PHASE_BASE_END_DATE = "2026-10-01";
-    const CHECK_PHASE_START_DATE = "2026-10-02";
+    const CHECK_PHASE_START_DATE = "2026-10-01";
     const SUITE_PHASE_START_DATE = "2026-10-19";
     const MOCK_EXAM_DATE = "2026-10-12";
     // 10.13–10.14 回到查漏补缺（沿用该阶段的行测/申论安排），10.15–10.16 做事业编套卷，共两套、一天一套。
     const SHIYEBIAN_PHASE_START_DATE = "2026-10-15";
     const SHIYEBIAN_PHASE_END_DATE = "2026-10-16";
     const MORNING_REVISION_START_DATE = "2026-10-01";
-    const MORNING_REVISION_TEXT = "1h：政治理论打卡20m + 现有所学理论复习15m + 言语理解成语记忆5m + 申论积累20m";
+    const MORNING_REVISION_TEXT = "1h：默写资料分析公式+现有所学理论复习15m + 言语理解成语记忆15m + 申论积累30m";
     const SUITE_TASKS = {
       xingce: {
         morning: "上午2h：行测套卷（严格计时整卷模拟，按正式考试顺序完成并涂卡）",
@@ -3373,7 +3373,13 @@
         return entry?.source || ("empty|" + getAnchoredColumnSource(date, "2026-10-01", ""));
       }
       if (column === "政治理论磨耳朵" && date >= "2026-10-06") return getAnchoredColumnSource(date, "2026-10-06", column);
+      if (date >= SHIYEBIAN_PHASE_START_DATE) {
+        const setDays = getShiyebianScheduleDays(column);
+        const setIndex = setDays.indexOf(date);
+        if (setIndex >= 0) return addDays(SHIYEBIAN_PHASE_START_DATE, setIndex);
+      }
       if (date >= SUITE_PHASE_START_DATE) return getAnchoredColumnSource(date, SUITE_PHASE_START_DATE, column);
+      if (date >= CHECK_PHASE_START_DATE) return getAnchoredColumnSource(date, CHECK_PHASE_START_DATE, column);
       const map = getScheduleMap();
       const index = map.actual.indexOf(date);
       if (index < 0) return "";
@@ -3381,9 +3387,15 @@
       return map.base[index - shift] || "";
     }
 
+    function getShiyebianScheduleDays(label = "") {
+      return getScheduleMap().actual.filter(day => day >= SHIYEBIAN_PHASE_START_DATE &&
+        (!label || !isTaskDeferralAnchor(day, label))).slice(0, 2);
+    }
+
     // 新计划从自己的起点计数，旧计划的累计延迟不重复计入。
     function getAnchoredColumnSource(date, start, label = "") {
-      const days = getScheduleMap().actual.filter(day => day >= start);
+      const reserved = start === SUITE_PHASE_START_DATE ? getShiyebianScheduleDays(label) : [];
+      const days = getScheduleMap().actual.filter(day => day >= start && !reserved.includes(day));
       const index = days.indexOf(date);
       if (index < 0) return "";
       const shift = label ? days.slice(0, index).filter(day => isTaskDeferralAnchor(day, label)).length : 0;
@@ -3426,7 +3438,8 @@
 
     function getBaseScheduledItem(date) {
       let item;
-      if (date === MOCK_EXAM_DATE) item = makeMockExamItem(date);
+      if (date >= CHECK_PHASE_START_DATE && date < SHIYEBIAN_PHASE_START_DATE) item = makeBlankFollowupItem(date);
+      else if (date === MOCK_EXAM_DATE) item = makeMockExamItem(date);
       else if (date >= SHIYEBIAN_PHASE_START_DATE && date <= SHIYEBIAN_PHASE_END_DATE) item = makeShiyebianItem(date);
       else if (byDate.has(date) && byDate.get(date)["主线模块"] !== "单休") item = { ...byDate.get(date) };
       else item = makeBlankFollowupItem(date);
@@ -3727,6 +3740,10 @@
     }
 
     function getCurrentModuleName(date) {
+      if (date >= CHECK_PHASE_START_DATE) {
+        const module = getEffectiveItem(date)?.["主线模块"];
+        if (module && !["单休", "顺延", "考试", "模考"].includes(module)) return module;
+      }
       if (date >= SUITE_PHASE_START_DATE) return "套题阶段";
       if (date >= CHECK_PHASE_START_DATE && getEffectiveItem(date)?.["主线模块"] === "数量关系") return "数量关系";
       if (date >= CHECK_PHASE_START_DATE) return "查漏补缺";
