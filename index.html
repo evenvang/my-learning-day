@@ -1683,6 +1683,25 @@
       color: #a5afbd;
     }
 
+    .learned-suite-cell {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .learned-suite-title {
+      padding: 4px;
+      color: #32435a;
+      font-size: 13px;
+      font-weight: 750;
+    }
+
+    .learned-suite-cell .learned-input {
+      flex: 1;
+      min-height: 180px;
+      resize: none;
+    }
+
     .empty {
       border: 1px dashed var(--line);
       border-radius: 8px;
@@ -3018,10 +3037,26 @@
     }
 
     function getLearnedCell(row, column) {
+      if (row === "__xingceSets") {
+        const content = getLearnedContent();
+        if (Object.prototype.hasOwnProperty.call(content[row] || {}, column)) return content[row][column];
+        if (column === "content") return LEARNED_ROWS.filter(name => name !== "申论")
+          .map(name => content[name]?.setsPractice ? "【" + name + "】\n" + content[name].setsPractice : "")
+          .filter(Boolean).join("\n\n");
+        return "";
+      }
       return getLearnedContent()[row]?.[column] || "";
     }
 
     function setLearnedCell(row, column, text) {
+      if (row === "__xingceSets" && ["strategy", "content"].includes(column)) {
+        const content = getLearnedContent();
+        if (!content[row]) content[row] = {};
+        // 显式保留空文本，避免清空后重新显示旧格子的内容；旧笔记仍保留在原字段中。
+        content[row][column] = text;
+        saveTools();
+        return;
+      }
       if (!LEARNED_ROWS.includes(row) || !LEARNED_COLUMNS.some((item) => item.id === column)) return;
       const content = getLearnedContent();
       if (!content[row]) content[row] = {};
@@ -4733,17 +4768,28 @@
         ...LEARNED_COLUMNS.map((column) => '<div class="learned-head">' + escapeHtml(column.label) + '</div>'),
       ];
 
-      LEARNED_ROWS.forEach((row) => {
-        cells.push('<div class="learned-row-label">' + escapeHtml(row) + '</div>');
-        LEARNED_COLUMNS.forEach((column) => {
+      LEARNED_ROWS.forEach((row, rowIndex) => {
+        const gridRow = rowIndex + 2;
+        cells.push('<div class="learned-row-label" style="grid-row:' + gridRow + ';grid-column:1">' + escapeHtml(row) + '</div>');
+        LEARNED_COLUMNS.forEach((column, columnIndex) => {
+          if (column.id === "setsPractice" && row !== "申论") return;
           cells.push(
-            '<div class="learned-cell">' +
+            '<div class="learned-cell" style="grid-row:' + gridRow + ';grid-column:' + (columnIndex + 2) + '">' +
               '<textarea class="learned-input" data-learned-row="' + escapeHtml(row) + '" data-learned-column="' + escapeHtml(column.id) + '" placeholder="可填写笔记、错题、资料位置…">' + escapeHtml(getLearnedCell(row, column.id)) + '</textarea>' +
             '</div>'
           );
         });
       });
 
+      [
+        { key: "strategy", title: "套题策略", start: 2, span: 4 },
+        { key: "content", title: "套题内容", start: 6, span: 5 },
+      ].forEach(section => cells.push(
+        '<div class="learned-cell learned-suite-cell" style="grid-column:7;grid-row:' + section.start + ' / span ' + section.span + '">' +
+          '<label class="learned-suite-title" for="xingce-sets-' + section.key + '">' + section.title + '</label>' +
+          '<textarea id="xingce-sets-' + section.key + '" class="learned-input" data-learned-row="__xingceSets" data-learned-column="' + section.key + '" placeholder="' + (section.key === "strategy" ? '做题顺序、时间分配、取舍策略…' : '套卷记录、订正复盘、资料位置…') + '">' + escapeHtml(getLearnedCell("__xingceSets", section.key)) + '</textarea>' +
+        '</div>'
+      ));
       document.getElementById("learnedContentGrid").innerHTML = cells.join("");
     }
 
