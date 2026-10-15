@@ -3621,6 +3621,42 @@
       setCustomEntry(date, entry);
     }
 
+    function getOrderedDailyTasks(item) {
+      const extras = getCustomEntry(item["日期"]).extras;
+      const labels = item["主线模块"] === "考试" ? [] : getVisibleTaskLabels(item);
+      const rows = [];
+      labels.forEach(label => {
+        extras.filter(task => task.beforeLabel === label).forEach(task => rows.push({ task }));
+        rows.push({ label });
+      });
+      extras.filter(task => !labels.includes(task.beforeLabel)).forEach(task => rows.push({ task }));
+      return rows;
+    }
+
+    function moveExtraTask(date, id, direction) {
+      if (direction !== -1 && direction !== 1) return;
+      const item = getEffectiveItem(date);
+      if (!item) return;
+      const rows = getOrderedDailyTasks(item);
+      const index = rows.findIndex(row => row.task?.id === id);
+      const target = index + direction;
+      if (index < 0 || target < 0 || target >= rows.length) return;
+      [rows[index], rows[target]] = [rows[target], rows[index]];
+      const entry = getCustomEntry(date);
+      entry.extras = rows.flatMap((row, i) => row.task ? [{
+        ...row.task,
+        beforeLabel: rows.slice(i + 1).find(next => next.label)?.label || "",
+      }] : []);
+      setCustomEntry(date, entry);
+    }
+
+    function dailyTaskRowsHtml(item, canCheck, context) {
+      return getOrderedDailyTasks(item).map(row => row.task
+        ? extraTaskLineHtml(item["日期"], row.task, context)
+        : taskLineHtml(row.label, getTaskText(item, row.label), item["日期"], canCheck, { editable: context === "detail" && canCheck, context })
+      ).join("");
+    }
+
     function setExtraTaskStatus(date, id, status) {
       const entry = getCustomEntry(date);
       entry.extras = entry.extras.map((task) => task.id === id ? { ...task, status } : task);
@@ -4077,7 +4113,12 @@
           state.completed[destination] = entry;
         } else {
           const entry = state.custom[destination] || (state.custom[destination] = {});
-          if (field === "custom") entry[key] = value;
+          if (field === "custom" && key === "extras") {
+            // 考试日手动新增的任务可能留在目的日期，不能被顺延回来的任务覆盖。
+            const existing = Array.isArray(entry[key]) ? entry[key] : [];
+            const incomingIds = new Set(value.map(task => task.id));
+            entry[key] = [...value, ...existing.filter(task => !incomingIds.has(task.id))];
+          } else if (field === "custom") entry[key] = value;
           else (entry[field] || (entry[field] = {}))[key] = value;
         }
       });
@@ -4411,12 +4452,9 @@
       document.getElementById("dateDay").textContent = day;
       document.getElementById("dateWeek").textContent = item["星期"];
       document.getElementById("todayBadge").textContent = item["主线模块"];
-      const extras = item["主线模块"] === "考试" ? [] : getCustomEntry(item["日期"]).extras;
       const canCheck = item["主线模块"] !== "顺延" && item["主线模块"] !== "考试";
-      document.getElementById("todayTasks").innerHTML = item["主线模块"] === "考试"
-        ? '<div class="task-line"><span class="task-label"><span>考试日</span></span><div class="task-text">今天不安排学习任务，专心考试和休整。</div></div>'
-        : getVisibleTaskLabels(item).map((label) => taskLineHtml(label, getTaskText(item, label), item["日期"], canCheck, { editable: false, context: "today" })).join("") +
-          extras.map((task) => extraTaskLineHtml(item["日期"], task, "today")).join("");
+      document.getElementById("todayTasks").innerHTML = (item["主线模块"] === "考试"
+        ? '<div class="task-line"><span class="task-label"><span>考试日</span></span><div class="task-text">原计划按考试日规则顺延；可手动添加当天任务。</div></div>' : "") + dailyTaskRowsHtml(item, canCheck, "today");
     }
 
     function displayTaskLabel(label, item = null, text = "") {
@@ -4627,7 +4665,12 @@
         className: "extraStatusRadio",
       });
       const deleteButton = context === "today" ? "" : '<button class="link-btn danger" data-delete-extra="' + escapeHtml(task.id) + '" data-delete-extra-date="' + escapeHtml(date) + '">删除</button>';
-      return '<div class="task-line extra ' + (status === "unfinished" ? "unfinished" : "") + '"><span class="task-label"><span>补充任务</span><span class="task-actions">' + controls + deleteButton + '</span></span><div class="task-text">' + escapeHtml(task.text) + '</div></div>';
+      const rows = getOrderedDailyTasks(getEffectiveItem(date));
+      const index = rows.findIndex(row => row.task?.id === task.id);
+      const moveButtons = context === "today" ? "" : [-1, 1].map(direction =>
+        '<button type="button" class="link-btn" aria-label="' + (direction < 0 ? '上移任务' : '下移任务') + '" title="' + (direction < 0 ? '上移' : '下移') + '" data-move-extra="' + escapeHtml(task.id) + '" data-move-extra-date="' + escapeHtml(date) + '" data-move-direction="' + direction + '" ' + (index + direction < 0 || index + direction >= rows.length ? 'disabled' : '') + '>' + (direction < 0 ? '↑' : '↓') + '</button>'
+      ).join("");
+      return '<div class="task-line extra ' + (status === "unfinished" ? "unfinished" : "") + '"><span class="task-label"><span>补充任务</span><span class="task-actions">' + moveButtons + controls + deleteButton + '</span></span><div class="task-text">' + escapeHtml(task.text) + '</div></div>';
     }
 
     function renderCalendar() {
@@ -4676,7 +4719,6 @@
     function renderDetail() {
       const item = getTodayPlan();
       const examActive = isExamDay(item["日期"]);
-      const extras = examActive ? [] : getCustomEntry(item["日期"]).extras;
       const canCheck = item["主线模块"] !== "顺延" && item["主线模块"] !== "考试";
       const crossSwapActive = isCrossWeekWorkSunday(item["日期"]) || isCrossWeekRestDate(item["日期"]);
       const weekSwapText = isWeeklyRestDate(item["日期"])
@@ -4722,14 +4764,11 @@
             (crossSwapActive ? '<button class="btn" data-clear-cross-week-rest="' + escapeHtml(item["日期"]) + '">恢复周日休息</button>' : '') +
           '</div>'
         : "";
-      const taskStackHtml = examActive
-        ? '<div class="task-stack"><div class="task-line"><span class="task-label"><span>考试日</span></span><div class="task-text">今天不安排学习任务，专心考试和休整。取消考试日后，原来的排期和你手动编辑过的内容会恢复显示。</div></div></div>'
-        : '<div class="task-stack">' +
-            getVisibleTaskLabels(item).map((label) => taskLineHtml(label, getTaskText(item, label), item["日期"], canCheck, { editable: canCheck, context: "detail" })).join("") +
-            extras.map((task) => extraTaskLineHtml(item["日期"], task, "detail")).join("") +
-            '<div class="task-line"><span class="task-label"><span>复盘/当日重点</span></span><div class="task-text">' + escapeHtml(item["复盘/当日重点"]) + '</div></div>' +
-          '</div>';
-      const extraFormHtml = examActive ? "" : '<div class="extra-form"><textarea id="extraTaskText" class="textarea" placeholder="写下临时补充任务，比如：补做资料错题10道"></textarea><button id="addExtraTaskButton" class="btn primary">添加</button></div>';
+      const taskStackHtml = '<div class="task-stack">' +
+        (examActive ? '<div class="task-line"><span class="task-label"><span>考试日</span></span><div class="task-text">原计划按考试日规则顺延；你可以在下方添加当天任务，并单独标记完成。</div></div>' : '') +
+        dailyTaskRowsHtml(item, canCheck, "detail") +
+        (examActive ? '' : '<div class="task-line"><span class="task-label"><span>复盘/当日重点</span></span><div class="task-text">' + escapeHtml(item["复盘/当日重点"]) + '</div></div>') + '</div>';
+      const extraFormHtml = '<div class="extra-form"><textarea id="extraTaskText" class="textarea" placeholder="写下临时补充任务，比如：补做资料错题10道"></textarea><button id="addExtraTaskButton" class="btn primary">添加</button></div>';
       document.getElementById("selectedBadge").textContent = item["主线模块"];
       document.getElementById("detail").innerHTML =
         '<div class="detail-top">' +
@@ -5091,6 +5130,12 @@
       const afternoonModeButton = event.target.closest("[data-afternoon-mode]");
       if (afternoonModeButton) {
         setAfternoonMode(afternoonModeButton.dataset.afternoonModeDate || state.selectedDate, afternoonModeButton.dataset.afternoonMode);
+        renderAll();
+      }
+
+      const moveExtra = event.target.closest("[data-move-extra]");
+      if (moveExtra) {
+        moveExtraTask(moveExtra.dataset.moveExtraDate || state.selectedDate, moveExtra.dataset.moveExtra, Number(moveExtra.dataset.moveDirection));
         renderAll();
       }
 
