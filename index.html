@@ -3641,7 +3641,7 @@
       for (let day = 1; day <= 50; day++) {
         add(addDays("2026-10-14", day - 1), "speed-practice-v1-" + day,
           "每日速算 · 第" + day + "天",
-          "《速算大练兵》第" + day + "天：完成每日速算20题，核对答案并订正错题，记录用时与正确数。套题演练不计入本项；涉及尚未模考的真题，留到对应整卷完成后再练。");
+          "《速算大练兵》第" + day + "天");
       }
       state.tools.speedStudyPlanV1 = { startDate: "2026-10-14", practiceDays: 50 };
       saveTools();
@@ -3676,7 +3676,7 @@
       const replayDates = new Set();
       ["16", "17", "18", "19", "20", "21", "22", "24", "25", "26"].forEach((day, index) => {
         let replayDate = "2026-10-" + day;
-        while (isExamDay(replayDate)) replayDate = addDays(replayDate, 1);
+        while (isExamDay(replayDate) || replayDates.has(replayDate)) replayDate = addDays(replayDate, 1);
         targets.set("speed-replay-v1-" + (index + 1), replayDate);
         replayDates.add(replayDate);
       });
@@ -3696,6 +3696,11 @@
       Object.entries(state.custom).forEach(([from, entry]) => {
         (entry.extras || []).forEach(task => {
           if (!isSpeedStudyTask(task)) return;
+          const practiceMatch = /^speed-practice-v1-(\d+)$/.exec(task.id);
+          if (practiceMatch) {
+            const shortText = "《速算大练兵》第" + practiceMatch[1] + "天";
+            if (task.text !== shortText) { task.text = shortText; changed = true; }
+          }
           // 超出考前练习容量的速算保留原数据，但不再显示为待办或计入完成率。
           const paused = task.id.startsWith("speed-practice-v1-") && !targets.has(task.id) && normalizeStatus(task.status ?? task.done) !== "done";
           if (!!task.planPaused !== paused) { task.planPaused = paused; changed = true; }
