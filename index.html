@@ -2460,6 +2460,7 @@
       return plan;
     })();
     let usePreviousShenlunGroups = false;
+    let usePreviousShenlunSpacing = false;
     const SUITE_STAGES = [{"stage":"套卷启动","time":"2026-10-19 至 2026-11-08","rhythm":"周一、二、四、五、六行测；周三申论","focus":"从模块思维切到整卷节奏"},{"stage":"套卷强化","time":"2026-11-09 至 2026-11-30","rhythm":"周一、二、四、五、六行测；周三申论","focus":"错题按模块回填"},{"stage":"套题阶段","time":"2026-12-01 至 2026-12-31","rhythm":"周一、二、四、五、六行测；周三申论","focus":"稳定做题顺序和书写节奏"}];
     const MACRO_TIMELINE = {"months":[{"key":"2026-06","label":"26年6月"},{"key":"2026-07","label":"7月"},{"key":"2026-08","label":"8月"},{"key":"2026-09","label":"9月"},{"key":"2026-10","label":"10月"},{"key":"2026-11","label":"11月"},{"key":"2026-12","label":"12月"},{"key":"2027-01","label":"27年1月"},{"key":"2027-02","label":"2月"},{"key":"2027-03","label":"3月"},{"key":"2027-04","label":"4月"},{"key":"2027-05","label":"5月"}],"rows":[{"id":"thesis","label":"毕业","cells":{"2026-06":"中期答辩准备\n6月底中期答辩","2026-07":"论文方向复盘\n整理修改清单","2026-08":"补文献\n调整论文框架","2026-09":"补案例和材料\n沉淀章节素材","2026-10":"明确写作提纲\n搭建章节结构","2026-11":"文献和案例归档\n准备正式写作","2026-12":"初稿启动\n推进主体章节","2027-01":"寒假写作\n完善章节草稿","2027-02":"初稿收尾\n准备3月提交","2027-03":"毕业论文初稿\n初稿修改稿","2027-04":"论文修改稿\n4月底定稿","2027-05":"盲审\n预答辩\n衔接6月答辩"}},{"id":"exam","label":"考公","cells":{"2026-06":"资料分析\n判断推理启动","2026-07":"判断推理\n资料带练","2026-08":"判断推理收尾\n言语理解启动","2026-09":"数量关系","2026-10":"查漏补缺\n10.19套题启动","2026-11":"套卷强化\n央选/辽宁/贵州准备","2026-12":"央选\n辽宁选调\n贵州选调","2027-01":"广东省考准备\n常识政治巩固","2027-02":"广东省考\n内蒙古选调准备","2027-03":"内蒙古选调\n广东选调","2027-04":"海南选调\n内蒙古省考强化","2027-05":"内蒙古省考冲刺\n错题回炉"}}]};
     const STORAGE_KEY = "gongkao-study-dashboard-v1";
@@ -3285,7 +3286,8 @@
         "上午1.5小时行测",
         "下午2.5小时行测",
         "晚上1.5小时申论",
-      ];
+      ].filter(label => !(label === "晚上1.5小时申论" && item["日期"] >= NOVEMBER_PAPERS_START &&
+        item["主线模块"] === "模考" && !hasCustomTaskValue(item["日期"], label)));
     }
 
     function shenlunCustomTaskKey(id) {
@@ -3490,7 +3492,8 @@
       const assign = (batches, start, historical) => {
         let cursor = start;
         for (const [source, topics] of batches) {
-          const destination = days.find(day => day >= cursor && day >= source &&
+          const destination = days.find(day => day >= cursor &&
+            (day >= source || (!historical && !usePreviousShenlunSpacing && day >= NOVEMBER_PAPERS_START)) &&
             !isTaskDeferralAnchor(day, "申论跟练打卡") &&
             (historical || day < SUITE_PHASE_START_DATE || getSuiteChoice(day) !== "shenlun"));
           if (!destination) throw new Error("申论任务超出可显示排期，任务未删除，请延长日历。");
@@ -3799,6 +3802,23 @@
       saveTools();
     }
 
+    function ensureContinuousShenlunPlan() {
+      if (state.tools.continuousShenlunV1) return;
+      usePreviousShenlunSpacing = true;
+      invalidateScheduleCaches();
+      let records;
+      try {
+        records = captureScheduleRecords().filter(record => record.date >= NOVEMBER_PAPERS_START &&
+          (record.label.includes("申论") || record.key === "shenlunTasks"));
+      } finally {
+        usePreviousShenlunSpacing = false;
+        invalidateScheduleCaches();
+      }
+      restoreScheduleRecords(records);
+      state.tools.continuousShenlunV1 = true;
+      saveTools();
+    }
+
     function getActiveExtraTasks(date) {
       return getCustomEntry(date).extras.filter(task => !task.planPaused &&
         (!(task.id || "").startsWith("timed-v2-") ||
@@ -4029,7 +4049,7 @@
       const template = !shiftedRest && (entry.sundayMode === "mock" || defaultMock) ? SUNDAY_MOCK_TEMPLATE : SUNDAY_REST_TEMPLATE;
       const eveningTask = entry.overrides["晚上1.5小时申论"] ||
         getAnchoredShenlunText(date, "晚上1.5小时申论") ||
-        template.tasks["晚上1.5小时申论"];
+        (date >= NOVEMBER_PAPERS_START && template.module === "模考" ? "" : template.tasks["晚上1.5小时申论"]);
       return {
         "日期": date,
         "星期": getWeekday(date),
@@ -4202,7 +4222,8 @@
       const template = nextMode === "mock" ? SUNDAY_MOCK_TEMPLATE : SUNDAY_REST_TEMPLATE;
       coreTaskLabels.forEach((label) => {
         if (nextMode === "mock" || label !== "晚上1.5小时申论") {
-          entry.overrides[label] = template.tasks[label];
+          if (date >= NOVEMBER_PAPERS_START && nextMode === "mock" && label === "晚上1.5小时申论") delete entry.overrides[label];
+          else entry.overrides[label] = template.tasks[label];
         } else {
           delete entry.overrides[label];
         }
@@ -5007,8 +5028,6 @@
             '<span class="day-number"><span>' + day + '</span><span class="status-dot dot-' + escapeHtml(dotModule) + '"></span></span>' +
             '<span class="day-subject">' + escapeHtml(module) + '</span>' +
             '<span class="day-subject' + (suiteChoice ? " suite-tag-" + suiteChoice : "") + '">' + escapeHtml(item["阶段"]) + '</span>' +
-            (module === "套题阶段" && NOVEMBER_PAPERS[getTaskSourceDate(date, "上午1.5小时行测")]
-              ? '<span class="day-subject">' + escapeHtml(NOVEMBER_PAPERS[getTaskSourceDate(date, "上午1.5小时行测")]) + '</span>' : '') +
           '</button>'
         );
       }
@@ -5365,12 +5384,16 @@
     }
 
     function renderAll() {
+      usePreviousShenlunSpacing = !state.tools.continuousShenlunV1;
       // 先按旧分组完成上一版迁移，再进行本次按题重组。
       usePreviousShenlunGroups = !state.tools.shenlunRegroupV2;
       invalidateScheduleCaches();
       try { ensureNovemberPaperPlan(); }
       finally { usePreviousShenlunGroups = false; invalidateScheduleCaches(); }
       ensureShenlunRegrouping();
+      usePreviousShenlunSpacing = false;
+      invalidateScheduleCaches();
+      ensureContinuousShenlunPlan();
       ensureSpeedStudyPlan();
       clearScheduleCache();
       renderMonthOptions();
